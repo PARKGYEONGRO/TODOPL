@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLANNER</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome 아이콘 CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    </style>
+</head>
+<body class="bg-white text-gray-900 min-h-screen flex flex-col">
+
+    <!-- PC/모바일 통합 헤더 -->
+    <header class="border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+        <h1 class="text-xl font-extrabold tracking-widest">TODOPL</h1>
+        <div class="text-sm text-gray-500 font-medium">2026.07.22 수 <i class="fa-solid fa-sliders ml-1"></i></div>
+    </header>
+
+    <!-- 메인 컨텐츠 영역 -->
+    <main class="flex-1 max-w-[1600px] w-full mx-auto">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- 모바일 하단 고정 탭바 (PC에서는 hidden) -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around py-2 z-50">
+        <a href="?view=calendar" class="flex flex-col items-center text-xs text-red-500 font-bold">
+            <i class="fa-regular fa-calendar-days text-lg mb-1"></i>
+            <span>캘린더</span>
+        </a>
+        <a href="?view=todo" class="flex flex-col items-center text-xs text-gray-400">
+            <i class="fa-solid fa-list-check text-lg mb-1"></i>
+            <span>할 일</span>
+        </a>
+        <a href="?view=stats" class="flex flex-col items-center text-xs text-gray-400">
+            <i class="fa-chart-simple fa-solid text-lg mb-1"></i>
+            <span>통계</span>
+        </a>
+    </nav>
+
+</body>
+</html>
