@@ -1,0 +1,363 @@
+<!-- =========================
+     기본 통계 카드
+========================= -->
+
+<div class="grid grid-cols-2 gap-3">
+
+    <!-- 전체 할 일 -->
+    <div class="bg-gray-50 rounded-2xl p-4 h-20">
+
+        <p class="text-xs text-gray-400">
+            전체 할 일
+        </p>
+
+        <div class="flex items-baseline gap-1 mt-1">
+
+            <span class="text-2xl font-normal text-gray-900">
+                {{ total_count }}
+            </span>
+
+            <span class="text-xs text-gray-400">
+                개
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- 완료 -->
+    <div class="bg-gray-50 rounded-2xl p-4 h-20">
+
+        <p class="text-xs text-gray-400">
+            완료
+        </p>
+
+        <div class="flex items-baseline gap-1 mt-1">
+
+            <span class="text-2xl font-normal text-red-500">
+                {{ completed_count }}
+            </span>
+
+            <span class="text-xs text-gray-400">
+                개
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- 완료율 -->
+    <div class="bg-gray-50 rounded-2xl p-4 h-20">
+
+        <p class="text-xs text-gray-400">
+            완료율
+        </p>
+
+        <div class="flex items-baseline gap-0.5 mt-1">
+
+            <span class="text-2xl font-normal text-amber-500">
+                {{ completion_rate }}
+            </span>
+
+            <span class="text-sm text-gray-400">
+                %
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- 미완료 -->
+    <div class="bg-gray-50 rounded-2xl p-4 h-20">
+
+        <p class="text-xs text-gray-400">
+            미완료
+        </p>
+
+        <div class="flex items-baseline gap-1 mt-1">
+
+            <span class="text-2xl font-normal text-gray-500">
+                {{ incomplete_count }}
+            </span>
+
+            <span class="text-xs text-gray-400">
+                개
+            </span>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     월간 진행률
+========================= -->
+
+<section class="mt-4 bg-gray-50 rounded-2xl p-4">
+
+    <div class="flex items-center justify-between mb-3">
+
+        <h3 class="text-sm font-bold text-gray-900">
+            월간 진행률
+        </h3>
+
+        <span class="text-sm font-medium text-gray-900">
+            {{ completion_rate }}%
+        </span>
+
+    </div>
+
+    <div class="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+
+        <div
+            class="h-full bg-red-500 rounded-full"
+            style="width: {{ completion_rate }}%;">
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     태그별 현황
+========================= -->
+
+<section class="mt-4 bg-gray-50 rounded-2xl p-4">
+
+    <h3 class="text-sm font-bold text-gray-900 mb-4">
+        태그별 현황
+    </h3>
+
+
+    <div class="space-y-4">
+
+        <!-- 업무 -->
+        <div>
+
+            <div class="flex justify-between items-center mb-1.5">
+
+                <span class="text-xs text-gray-500">
+                    업무
+                </span>
+
+                <span class="text-xs text-gray-400">
+                    1/3
+                </span>
+
+            </div>
+
+            <div class="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
+
+                <div
+                    class="h-full bg-black rounded-full"
+                    style="width: 33%;">
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- 개인 -->
+        <div>
+
+            <div class="flex justify-between items-center mb-1.5">
+
+                <span class="text-xs text-gray-500">
+                    개인
+                </span>
+
+                <span class="text-xs text-gray-400">
+                    1/1
+                </span>
+
+            </div>
+
+            <div class="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
+
+                <div
+                    class="h-full bg-black rounded-full"
+                    style="width: 100%;">
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- 건강 -->
+        <div>
+
+            <div class="flex justify-between items-center mb-1.5">
+
+                <span class="text-xs text-gray-500">
+                    건강
+                </span>
+
+                <span class="text-xs text-gray-400">
+                    0/1
+                </span>
+
+            </div>
+
+            <div class="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
+
+                <div
+                    class="h-full bg-black rounded-full"
+                    style="width: 0%;">
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- 공부 -->
+        <div>
+
+            <div class="flex justify-between items-center mb-1.5">
+
+                <span class="text-xs text-gray-500">
+                    공부
+                </span>
+
+                <span class="text-xs text-gray-400">
+                    0/2
+                </span>
+
+            </div>
+
+            <div class="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
+
+                <div
+                    class="h-full bg-black rounded-full"
+                    style="width: 0%;">
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- 기타 -->
+        <div>
+
+            <div class="flex justify-between items-center mb-1.5">
+
+                <span class="text-xs text-gray-500">
+                    기타
+                </span>
+
+                <span class="text-xs text-gray-400">
+                    0/2
+                </span>
+
+            </div>
+
+            <div class="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
+
+                <div
+                    class="h-full bg-black rounded-full"
+                    style="width: 0%;">
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+</section>
+
+
+<!-- =========================
+     우선순위별 현황
+========================= -->
+
+<section class="mt-4 bg-gray-50 rounded-2xl p-4 mb-6">
+
+    <h3 class="text-sm font-bold text-gray-900 mb-4">
+        우선순위별 현황
+    </h3>
+
+
+    <div class="grid grid-cols-3 gap-2">
+
+        <!-- 높음 -->
+        <div class="bg-white rounded-lg py-3 text-center">
+
+            <div class="flex justify-center mb-1">
+
+                <span class="w-2 h-2 bg-red-500 rounded-full"></span>
+
+            </div>
+
+            <p class="text-lg font-medium text-gray-900">
+                2
+            </p>
+
+            <p class="text-xs text-gray-400 mt-0.5">
+                높음
+            </p>
+
+            <p class="text-xs text-red-500 mt-1">
+                0완료
+            </p>
+
+        </div>
+
+
+        <!-- 보통 -->
+        <div class="bg-white rounded-lg py-3 text-center">
+
+            <div class="flex justify-center mb-1">
+
+                <span class="w-2 h-2 bg-amber-500 rounded-full"></span>
+
+            </div>
+
+            <p class="text-lg font-medium text-gray-900">
+                3
+            </p>
+
+            <p class="text-xs text-gray-400 mt-0.5">
+                보통
+            </p>
+
+            <p class="text-xs text-amber-500 mt-1">
+                1완료
+            </p>
+
+        </div>
+
+
+        <!-- 낮음 -->
+        <div class="bg-white rounded-lg py-3 text-center">
+
+            <div class="flex justify-center mb-1">
+
+                <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+
+            </div>
+
+            <p class="text-lg font-medium text-gray-900">
+                2
+            </p>
+
+            <p class="text-xs text-gray-400 mt-0.5">
+                낮음
+            </p>
+
+            <p class="text-xs text-gray-400 mt-1">
+                1완료
+            </p>
+
+        </div>
+
+    </div>
+
+</section>

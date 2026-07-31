@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="min-h-screen bg-white pb-20">
+
+    <!-- 통계 헤더 -->
+    <section class="px-5 pt-4">
+
+        <div class="flex items-start justify-between">
+
+            <div>
+                <p class="text-xs text-gray-400 mb-1">
+                    이번달 통계
+                </p>
+
+                <h2 class="text-xl font-extrabold text-gray-900">
+                    8월
+                </h2>
+            </div>
+
+            <!-- 월 선택 -->
+            <button
+                type="button"
+                class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-lg text-xs font-semibold text-gray-700">
+
+                <i class="fa-regular fa-calendar-days"></i>
+
+                <span>2026.08</span>
+
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- 통계 본문 -->
+    <main class="px-5 pt-5">
+
+        {% include 'todos/partials/mobile_stats.html' %}
+
+    </main>
+
+</div>
+
+{% endblock %}
