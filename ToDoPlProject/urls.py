@@ -22,4 +22,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.todo_list, name='todo_list'),
     path('creat/', views.todo_create, name='todo_create'),
+    path('toggle/<int:todo_id>/', views.todo_toggle, name='todo_toggle'), #토글 추가
+    path('delete/<int:todo_id>/', views.todo_delete, name='todo_delete'), #삭제 추가
+    path('edit/<int:todo_id>/', views.todo_edit, name='todo_edit'), #수정 추가
 ]

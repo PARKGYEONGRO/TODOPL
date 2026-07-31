@@ -13,7 +13,7 @@ class Todo(models.Model):
         ('PERSONAL', '개인'),
         ('HEALTH', '건강'),
         ('STUDY', '공부'),
-        ('ETC', '기타')    
+        ('ETC', '기타'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
@@ -21,7 +21,7 @@ class Todo(models.Model):
     is_completed = models.BooleanField(default=False, verbose_name='완료 여부')
     due_date = models.DateField(db_index=True, verbose_name='마감일') #명세서상 db_index
     priority = models.CharField(max_length=1, choices=PRIORITY_CHOICES, default='M', verbose_name='우선순위')
-    tag = models.CharField(max_length=10, choices=TAG_CHOICES, default='WORK', verbose_name='태그')
+    tag = models.CharField(max_length=20, choices=TAG_CHOICES, default='WORK', verbose_name='태그')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __init__(self, *args, **kwargs):

@@ -6,39 +6,98 @@
     <!-- [좌측] 미니 캘린더 및 태그 필터 (PC 전용 / 모바일 캘린더 탭) -->
     <aside class="w-full md:w-80 border-r border-gray-200 p-6 flex flex-col justify-between">
         <div>
-            <!-- 월간 네비게이션 -->
+            <!-- 월간 네비게이션 (이전/다음 달 이동) -->
             <div class="flex justify-between items-center mb-6">
-                <button class="text-gray-400 hover:text-black"><i class="fa-solid fa-chevron-left"></i></button>
-                <span class="font-bold text-lg">2026.07</span>
-                <button class="text-gray-400 hover:text-black"><i class="fa-solid fa-chevron-right"></i></button>
+                <a href="?year={{ prev_year }}&month={{ prev_month }}" class="text-gray-400 hover:text-black">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </a>
+                <h2 class="font-extrabold text-base">{{ year }}.{{ month }}</h2>
+                <a href="?year={{ next_year }}&month={{ next_month }}" class="text-gray-400 hover:text-black">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
             </div>
 
             <!-- 미니 달력 그리드 -->
-            <div class="grid grid-cols-7 gap-2 text-center text-sm font-medium mb-8">
-                <span class="text-red-500">일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
-                <!-- 날짜 행 예시 -->
-                <span class="text-gray-300">28</span><span class="text-gray-300">29</span><span class="text-gray-300">30</span>
-                <span>1</span><span>2</span><span>3</span><span>4</span>
-                <span class="text-red-500">5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span>
-                <span class="text-red-500">12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span>
-                <span class="text-red-500">19</span><span>20</span><span>21</span>
-                <!-- 오늘 날짜 선택 (22) -->
-                <span class="bg-black text-white rounded-full w-7 h-7 flex items-center justify-center mx-auto font-bold">22</span>
-                <span>23</span><span>24</span><span>25</span>
-                <span class="text-red-500">26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span class="text-gray-300">1</span>
+            <div>
+                <!-- 요일 헤더 -->
+                <div class="grid grid-cols-7 text-center text-xs font-bold mb-3 text-gray-400">
+                    <span class="text-red-500">일</span>
+                    <span>월</span>
+                    <span>화</span>
+                    <span>수</span>
+                    <span>목</span>
+                    <span>금</span>
+                    <span>토</span>
+                </div>
+
+                <!-- 날짜 데이터 -->
+                <div class="grid grid-cols-7 text-center text-xs gap-y-2">
+                    {% for week in month_days %}
+                        {% for day in week %}
+                            {% if day == 0 %}
+                                <span></span>
+                            {% else %}
+                                <a href="?year={{ year }}&month={{ month }}&date={{ year }}-{{ month }}-{% if day < 10 %}0{% endif %}{{ day }}" 
+                                   class="w-7 h-7 flex items-center justify-center mx-auto rounded-full transition-all
+                                   {% if selected_date == year|stringformat:'d'|add:'-'|add:month|add:'-'|add:day|stringformat:'02d' or selected_date == year|stringformat:'d'|add:'-'|add:month|add:'-0'|add:day|stringformat:'d' %}
+                                       bg-black text-white font-bold
+                                   {% else %}
+                                       hover:bg-gray-100 text-gray-700
+                                   {% endif %}">
+                                    {{ day }}
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                </div>
             </div>
         </div>
 
         <!-- 태그 필터 버튼 -->
         <div class="border-t border-gray-100 pt-4">
-            <p class="text-xs text-gray-400 font-semibold mb-3">태그 필터</p>
-            <div class="flex flex-wrap gap-2">
-                <button class="bg-black text-white px-3 py-1 rounded text-xs font-medium">전체</button>
-                <button class="bg-gray-100 text-gray-600 px-3 py-1 rounded text-xs font-medium hover:bg-gray-200">업무</button>
-                <button class="bg-gray-100 text-gray-600 px-3 py-1 rounded text-xs font-medium hover:bg-gray-200">개인</button>
-                <button class="bg-gray-100 text-gray-600 px-3 py-1 rounded text-xs font-medium hover:bg-gray-200">건강</button>
-                <button class="bg-gray-100 text-gray-600 px-3 py-1 rounded text-xs font-medium hover:bg-gray-200">공부</button>
-                <button class="bg-gray-100 text-gray-600 px-3 py-1 rounded text-xs font-medium hover:bg-gray-200">기타</button>
+            <p class="text-xs font-bold text-gray-400 mb-2">태그 필터</p>
+            <div class="flex flex-wrap gap-1.5">
+                <!-- 전체 -->
+                <a href="?year={{ year }}&month={{ month }}&date={{ selected_date }}" 
+                   class="px-2.5 py-1 rounded text-xs font-medium transition-colors
+                   {% if not selected_tag %}bg-black text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">
+                    전체
+                </a>
+            
+                <!-- 업무 -->
+                <a href="?year={{ year }}&month={{ month }}&date={{ selected_date }}&tag=WORK" 
+                   class="px-2.5 py-1 rounded text-xs font-medium transition-colors
+                   {% if selected_tag == 'WORK' %}bg-black text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">
+                    업무
+                </a>
+            
+                <!-- 개인 -->
+                <a href="?year={{ year }}&month={{ month }}&date={{ selected_date }}&tag=PERSONAL" 
+                   class="px-2.5 py-1 rounded text-xs font-medium transition-colors
+                   {% if selected_tag == 'PERSONAL' %}bg-black text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">
+                    개인
+                </a>
+            
+                <!-- 건강 (여기가 tag=HEALTH 인지 꼭 확인!) -->
+                <a href="?year={{ year }}&month={{ month }}&date={{ selected_date }}&tag=HEALTH" 
+                   class="px-2.5 py-1 rounded text-xs font-medium transition-colors
+                   {% if selected_tag == 'HEALTH' %}bg-black text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">
+                    건강
+                </a>
+            
+                <!-- 공부 -->
+                <a href="?year={{ year }}&month={{ month }}&date={{ selected_date }}&tag=STUDY" 
+                   class="px-2.5 py-1 rounded text-xs font-medium transition-colors
+                   {% if selected_tag == 'STUDY' %}bg-black text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">
+                    공부
+                </a>
+            
+                <!-- 기타 -->
+                <a href="?year={{ year }}&month={{ month }}&date={{ selected_date }}&tag=ETC" 
+                   class="px-2.5 py-1 rounded text-xs font-medium transition-colors
+                   {% if selected_tag == 'ETC' %}bg-black text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">
+                    기타
+                </a>
             </div>
         </div>
     </aside>
@@ -49,10 +108,16 @@
         <div class="flex justify-between items-start mb-6">
             <div>
                 <div class="flex items-center gap-3">
-                    <span class="text-4xl font-extrabold">22</span>
+                    <!-- 선택된 날짜의 '일' 숫자 -->
+                    <span class="text-4xl font-extrabold">{{ selected_date_obj|date:"j" }}</span>
+
+                    <!-- 오늘 날짜일 경우에만 [오늘] 배지 표시 -->
+                    {% if selected_date == today_str %}
                     <span class="bg-red-500 text-white text-xs px-2 py-0.5 rounded font-bold">오늘</span>
+                    {% endif %}
                 </div>
-                <p class="text-gray-400 text-sm mt-1">2026년 7월 수요일</p>
+                <!-- 선택된 날짜의 '연도, 월, 요일' -->
+                <p class="text-gray-400 text-sm mt-1">{{ selected_date_obj|date:"Y년 n월 l" }}</p>
             </div>
             <div class="flex items-center gap-4">
                 <span class="text-xs text-gray-400">5/5 완료</span>
@@ -64,47 +129,76 @@
 
         <!-- To-Do 항목 리스트 -->
         <div class="space-y-3">
-            <!-- 항목 1 (완료 상태 예시) -->
+            {% for todo in todos %}
             <div class="flex items-center justify-between p-3 border-b border-gray-100 hover:bg-gray-50 rounded group">
                 <div class="flex items-center gap-3">
-                    <div class="w-1 h-5 bg-red-500 rounded-full"></div> <!-- 우선순위 레벨 바 -->
-                    <input type="checkbox" checked class="w-5 h-5 accent-black rounded cursor-pointer">
-                    <span class="line-through text-gray-400 font-medium">주간 보고서 작성</span>
+                    <!-- 우선순위 구분 바 (H: Red, M: Amber, L: Gray) -->
+                    <div class="w-1 h-5 rounded-full 
+                        {% if todo.priority == 'H' %}bg-red-500
+                        {% elif todo.priority == 'M' %}bg-amber-500
+                        {% else %}bg-gray-400{% endif %}">
+                    </div>
+                
+                    <!-- 완료 체크박스 -->
+                    <input type="checkbox"
+                        id="todo-check-{{ todo.id }}"
+                        {% if todo.is_completed %}checked{% endif %}
+                        onchange="toggleTodo('{{ todo.id }}')"
+                        class="w-5 h-5 accent-black rounded cursor-pointer">
+                
+                    <!-- 할 일 제목 (완료 시 취소선 및 흐리게) -->
+                    <span id="todo-title-{{ todo.id}}"
+                        class="font-medium {% if todo.is_completed %}line-through text-gray-400{% else %}text-gray-800{% endif %}">
+                        {{ todo.title }}
+                    </span>
                 </div>
+            
                 <div class="flex items-center gap-3">
-                    <span class="border border-gray-200 text-gray-500 text-xs px-2 py-0.5 rounded">업무</span>
-                    <span class="text-red-500 font-bold text-xs">H</span>
-                    <button class="text-gray-300 hover:text-red-500"><i class="fa-regular fa-trash-can"></i></button>
-                </div>
-            </div>
+                    <!-- 태그 배지 -->
+                    <span class="border border-gray-200 text-gray-500 text-xs px-2 py-0.5 rounded">
+                        {{ todo.get_tag_display }}
+                    </span>
+                
+                    <!-- 우선순위 배지 -->
+                   <!-- 우선순위 배지 (H: 빨강, M: 노랑/주황, L: 초록) -->
+                    {% if todo.priority == 'H' %}
+                        <span class="px-2 py-0.5 text-xs font-bold rounded-full bg-red-100 text-red-600 border border-red-200">
+                            높음
+                        </span>
+                    {% elif todo.priority == 'M' %}
+                        <span class="px-2 py-0.5 text-xs font-bold rounded-full bg-amber-100 text-amber-600 border border-amber-200">
+                            보통
+                        </span>
+                    {% else %}
+                        <span class="px-2 py-0.5 text-xs font-bold rounded-full bg-green-100 text-green-600 border border-green-200">
+                            낮음
+                        </span>
+                    {% endif %}
+                    
+                    <!-- 수정 버튼 -->
+                    <button type="button" 
+                            data-id="{{ todo.id }}"
+                            data-title="{{ todo.title }}"
+                            data-tag="{{ todo.tag }}"
+                            data-priority="{{ todo.priority }}"
+                            data-date="{{ todo.due_date|date:'Y-m-d' }}"
+                            onclick="openEditModal(this)"
+                            class="text-gray-400 hover:text-black transition-colors mr-1">
+                        <i class="fa-regular fa-pen-to-square"></i>
+                    </button>
 
-            <!-- 항목 2 -->
-            <div class="flex items-center justify-between p-3 border-b border-gray-100 hover:bg-gray-50 rounded group">
-                <div class="flex items-center gap-3">
-                    <div class="w-1 h-5 bg-amber-500 rounded-full"></div>
-                    <input type="checkbox" checked class="w-5 h-5 accent-black rounded cursor-pointer">
-                    <span class="line-through text-gray-400 font-medium">팀 미팅 준비</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <span class="border border-gray-200 text-gray-500 text-xs px-2 py-0.5 rounded">업무</span>
-                    <span class="text-amber-500 font-bold text-xs">M</span>
-                    <button class="text-gray-300 hover:text-red-500"><i class="fa-regular fa-trash-can"></i></button>
+                    <!-- 삭제 버튼 -->
+                    <a href="{% url 'todo_delete' todo.id %}" onclick="return confirm('정말 삭제하시겠습니까?')" class="text-gray-300 hover:text-red-500">
+                        <i class="fa-regular fa-trash-can"></i>
+                    </a>
                 </div>
             </div>
-
-            <!-- 항목 3 -->
-            <div class="flex items-center justify-between p-3 border-b border-gray-100 hover:bg-gray-50 rounded group">
-                <div class="flex items-center gap-3">
-                    <div class="w-1 h-5 bg-gray-400 rounded-full"></div>
-                    <input type="checkbox" checked class="w-5 h-5 accent-black rounded cursor-pointer">
-                    <span class="line-through text-gray-400 font-medium">헬스장 1시간</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <span class="border border-gray-200 text-gray-500 text-xs px-2 py-0.5 rounded">건강</span>
-                    <span class="text-gray-400 font-bold text-xs">L</span>
-                    <button class="text-gray-300 hover:text-red-500"><i class="fa-regular fa-trash-can"></i></button>
-                </div>
+            {% empty %}
+            <!-- 할 일이 없을 때 보일 화면 -->
+            <div class="text-center py-12 text-gray-400">
+                등록된 할 일이 없습니다. 오른쪽 위 <b class="text-black">+ 할 일 추가</b> 버튼을 눌러보세요! 🚀
             </div>
+            {% endfor %}
         </div>
     </section>
 
@@ -205,12 +299,137 @@
     </div>
 </div>
 
+<!-- 수정 모달 -->
+<div id="editModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-lg font-bold text-gray-900">할 일 수정</h3>
+            <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+        </div>
+
+        <form id="editForm" method="POST" action="">
+            {% csrf_token %}
+            <!-- 현재 페이지 상태 유지를 위한 hidden input -->
+            <input type="hidden" name="year" value="{{ year }}">
+            <input type="hidden" name="month" value="{{ month }}">
+            <input type="hidden" name="current_tag" value="{{ selected_tag }}">
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">제목</label>
+                    <input type="text" id="edit-title" name="title" required
+                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">태그</label>
+                        <select id="edit-tag" name="tag" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black">
+                            <option value="PERSONAL">개인</option>
+                            <option value="WORK">업무</option>
+                            <option value="HEALTH">건강</option>
+                            <option value="STUDY">공부</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">우선순위</label>
+                        <select id="edit-priority" name="priority" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black">
+                            <option value="H">높음</option>
+                            <option value="M">보통</option>
+                            <option value="L">낮음</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">날짜</label>
+                    <input type="date" id="edit-due_date" name="due_date" required
+                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black">
+                </div>
+            </div>
+
+            <div class="flex gap-2 mt-6">
+                <button type="button" onclick="closeEditModal()" class="flex-1 py-2 text-sm font-medium text-gray-500 bg-gray-100 rounded-lg">취소</button>
+                <button type="submit" class="flex-1 py-2 text-sm font-medium text-white bg-black rounded-lg">저장</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
     function openModal() {
         document.getElementById('todoModal').classList.remove('hidden');
     }
     function closeModal() {
         document.getElementById('todoModal').classList.add('hidden');
+    }
+    function toggleTodo(todoId) {
+        const csrfToken = '{{ csrf_token }}';
+        
+        fetch(`/toggle/${todoId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('서버 응답 오류');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                const titleElement = document.getElementById(`todo-title-${todoId}`);
+                
+                if (titleElement) {
+                    if (data.is_completed) {
+                        titleElement.classList.add('line-through', 'text-gray-400');
+                        titleElement.classList.remove('text-gray-800', 'font-medium');
+                    } else {
+                        titleElement.classList.remove('line-through', 'text-gray-400');
+                        titleElement.classList.add('text-gray-800', 'font-medium');
+                    }
+                } else {
+                    console.error(`ID가 todo-title-${todoId} 인 요소를 찾지 못했습니다.`);
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('상태 변경에 실패했습니다.');
+        });
+    }
+    function openEditModal(button) {
+        const modal = document.getElementById('editModal');
+        const form = document.getElementById('editForm');
+        
+        // 버튼의 data-* 속성값 가져오기
+        const id = button.dataset.id;
+        const title = button.dataset.title;
+        const tag = button.dataset.tag;
+        const priority = button.dataset.priority;
+        const dueDate = button.dataset.date;
+        
+        // Form Action URL 세팅
+        form.action = `/edit/${id}/`;
+        
+        // Input 채우기
+        document.getElementById('edit-title').value = title;
+        document.getElementById('edit-tag').value = tag;
+        document.getElementById('edit-priority').value = priority;
+        document.getElementById('edit-due_date').value = dueDate;
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+    function closeEditModal() {
+        const modal = document.getElementById('editModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
     }
 </script>
 {% endblock %}
