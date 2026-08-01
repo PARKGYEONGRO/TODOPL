@@ -17,6 +17,22 @@ def todo_list(request):
 
     filter_kwargs = {'due_date': selected_date_str}
 
+    monthly_stats =Get_Monthly_Stats(
+        year,
+        month
+    )
+
+    #통계 제목
+    is_current_month = (
+        year == today.year
+        and month == today.month
+    )
+    if is_current_month:
+        stats_title = '이번달 통계'
+    else:
+        stats_title = f'{year}년 {month}월 통계'
+
+
     if selected_tag:
         filter_kwargs['tag'] = selected_tag
 
@@ -118,13 +134,19 @@ def todo_list(request):
         'prev_month': prev_month,
         'next_year': next_year,
         'next_month': next_month,
+
+        'stats_title': stats_title,
+
+        **monthly_stats,
     }
 
     return render(request, 'todos/todo_list.html', context)
 
 
 def todo_create(request):
+
     if request.method == 'POST':
+
         title = request.POST.get('title')
         due_date = request.POST.get('due_date')
         tag = request.POST.get('tag')
@@ -137,25 +159,48 @@ def todo_create(request):
             priority=priority
         )
 
+        year = request.POST.get('year')
+        month = request.POST.get('month')
+        current_tag = request.POST.get('current_tag', '')
+
+        redirect_url = (
+            f'/?year={year}'
+            f'&month={month}'
+            f'&date={due_date}'
+        )
+
+        if current_tag:
+            redirect_url += f'&tag={current_tag}'
+
+        return redirect(redirect_url)
+
     return redirect('todo_list')
 
 
 def todo_toggle(request, todo_id):
+
     if request.method == 'POST':
+
         todo = get_object_or_404(Todo, pk=todo_id)
 
         # 현재 화면의 태그 필터 가져오기
         try:
             data = json.loads(request.body)
             selected_tag = data.get('tag', '').strip()
+
         except (json.JSONDecodeError, AttributeError):
             selected_tag = ''
+
 
         # 완료 상태 변경
         todo.is_completed = not todo.is_completed
         todo.save()
 
-        # 현재 선택된 날짜 + 현재 태그 필터 기준
+
+        # =========================
+        # 현재 선택된 날짜 + 태그 필터 기준
+        # =========================
+
         filter_kwargs = {
             'due_date': todo.due_date
         }
@@ -163,19 +208,49 @@ def todo_toggle(request, todo_id):
         if selected_tag:
             filter_kwargs['tag'] = selected_tag
 
-        filtered_todos = Todo.objects.filter(**filter_kwargs)
+
+        filtered_todos = Todo.objects.filter(
+            **filter_kwargs
+        )
 
         total_todos = filtered_todos.count()
+
         completed_todos = filtered_todos.filter(
             is_completed=True
         ).count()
 
+
+        # =========================
+        # 월간 통계 갱신
+        # =========================
+
+        monthly_stats = Get_Monthly_Stats(
+            todo.due_date.year,
+            todo.due_date.month
+        )
+
+
         return JsonResponse({
+
             'status': 'success',
+
             'is_completed': todo.is_completed,
+
             'total_todos': total_todos,
+
             'completed_todos': completed_todos,
+
+            # 월간 통계
+            'total_count': monthly_stats['total_count'],
+            'completed_count': monthly_stats['completed_count'],
+            'incomplete_count': monthly_stats['incomplete_count'],
+            'completion_rate': monthly_stats['completion_rate'],
+
+            'tag_stats': monthly_stats['tag_stats'],
+
+            'priority_stats': monthly_stats['priority_stats'],
         })
+
 
     return JsonResponse({
         'status': 'error'
@@ -210,6 +285,7 @@ def todo_edit(request, todo_id):
 
 
 def stats(request):
+
     today = date.today()
 
     selected_date_str = request.GET.get(
@@ -225,10 +301,53 @@ def stats(request):
     year = selected_date_obj.year
     month = selected_date_obj.month
 
+
+    monthly_stats = Get_Monthly_Stats(
+        year,
+        month
+    )
+
+    #통계 제목
+    is_current_month = (
+        year == today.year
+        and month == today.month
+    )
+
+    if is_current_month:
+        stats_title = '이번달 통계'
+    else:
+        stats_title = f'{year}년 {month}월 통계'
+
+
+    context = {
+        'selected_date': selected_date_str,
+        'selected_date_obj': selected_date_obj,
+        'year': year,
+        'month': month,
+
+        'stats_title': stats_title,
+
+        **monthly_stats,
+    }
+
+
+    return render(
+        request,
+        'todos/stats.html',
+        context
+    )
+
+def Get_Monthly_Stats(year, month):
+
     monthly_todos = Todo.objects.filter(
         due_date__year=year,
         due_date__month=month
     )
+
+
+    # =========================
+    # 기본 통계
+    # =========================
 
     total_count = monthly_todos.count()
 
@@ -240,6 +359,7 @@ def stats(request):
         is_completed=False
     ).count()
 
+
     if total_count > 0:
         completion_rate = round(
             completed_count / total_count * 100
@@ -247,9 +367,24 @@ def stats(request):
     else:
         completion_rate = 0
 
+
+    # =========================
+    # 태그별 통계
+    # =========================
+
     tag_stats = []
 
-    for tag_code, tag_name in Todo.TAG_CHOICES:
+    tag_list = [
+        ('WORK', '업무'),
+        ('PERSONAL', '개인'),
+        ('HEALTH', '건강'),
+        ('STUDY', '공부'),
+        ('ETC', '기타'),
+    ]
+
+
+    for tag_code, tag_name in tag_list:
+
         tag_todos = monthly_todos.filter(
             tag=tag_code
         )
@@ -260,24 +395,39 @@ def stats(request):
             is_completed=True
         ).count()
 
+
         if tag_total > 0:
-            tag_rate = round(
+            tag_completion_rate = round(
                 tag_completed / tag_total * 100
             )
         else:
-            tag_rate = 0
+            tag_completion_rate = 0
+
 
         tag_stats.append({
             'code': tag_code,
             'name': tag_name,
             'total': tag_total,
             'completed': tag_completed,
-            'rate': tag_rate,
+            'rate': tag_completion_rate,
         })
+
+
+    # =========================
+    # 우선순위별 통계
+    # =========================
 
     priority_stats = []
 
-    for priority_code, priority_name in Todo.PRIORITY_CHOICES:
+    priority_list = [
+        ('H', '높음'),
+        ('M', '보통'),
+        ('L', '낮음'),
+    ]
+
+
+    for priority_code, priority_name in priority_list:
+
         priority_todos = monthly_todos.filter(
             priority=priority_code
         )
@@ -288,6 +438,7 @@ def stats(request):
             is_completed=True
         ).count()
 
+
         priority_stats.append({
             'code': priority_code,
             'name': priority_name,
@@ -295,23 +446,12 @@ def stats(request):
             'completed': priority_completed,
         })
 
-    context = {
-        'selected_date': selected_date_str,
-        'selected_date_obj': selected_date_obj,
-        'year': year,
-        'month': month,
 
+    return {
         'total_count': total_count,
         'completed_count': completed_count,
         'incomplete_count': incomplete_count,
         'completion_rate': completion_rate,
-
         'tag_stats': tag_stats,
         'priority_stats': priority_stats,
     }
-
-    return render(
-        request,
-        'todos/stats.html',
-        context
-    )

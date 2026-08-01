@@ -11,22 +11,25 @@
 
             <div>
                 <p class="text-xs text-gray-400 mb-1">
-                    이번달 통계
+                    {{ stats_title }}
                 </p>
 
                 <h2 class="text-xl font-extrabold text-gray-900">
-                    8월
+                    {{ month }}월
                 </h2>
             </div>
 
-            <!-- 월 선택 -->
+            <!-- 월 선택 버튼 -->
             <button
                 type="button"
+                onclick="openMonthPicker()"
                 class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-lg text-xs font-semibold text-gray-700">
 
                 <i class="fa-regular fa-calendar-days"></i>
 
-                <span>2026.08</span>
+                <span>
+                    {{ year }}.{{ month|stringformat:"02d" }}
+                </span>
 
             </button>
 
@@ -43,5 +46,295 @@
     </main>
 
 </div>
+
+
+<!-- =========================
+     월 선택 바텀시트
+========================= -->
+
+<div
+    id="monthPicker"
+    class="hidden fixed inset-0 z-50">
+
+    <!-- 배경 -->
+    <div
+        class="absolute inset-0 bg-black/40"
+        onclick="closeMonthPicker()">
+    </div>
+
+
+    <!-- 바텀시트 -->
+    <div
+        class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl px-5 pt-5 pb-8">
+
+        <!-- 헤더 -->
+        <div class="flex items-center justify-between mb-5">
+
+            <h3 class="text-base font-bold text-gray-900">
+                월 선택
+            </h3>
+
+            <button
+                type="button"
+                onclick="closeMonthPicker()"
+                class="w-8 h-8 flex items-center justify-center text-gray-400">
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+
+        <!-- 연도 -->
+        <div class="flex items-center justify-between mb-4">
+
+            <button
+                type="button"
+                onclick="changePickerYear(-1)"
+                class="w-8 h-8 flex items-center justify-center text-gray-400">
+
+                <i class="fa-solid fa-chevron-left"></i>
+
+            </button>
+
+
+            <span
+                id="pickerYear"
+                class="text-sm font-bold text-gray-900">
+                {{ year }}년
+            </span>
+
+
+            <button
+                type="button"
+                onclick="changePickerYear(1)"
+                class="w-8 h-8 flex items-center justify-center text-gray-400">
+
+                <i class="fa-solid fa-chevron-right"></i>
+
+            </button>
+
+        </div>
+
+
+        <!-- 월 목록 -->
+        <div class="grid grid-cols-4 gap-2">
+            <button
+                type="button"
+                data-month="1"
+                onclick="selectMonth(1)"
+                class="month-button py-3 rounded-xl text-sm font-medium">
+                1월
+            </button>
+
+            <button
+                type="button"
+                data-month="2"
+                onclick="selectMonth(2)"
+                class="month-button py-3 rounded-xl text-sm font-medium">
+                2월
+            </button>
+
+            <button
+                type="button"
+                data-month="3"
+                onclick="selectMonth(3)"
+                class="month-button py-3 rounded-xl text-sm font-medium">
+                3월
+            </button>
+
+            <button
+                type="button"
+                data-month="4"
+                onclick="selectMonth(4)"
+                class="month-button py-3 rounded-xl text-sm font-medium">
+                4월
+            </button>
+
+            <button
+                type="button"
+                data-month="5"
+                onclick="selectMonth(5)"
+                class="month-button py-3 rounded-xl text-sm font-medium">
+                5월
+            </button>
+
+            <button
+                type="button"
+                data-month="6"
+                onclick="selectMonth(6)"
+                class="month-button py-3 rounded-xl text-sm font-medium">
+                6월
+            </button>
+
+            <button
+                type="button"
+                data-month="7"
+                onclick="selectMonth(7)"
+                class="month-button py-3 rounded-xl text-sm font-medium">
+                7월
+            </button>
+
+            <button
+                type="button"
+                data-month="8"
+                onclick="selectMonth(8)"
+                class="month-button py-3 rounded-xl text-sm font-medium">
+                8월
+            </button>
+
+            <button
+                type="button"
+                data-month="9"
+                onclick="selectMonth(9)"
+                class="month-button py-3 rounded-xl text-sm font-medium">
+                9월
+            </button>
+
+            <button
+                type="button"
+                data-month="10"
+                onclick="selectMonth(10)"
+                class="month-button py-3 rounded-xl text-sm font-medium">
+                10월
+            </button>
+
+            <button
+                type="button"
+                data-month="11"
+                onclick="selectMonth(11)"
+                class="month-button py-3 rounded-xl text-sm font-medium">
+                11월
+            </button>
+
+            <button
+                type="button"
+                data-month="12"
+                onclick="selectMonth(12)"
+                class="month-button py-3 rounded-xl text-sm font-medium">
+                12월
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    let pickerYear = {{ year }};
+
+
+    // =========================
+    // 월 선택창 열기
+    // =========================
+
+    function openMonthPicker() {
+
+        const monthPicker =
+            document.getElementById('monthPicker');
+
+        monthPicker.classList.remove('hidden');
+
+        updateMonthButton();
+
+    }
+
+
+    // =========================
+    // 월 선택창 닫기
+    // =========================
+
+    function closeMonthPicker() {
+
+        const monthPicker =
+            document.getElementById('monthPicker');
+
+        monthPicker.classList.add('hidden');
+
+    }
+
+
+    // =========================
+    // 선택 연도 변경
+    // =========================
+
+    function changePickerYear(direction) {
+
+        pickerYear += direction;
+
+        document.getElementById('pickerYear').textContent =
+            `${pickerYear}년`;
+
+    }
+
+
+    // =========================
+    // 현재 월 강조
+    // =========================
+
+    function updateMonthButton() {
+
+        const currentMonth = {{ month }};
+
+        document
+            .querySelectorAll('.month-button')
+            .forEach(button => {
+
+                const buttonMonth =
+                    Number(button.dataset.month);
+
+                if (buttonMonth === currentMonth) {
+
+                    button.classList.add(
+                        'bg-black',
+                        'text-white'
+                    );
+
+                    button.classList.remove(
+                        'bg-gray-100',
+                        'text-gray-700'
+                    );
+
+                } else {
+
+                    button.classList.add(
+                        'bg-gray-100',
+                        'text-gray-700'
+                    );
+
+                    button.classList.remove(
+                        'bg-black',
+                        'text-white'
+                    );
+
+                }
+
+            });
+
+    }
+
+
+    // =========================
+    // 월 선택
+    // =========================
+
+    function selectMonth(month) {
+
+        const monthString =
+            String(month).padStart(2, '0');
+
+        const date =
+            `${pickerYear}-${monthString}-01`;
+
+        window.location.href =
+            `/stats/?date=${date}`;
+
+    }
+
+</script>
 
 {% endblock %}

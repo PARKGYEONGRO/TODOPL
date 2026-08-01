@@ -4,9 +4,7 @@
 
 <style>
     /*
-        ============================================================
         Todo 목록 전용 스크롤
-        ============================================================
     */
 
     .todo-scroll {
@@ -33,10 +31,8 @@
 
 
     /*
-        ============================================================
         모바일 화면에서 중앙 Todo 영역이
         하단 고정 탭바와 겹치지 않도록 처리
-        ============================================================
     */
 
     @media (max-width: 767px) {
@@ -54,24 +50,15 @@
 </style>
 
 
-<!--
-    ================================================================
-    전체 레이아웃
-
+<!-- 전체 레이아웃
     중요:
     min-h-0을 추가해서 자식 flex 영역이
     필요한 경우 내부에서 overflow 되도록 함
-    ================================================================
 -->
 <div class="flex flex-col md:flex-row h-full min-h-0">
 
 
-    <!--
-        ============================================================
-        [좌측]
-        미니 캘린더 및 태그 필터
-        ============================================================
-    -->
+    <!-- [좌측] 미니 캘린더 및 태그 필터 -->
     <aside class="w-full md:w-80 border-r border-gray-200 p-6 flex flex-col justify-between flex-shrink-0">
 
         <div>
@@ -80,7 +67,7 @@
             <div class="flex justify-between items-center mb-6">
 
                 <a
-                    href="?year={{ prev_year }}&month={{ prev_month }}"
+                    href="?year={{ prev_year }}&month={{ prev_month|stringformat:'02d' }}&date={{ prev_year }}-{{ prev_month|stringformat:'02d' }}-01"
                     class="text-gray-400 hover:text-black">
 
                     <i class="fa-solid fa-chevron-left"></i>
@@ -88,13 +75,18 @@
                 </a>
 
 
-                <h2 class="font-extrabold text-base">
+                <button
+                    type="button"
+                    onclick="openPcMonthPicker()"
+                    class="text-lg font-extrabold text-gray-900 hover:opacity-70 transition">
+
                     {{ year }}.{{ month }}
-                </h2>
+
+                </button>
 
 
                 <a
-                    href="?year={{ next_year }}&month={{ next_month }}"
+                    href="?year={{ next_year }}&month={{ next_month|stringformat:'02d' }}&date={{ next_year }}-{{ next_month|stringformat:'02d' }}-01"
                     class="text-gray-400 hover:text-black">
 
                     <i class="fa-solid fa-chevron-right"></i>
@@ -550,120 +542,8 @@
     </section>
 
 
-    <!--
-        ============================================================
-        [우측]
-        통계 대시보드
-        ============================================================
-    -->
-    <aside
-        class="hidden lg:block w-80 border-l border-gray-200 p-6 bg-gray-50/50 flex-shrink-0">
-
-
-        <h3 class="text-sm font-bold text-gray-400 mb-6">
-            통계
-        </h3>
-
-
-        <!-- 카드 -->
-        <div class="grid grid-cols-2 gap-3 mb-6">
-
-            <div class="bg-gray-100 p-4 rounded-lg">
-
-                <span class="text-xs text-gray-400 font-semibold">
-                    전체
-                </span>
-
-                <p class="text-2xl font-extrabold mt-1">
-                    7
-                </p>
-
-            </div>
-
-
-            <div class="bg-gray-100 p-4 rounded-lg">
-
-                <span class="text-xs text-gray-400 font-semibold">
-                    완료
-                </span>
-
-                <p class="text-2xl font-extrabold text-red-500 mt-1">
-                    7
-                </p>
-
-            </div>
-
-        </div>
-
-
-        <!-- 진행률 -->
-        <div class="mb-8">
-
-            <div class="flex justify-between text-xs font-bold mb-2">
-
-                <span>완료율</span>
-
-                <span>100%</span>
-
-            </div>
-
-
-            <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-
-                <div class="bg-red-500 h-full w-full"></div>
-
-            </div>
-
-        </div>
-
-
-        <!-- 태그별 -->
-        <div class="mb-8">
-
-            <h4 class="text-xs font-bold text-gray-400 mb-3">
-                태그별
-            </h4>
-
-
-            <div class="space-y-3 text-sm">
-
-
-                <div class="flex justify-between items-center">
-
-                    <span class="text-gray-600 font-medium">
-                        업무
-                    </span>
-
-                    <span class="text-xs font-bold text-gray-400">
-                        3/3
-                    </span>
-
-                </div>
-
-
-                <div class="w-full bg-black h-1 rounded-full"></div>
-
-
-                <div class="flex justify-between items-center">
-
-                    <span class="text-gray-600 font-medium">
-                        개인
-                    </span>
-
-                    <span class="text-xs font-bold text-gray-400">
-                        1/1
-                    </span>
-
-                </div>
-
-
-                <div class="w-full bg-black h-1 rounded-full"></div>
-
-            </div>
-
-        </div>
-
-    </aside>
+    <!-- [우측] 통계 대시보드 (PC 전용 / 모바일 통계 탭) -->
+    {% include 'todos/partials/desktop_stats.html' %}
 
 </div>
 
@@ -699,13 +579,13 @@
         </div>
 
 
-        <form
-            action="{% url 'todo_create' %}"
-            method="POST"
-            class="space-y-4">
-
+        <form action="{% url 'todo_create' %}" method="POST" class="space-y-4">
             {% csrf_token %}
-
+            
+            <!-- 현재 화면 상태 유지 -->
+            <input type="hidden" name="year" value="{{ year }}">
+            <input type="hidden" name="month" value="{{ month }}">
+            <input type="hidden" name="current_tag" value="{{ selected_tag }}">
 
             <div>
 
@@ -1024,6 +904,189 @@
 
 </div>
 
+<!-- =========================
+     PC 월 선택 모달
+========================= -->
+
+<div
+    id="pcMonthPicker"
+    class="hidden fixed inset-0 z-50">
+
+    <!-- 배경 -->
+    <div
+        class="absolute inset-0 bg-black/40"
+        onclick="closePcMonthPicker()">
+    </div>
+
+
+    <!-- 모달 -->
+    <div
+        class="absolute top-1/2 left-1/2
+               -translate-x-1/2 -translate-y-1/2
+               w-80 bg-white rounded-2xl
+               p-5 shadow-xl">
+
+        <!-- 헤더 -->
+
+        <div class="flex items-center justify-between mb-5">
+
+            <h3 class="text-base font-bold text-gray-900">
+                월 선택
+            </h3>
+
+
+            <button
+                type="button"
+                onclick="closePcMonthPicker()"
+                class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700">
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+
+        <!-- 연도 선택 -->
+
+        <div class="flex items-center justify-between mb-5">
+
+            <button
+                type="button"
+                onclick="changePcPickerYear(-1)"
+                class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-900">
+
+                <i class="fa-solid fa-chevron-left"></i>
+
+            </button>
+
+
+            <span
+                id="pcPickerYear"
+                class="text-sm font-bold text-gray-900">
+
+                {{ year }}년
+
+            </span>
+
+
+            <button
+                type="button"
+                onclick="changePcPickerYear(1)"
+                class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-900">
+
+                <i class="fa-solid fa-chevron-right"></i>
+
+            </button>
+
+        </div>
+
+
+        <!-- 월 목록 -->
+
+        <div class="grid grid-cols-4 gap-2">
+
+            <button
+                type="button"
+                data-month="1"
+                onclick="selectPcMonth(1)"
+                class="pc-month-button py-3 rounded-xl text-sm font-medium">
+                1월
+            </button>
+
+            <button
+                type="button"
+                data-month="2"
+                onclick="selectPcMonth(2)"
+                class="pc-month-button py-3 rounded-xl text-sm font-medium">
+                2월
+            </button>
+
+            <button
+                type="button"
+                data-month="3"
+                onclick="selectPcMonth(3)"
+                class="pc-month-button py-3 rounded-xl text-sm font-medium">
+                3월
+            </button>
+
+            <button
+                type="button"
+                data-month="4"
+                onclick="selectPcMonth(4)"
+                class="pc-month-button py-3 rounded-xl text-sm font-medium">
+                4월
+            </button>
+
+            <button
+                type="button"
+                data-month="5"
+                onclick="selectPcMonth(5)"
+                class="pc-month-button py-3 rounded-xl text-sm font-medium">
+                5월
+            </button>
+
+            <button
+                type="button"
+                data-month="6"
+                onclick="selectPcMonth(6)"
+                class="pc-month-button py-3 rounded-xl text-sm font-medium">
+                6월
+            </button>
+
+            <button
+                type="button"
+                data-month="7"
+                onclick="selectPcMonth(7)"
+                class="pc-month-button py-3 rounded-xl text-sm font-medium">
+                7월
+            </button>
+
+            <button
+                type="button"
+                data-month="8"
+                onclick="selectPcMonth(8)"
+                class="pc-month-button py-3 rounded-xl text-sm font-medium">
+                8월
+            </button>
+
+            <button
+                type="button"
+                data-month="9"
+                onclick="selectPcMonth(9)"
+                class="pc-month-button py-3 rounded-xl text-sm font-medium">
+                9월
+            </button>
+
+            <button
+                type="button"
+                data-month="10"
+                onclick="selectPcMonth(10)"
+                class="pc-month-button py-3 rounded-xl text-sm font-medium">
+                10월
+            </button>
+
+            <button
+                type="button"
+                data-month="11"
+                onclick="selectPcMonth(11)"
+                class="pc-month-button py-3 rounded-xl text-sm font-medium">
+                11월
+            </button>
+
+            <button
+                type="button"
+                data-month="12"
+                onclick="selectPcMonth(12)"
+                class="pc-month-button py-3 rounded-xl text-sm font-medium">
+                12월
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
 
 <script>
 
@@ -1047,12 +1110,7 @@
     }
 
 
-    /*
-        ============================================================
-        Todo 완료 상태 변경
-        ============================================================
-    */
-
+    /* Todo 완료 상태 변경 */
     function toggleTodo(todoId, selectedTag) {
         const csrfToken = '{{ csrf_token }}';
 
@@ -1074,47 +1132,56 @@
             return response.json();
         })
         .then(data => {
+
             if (data.status === 'success') {
-
-                // 완료 상태에 따른 제목 스타일 변경
-                const titleElement = document.getElementById(
-                    `todo-title-${todoId}`
-                );
-
+            
+                // =========================
+                // 할 일 제목 상태 변경
+                // =========================
+            
+                const titleElement =
+                    document.getElementById(`todo-title-${todoId}`);
+            
+            
                 if (titleElement) {
+                
                     if (data.is_completed) {
+                    
                         titleElement.classList.add(
                             'line-through',
                             'text-gray-400'
                         );
-
+                    
                         titleElement.classList.remove(
                             'text-gray-800',
                             'font-medium'
                         );
+                    
                     } else {
+                    
                         titleElement.classList.remove(
                             'line-through',
                             'text-gray-400'
                         );
-
+                    
                         titleElement.classList.add(
                             'text-gray-800',
                             'font-medium'
                         );
+                    
                     }
+                
                 }
-
-                // 완료 개수 즉시 업데이트
-                const progressElement = document.getElementById(
-                    'todo-progress'
-                );
-
-                if (progressElement) {
-                    progressElement.textContent =
-                        `${data.completed_todos}/${data.total_todos} 완료`;
-                }
+            
+            
+                // =========================
+                // PC 통계 즉시 갱신
+                // =========================
+            
+                updatePcStats(data);
+            
             }
+        
         })
         .catch(error => {
             console.error('Error:', error);
@@ -1131,12 +1198,121 @@
         });
     }
 
-    /*
-        ============================================================
-        Todo 수정 모달
-        ============================================================
-    */
+    function updatePcStats(data) {
 
+        // =========================
+        // 기본 통계
+        // =========================
+
+        const totalCount =
+            document.getElementById('pc-total-count');
+
+        const completedCount =
+            document.getElementById('pc-completed-count');
+
+        const completionRate =
+            document.getElementById('pc-completion-rate');
+
+        const completionBar =
+            document.getElementById('pc-completion-bar');
+
+
+        if (totalCount) {
+            totalCount.textContent =
+                data.total_count;
+        }
+
+
+        if (completedCount) {
+            completedCount.textContent =
+                data.completed_count;
+        }
+
+
+        if (completionRate) {
+            completionRate.textContent =
+                `${data.completion_rate}%`;
+        }
+
+
+        if (completionBar) {
+            completionBar.style.width =
+                `${data.completion_rate}%`;
+        }
+
+
+        // =========================
+        // 태그 통계
+        // =========================
+
+        data.tag_stats.forEach(tag => {
+
+            const countElement =
+                document.getElementById(
+                    `pc-tag-${tag.code}-count`
+                );
+
+            const barElement =
+                document.getElementById(
+                    `pc-tag-${tag.code}-bar`
+                );
+
+
+            if (countElement) {
+
+                countElement.textContent =
+                    `${tag.completed}/${tag.total}`;
+
+            }
+
+
+            if (barElement) {
+
+                barElement.style.width =
+                    `${tag.rate}%`;
+
+            }
+
+        });
+
+
+        // =========================
+        // 우선순위 통계
+        // =========================
+
+        data.priority_stats.forEach(priority => {
+
+            const totalElement =
+                document.getElementById(
+                    `pc-priority-${priority.code}-total`
+                );
+
+            const completedElement =
+                document.getElementById(
+                    `pc-priority-${priority.code}-completed`
+                );
+
+
+            if (totalElement) {
+
+                totalElement.textContent =
+                    priority.total;
+
+            }
+
+
+            if (completedElement) {
+
+                completedElement.textContent =
+                    `${priority.completed}완료`;
+
+            }
+
+        });
+
+    }
+
+    /* Todo 수정 모달 */
     function openEditModal(button) {
 
         const modal =
@@ -1187,7 +1363,6 @@
 
     }
 
-
     function closeEditModal() {
 
         const modal =
@@ -1197,6 +1372,106 @@
         modal.classList.add('hidden');
 
         modal.classList.remove('flex');
+
+    }
+
+    //PC 월 선택
+    let pcPickerYear = {{ year }};
+
+
+
+    //월 선택창 열기
+    function openPcMonthPicker() {
+
+        const picker =
+            document.getElementById('pcMonthPicker');
+
+        picker.classList.remove('hidden');
+
+        updatePcMonthButton();
+
+    }
+
+
+    //월 선택창 닫기
+    function closePcMonthPicker() {
+
+        const picker =
+            document.getElementById('pcMonthPicker');
+
+        picker.classList.add('hidden');
+
+    }
+
+
+    //연도 변경
+    function changePcPickerYear(direction) {
+
+        pcPickerYear += direction;
+
+        document.getElementById('pcPickerYear').textContent =
+            `${pcPickerYear}년`;
+
+    }
+
+
+    //현재 월 강조
+    function updatePcMonthButton() {
+
+        const currentMonth = {{ month }};
+
+        document
+            .querySelectorAll('.pc-month-button')
+            .forEach(button => {
+
+                const buttonMonth =
+                    Number(button.dataset.month);
+
+
+                if (buttonMonth === currentMonth) {
+
+                    button.classList.add(
+                        'bg-black',
+                        'text-white'
+                    );
+
+                    button.classList.remove(
+                        'bg-gray-100',
+                        'text-gray-700'
+                    );
+
+                } else {
+
+                    button.classList.add(
+                        'bg-gray-100',
+                        'text-gray-700'
+                    );
+
+                    button.classList.remove(
+                        'bg-black',
+                        'text-white'
+                    );
+
+                }
+
+            });
+
+    }
+
+
+    //월 선택
+    function selectPcMonth(month) {
+
+        const monthString =
+            String(month).padStart(2, '0');
+
+
+        const date =
+            `${pcPickerYear}-${monthString}-01`;
+
+
+        window.location.href =
+            `/?year=${pcPickerYear}&month=${monthString}&date=${date}`;
 
     }
 

@@ -1,0 +1,215 @@
+<!-- PC 통계 대시보드 -->
+<aside class="hidden lg:block w-80 h-full border-l border-gray-200 p-6 bg-gray-50/50 overflow-y-auto">
+
+    <!-- 통계 제목 -->
+
+    <h3 class="text-sm font-bold text-gray-400 mb-6">
+        {{ stats_title }}
+    </h3>
+
+
+    <!-- 기본 통계 -->
+
+    <div class="grid grid-cols-2 gap-3 mb-6">
+
+        <!-- 전체 -->
+        <div class="bg-gray-100 rounded-xl p-4">
+
+            <p class="text-xs text-gray-400">
+                전체 할 일
+            </p>
+
+            <div class="flex items-baseline gap-1 mt-1">
+
+                <span
+                id="pc-total-count"
+                class="text-2xl font-normal text-gray-900">
+                    {{ total_count }}
+                </span>
+
+                <span class="text-xs text-gray-400">
+                    개
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- 완료 -->
+        <div class="bg-gray-100 rounded-xl p-4">
+
+            <p class="text-xs text-gray-400">
+                완료
+            </p>
+
+            <div class="flex items-baseline gap-1 mt-1">
+
+                <span
+                id="pc-completed-count"
+                class="text-2xl font-normal text-red-500">
+                    {{ completed_count }}
+                </span>
+
+                <span class="text-xs text-gray-400">
+                    개
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- 완료율 -->
+    <section class="mb-8">
+
+        <div class="flex items-center justify-between mb-2">
+
+            <span class="text-xs font-bold text-gray-900">
+                완료율
+            </span>
+
+            <span
+            id="'c-completion-rate"
+            class="text-xs font-bold text-gray-900">
+                {{ completion_rate }}%
+            </span>
+
+        </div>
+
+
+        <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+
+            <div
+                id="pc-completion-bar"
+                class="h-full bg-red-500 rounded-full"
+                style="width: {{ completion_rate }}%;">
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- 태그별 현황 -->
+    <section class="mb-8">
+
+        <h4 class="text-xs font-bold text-gray-400 mb-4">
+            태그별 현황
+        </h4>
+
+
+        <div class="space-y-4">
+
+            {% for tag in tag_stats %}
+
+            <div id="pc-tag-{{ tag.code }}">
+                <div class="flex justify-between items-center mb-1.5">
+                
+                    <span class="text-sm text-gray-600 font-medium">
+                        {{ tag.name }}
+                    </span>
+                
+                    <span
+                        id="pc-tag-{{ tag.code }}-count"
+                        class="text-xs font-bold text-gray-400">
+                
+                        {{ tag.completed }}/{{ tag.total }}
+                
+                    </span>
+                
+                </div>
+            
+            
+                <div class="w-full bg-gray-200 h-1 rounded-full overflow-hidden">
+                
+                    <div
+                        id="pc-tag-{{ tag.code }}-bar"
+                        class="bg-black h-full rounded-full"
+                        style="width: {{ tag.rate }}%;">
+                    </div>
+                
+                </div>
+            
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+
+    <!-- 우선순위별 현황 -->
+
+    <section>
+
+        <h4 class="text-xs font-bold text-gray-400 mb-4">
+            우선순위별 현황
+        </h4>
+
+
+        <div class="grid grid-cols-3 gap-2">
+
+            {% for priority in priority_stats %}
+
+            <div
+            id="pc-priority-{{ priority.code }}"
+            class="bg-white rounded-xl p-3 text-center">
+
+                <!-- 색상 -->
+                <div class="flex justify-center mb-2">
+
+                    <span
+                        class="w-2 h-2 rounded-full
+                        {% if priority.code == 'H' %}
+                            bg-red-500
+                        {% elif priority.code == 'M' %}
+                            bg-amber-500
+                        {% else %}
+                            bg-gray-400
+                        {% endif %}">
+                    </span>
+
+                </div>
+
+
+                <!-- 전체 -->
+                <p
+                id="pc-priority-{{ priority.code }}-total"
+                class="text-lg font-medium text-gray-900">
+                    {{ priority.total }}
+                </p>
+
+
+                <!-- 이름 -->
+                <p class="text-xs text-gray-400 mt-0.5">
+                    {{ priority.name }}
+                </p>
+
+
+                <!-- 완료 -->
+                <p
+                    id="pc-priority-{{ priority.code }}-completed"
+                    class="text-xs mt-1
+                    {% if priority.code == 'H' %}
+                        text-red-500
+                    {% elif priority.code == 'M' %}
+                        text-amber-500
+                    {% else %}
+                        text-gray-400
+                    {% endif %}">
+                    {{ priority.completed }}완료
+                </p>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+</aside>
