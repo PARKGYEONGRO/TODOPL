@@ -128,10 +128,11 @@
 
                                 <a
                                     href="?year={{ year }}&month={{ month }}&date={{ calendar_day.date }}"
-                                    class="flex flex-col items-center justify-start mx-auto">
+                                    class="flex flex-col items-center justify-start mx-auto w-full">
 
-
-                                    <!-- 날짜 원 -->
+                                    <!-- =========================
+                                        날짜 원
+                                    ========================= -->
                                     <span
                                         class="w-7 h-7 flex items-center justify-center rounded-full transition-all
                                         {% if selected_date == calendar_day.date %}
@@ -144,16 +145,15 @@
 
                                     </span>
 
+                                    <!-- =========================
+                                        기간 Todo 막대
+                                    ========================= -->
+                                    <div class="w-full h-1.5 flex items-center justify-center mb-1">
 
-                                    <!--
-                                        날짜 밑 Todo 점
-                                    -->
-                                    <span class="flex items-center justify-center gap-0.5 mt-0.5 h-1.5">
+                                        {% for todo in calendar_day.period_todos %}
 
-                                        {% for todo in calendar_day.todos %}
-
-                                            <span
-                                                class="w-1 h-1 rounded-full
+                                            <div
+                                                class="w-full h-1.5
                                                 {% if todo.priority == 'H' %}
                                                     bg-red-500
                                                 {% elif todo.priority == 'M' %}
@@ -161,11 +161,40 @@
                                                 {% elif todo.priority == 'L' %}
                                                     bg-green-500
                                                 {% endif %}">
-                                            </span>
+                                            </div>
+
+                                        {% endfor %}
+
+                                    </div>
+
+                                    <!-- =========================
+                                        하루 Todo 점
+                                    ========================= -->
+
+                                    <span
+                                        class="flex items-center justify-center gap-0.5 mt-0.5 h-1.5">
+
+                                        {% for todo in calendar_day.todos %}
+
+                                            {% if not todo.end_date %}
+
+                                                <span
+                                                    class="w-1 h-1 rounded-full
+                                                    {% if todo.priority == 'H' %}
+                                                        bg-red-500
+                                                    {% elif todo.priority == 'M' %}
+                                                        bg-yellow-400
+                                                    {% elif todo.priority == 'L' %}
+                                                        bg-green-500
+                                                    {% endif %}">
+                                                </span>
+
+                                            {% endif %}
 
                                         {% endfor %}
 
                                     </span>
+
 
                                 </a>
 
@@ -421,8 +450,27 @@
                         <input
                             type="checkbox"
                             id="todo-check-{{ todo.id }}"
-                            {% if todo.is_completed %}checked{% endif %}
-                            onchange="toggleTodo('{{ todo.id }}', '{{ selected_tag }}')"
+
+                            {% if todo.end_date %}
+
+                                {% if todo.id in selected_completed_todo_ids %}
+                                    checked
+                                {% endif %}
+
+                            {% else %}
+
+                                {% if todo.is_completed %}
+                                    checked
+                                {% endif %}
+
+                            {% endif %}
+
+                            onchange="toggleTodo(
+                                '{{ todo.id }}',
+                                '{{ selected_tag }}',
+                                '{{ selected_date }}'
+                            )"
+
                             class="w-5 h-5 accent-black rounded cursor-pointer flex-shrink-0">
 
 
@@ -430,10 +478,23 @@
                         <span
                             id="todo-title-{{ todo.id }}"
                             class="font-medium truncate
-                            {% if todo.is_completed %}
-                                line-through text-gray-400
+
+                            {% if todo.end_date %}
+
+                                {% if todo.id in selected_completed_todo_ids %}
+                                    line-through text-gray-400
+                                {% else %}
+                                    text-gray-800
+                                {% endif %}
+
                             {% else %}
-                                text-gray-800
+
+                                {% if todo.is_completed %}
+                                    line-through text-gray-400
+                                {% else %}
+                                    text-gray-800
+                                {% endif %}
+
                             {% endif %}">
 
                             {{ todo.title }}
@@ -548,11 +609,7 @@
 </div>
 
 
-<!--
-    ==================================================================
-    할 일 추가 모달
-    ==================================================================
--->
+<!-- 할 일 추가 모달 -->
 <div
     id="todoModal"
     class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -569,6 +626,7 @@
 
 
             <button
+                type="button"
                 onclick="closeModal()"
                 class="text-gray-400 hover:text-black">
 
@@ -580,13 +638,28 @@
 
 
         <form action="{% url 'todo_create' %}" method="POST" class="space-y-4">
-            {% csrf_token %}
-            
-            <!-- 현재 화면 상태 유지 -->
-            <input type="hidden" name="year" value="{{ year }}">
-            <input type="hidden" name="month" value="{{ month }}">
-            <input type="hidden" name="current_tag" value="{{ selected_tag }}">
 
+            {% csrf_token %}
+
+
+            <!-- 현재 화면 상태 유지 -->
+            <input
+                type="hidden"
+                name="year"
+                value="{{ year }}">
+
+            <input
+                type="hidden"
+                name="month"
+                value="{{ month }}">
+
+            <input
+                type="hidden"
+                name="current_tag"
+                value="{{ selected_tag }}">
+
+
+            <!-- 제목 -->
             <div>
 
                 <label class="block text-xs font-bold text-gray-500 mb-1">
@@ -603,47 +676,117 @@
             </div>
 
 
-            <div class="grid grid-cols-2 gap-3">
+            <!-- 일정 유형 -->
+            <div>
+
+                <label class="block text-xs font-bold text-gray-500 mb-2">
+                    일정
+                </label>
 
 
-                <div>
+                <div class="flex gap-5 text-sm">
 
-                    <label class="block text-xs font-bold text-gray-500 mb-1">
-                        날짜
+                    <label class="flex items-center gap-1.5 cursor-pointer">
+
+                        <input
+                            type="radio"
+                            name="schedule_type"
+                            value="single"
+                            checked
+                            onchange="toggleEndDate()"
+                            class="accent-black">
+
+                        <span>
+                            하루
+                        </span>
+
                     </label>
 
-                    <input
-                        type="date"
-                        name="due_date"
-                        required
-                        class="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-black">
 
-                </div>
+                    <label class="flex items-center gap-1.5 cursor-pointer">
 
+                        <input
+                            type="radio"
+                            name="schedule_type"
+                            value="range"
+                            onchange="toggleEndDate()"
+                            class="accent-black">
 
-                <div>
+                        <span>
+                            기간
+                        </span>
 
-                    <label class="block text-xs font-bold text-gray-500 mb-1">
-                        태그
                     </label>
-
-                    <select
-                        name="tag"
-                        class="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-black">
-
-                        <option value="WORK">업무</option>
-                        <option value="PERSONAL">개인</option>
-                        <option value="HEALTH">건강</option>
-                        <option value="STUDY">공부</option>
-                        <option value="ETC">기타</option>
-
-                    </select>
 
                 </div>
 
             </div>
 
 
+            <!-- 날짜 -->
+            <div class="grid grid-cols-2 gap-3">
+
+
+                <!-- 시작일 -->
+                <div>
+
+                    <label class="block text-xs font-bold text-gray-500 mb-1">
+                        시작일
+                    </label>
+
+                    <input
+                        type="date"
+                        id="dueDateInput"
+                        name="due_date"
+                        required
+                        value="{{ selected_date }}"
+                        class="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-black">
+
+                </div>
+
+
+                <!-- 종료일 -->
+                <div
+                    id="endDateWrapper"
+                    class="hidden">
+
+                    <label class="block text-xs font-bold text-gray-500 mb-1">
+                        종료일
+                    </label>
+
+                    <input
+                        type="date"
+                        id="endDateInput"
+                        name="end_date"
+                        class="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-black">
+
+                </div>
+            </div>
+
+
+            <!-- 태그 -->
+            <div>
+
+                <label class="block text-xs font-bold text-gray-500 mb-1">
+                    태그
+                </label>
+
+                <select
+                    name="tag"
+                    class="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-black">
+
+                    <option value="WORK">업무</option>
+                    <option value="PERSONAL">개인</option>
+                    <option value="HEALTH">건강</option>
+                    <option value="STUDY">공부</option>
+                    <option value="ETC">기타</option>
+
+                </select>
+
+            </div>
+
+
+            <!-- 우선순위 -->
             <div>
 
                 <label class="block text-xs font-bold text-gray-500 mb-1">
@@ -704,6 +847,7 @@
             </div>
 
 
+            <!-- 버튼 -->
             <div class="flex justify-end gap-2 pt-3">
 
                 <button
@@ -904,10 +1048,10 @@
 
 </div>
 
+
 <!-- =========================
      PC 월 선택 모달
 ========================= -->
-
 <div
     id="pcMonthPicker"
     class="hidden fixed inset-0 z-50">
@@ -1089,19 +1233,11 @@
 </div>
 
 <script>
-
-    /*
-        ============================================================
-        할 일 추가 모달
-        ============================================================
-    */
-
     function openModal() {
 
         document.getElementById('todoModal').classList.remove('hidden');
 
     }
-
 
     function closeModal() {
 
@@ -1109,343 +1245,626 @@
 
     }
 
+    //Todo 완료 상태 변경
+    function toggleTodo(
+        todoId,
+        selectedTag,
+        selectedDate
+    ) {
 
-    /* Todo 완료 상태 변경 */
-    function toggleTodo(todoId, selectedTag) {
-        const csrfToken = '{{ csrf_token }}';
+        const csrfToken =
+            '{{ csrf_token }}';
+
 
         fetch(`/toggle/${todoId}/`, {
+
             method: 'POST',
+
             headers: {
                 'X-CSRFToken': csrfToken,
                 'Content-Type': 'application/json'
             },
+
             body: JSON.stringify({
-                tag: selectedTag
+
+                tag: selectedTag,
+
+                date: selectedDate
+
             })
+
         })
+
         .then(response => {
+
             if (!response.ok) {
-                throw new Error('서버 응답 오류');
+
+                return response.json()
+                    .then(data => {
+
+                        throw new Error(
+                            data.message ||
+                            '서버 응답 오류'
+                        );
+
+                    });
+
             }
 
             return response.json();
+
         })
+
         .then(data => {
 
-            if (data.status === 'success') {
-            
-                // =========================
-                // 할 일 제목 상태 변경
-                // =========================
-            
-                const titleElement =
-                    document.getElementById(`todo-title-${todoId}`);
-            
-            
-                if (titleElement) {
-                
-                    if (data.is_completed) {
-                    
-                        titleElement.classList.add(
-                            'line-through',
-                            'text-gray-400'
-                        );
-                    
-                        titleElement.classList.remove(
-                            'text-gray-800',
-                            'font-medium'
-                        );
-                    
-                    } else {
-                    
-                        titleElement.classList.remove(
-                            'line-through',
-                            'text-gray-400'
-                        );
-                    
-                        titleElement.classList.add(
-                            'text-gray-800',
-                            'font-medium'
-                        );
-                    
-                    }
-                
-                }
-            
-            
-                // =========================
-                // PC 통계 즉시 갱신
-                // =========================
-            
-                updatePcStats(data);
-            
-            }
-        
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('상태 변경에 실패했습니다.');
+            if (data.status !== 'success') {
 
-            // 실패하면 체크박스 상태 원상복구
-            const checkbox = document.getElementById(
-                `todo-check-${todoId}`
+                throw new Error(
+                    data.message ||
+                    '상태 변경에 실패했습니다.'
+                );
+
+            }
+
+
+            // =========================
+            // 할 일 제목 상태 변경
+            // =========================
+
+            const titleElement =
+                document.getElementById(
+                    `todo-title-${todoId}`
+                );
+
+
+            if (titleElement) {
+
+                if (data.is_completed) {
+
+                    titleElement.classList.add(
+                        'line-through',
+                        'text-gray-400'
+                    );
+
+                    titleElement.classList.remove(
+                        'text-gray-800',
+                        'font-medium'
+                    );
+
+                } else {
+
+                    titleElement.classList.remove(
+                        'line-through',
+                        'text-gray-400'
+                    );
+
+                    titleElement.classList.add(
+                        'text-gray-800',
+                        'font-medium'
+                    );
+
+                }
+
+            }
+
+
+            // =========================
+            // PC 통계 즉시 갱신
+            // =========================
+            console.log('통계 응답:', data);
+            updatePcStats(data);
+
+        })
+
+        .catch(error => {
+
+            console.error(
+                'Todo 상태 변경 오류:',
+                error
             );
 
+
+            alert(
+                error.message ||
+                '상태 변경에 실패했습니다.'
+            );
+
+
+            // =========================
+            // 체크박스 상태 원상복구
+            // =========================
+
+            const checkbox =
+                document.getElementById(
+                    `todo-check-${todoId}`
+                );
+
+
             if (checkbox) {
-                checkbox.checked = !checkbox.checked;
+
+                checkbox.checked =
+                    !checkbox.checked;
+
             }
+
         });
+
     }
+
+
+    /*
+        ============================================================
+        PC 통계 즉시 갱신
+        ============================================================
+    */
 
     function updatePcStats(data) {
 
-        // =========================
-        // 기본 통계
-        // =========================
+        console.log('==============================');
+        console.log('updatePcStats 실행');
+        console.log('응답 데이터:', data);
+
+
+        // ==================================================
+        // 중앙 완료 현황
+        //
+        // 선택한 날짜 기준
+        // ==================================================
+
+        const todoProgress =
+            document.getElementById(
+                'todo-progress'
+            );
+
+
+        if (todoProgress) {
+
+            todoProgress.textContent =
+                `${data.selected_completed_count}/${data.selected_total_count} 완료`;
+
+        }
+
+
+        // ==================================================
+        // 우측 이번달 기본 통계
+        //
+        // 선택한 날짜가 속한 월 전체 기준
+        // ==================================================
 
         const totalCount =
-            document.getElementById('pc-total-count');
+            document.getElementById(
+                'pc-total-count'
+            );
+
 
         const completedCount =
-            document.getElementById('pc-completed-count');
+            document.getElementById(
+                'pc-completed-count'
+            );
+
 
         const completionRate =
-            document.getElementById('pc-completion-rate');
+            document.getElementById(
+                'pc-completion-rate'
+            );
+
 
         const completionBar =
-            document.getElementById('pc-completion-bar');
+            document.getElementById(
+                'pc-completion-bar'
+            );
 
+
+        // =========================
+        // 전체 할 일
+        // =========================
 
         if (totalCount) {
+
             totalCount.textContent =
-                data.total_count;
+                data.monthly_total_count;
+
         }
 
+
+        // =========================
+        // 완료
+        // =========================
 
         if (completedCount) {
+
             completedCount.textContent =
-                data.completed_count;
+                data.monthly_completed_count;
+
         }
 
+
+        // =========================
+        // 완료율
+        // =========================
 
         if (completionRate) {
+
             completionRate.textContent =
-                `${data.completion_rate}%`;
+                `${data.monthly_completion_rate}%`;
+
         }
 
+
+        // =========================
+        // 완료율 바
+        // =========================
 
         if (completionBar) {
+
             completionBar.style.width =
-                `${data.completion_rate}%`;
+                `${data.monthly_completion_rate}%`;
+
         }
 
 
-        // =========================
-        // 태그 통계
-        // =========================
+        // ==================================================
+        // 태그별 현황
+        //
+        // 이번달 전체 기준
+        // ==================================================
 
-        data.tag_stats.forEach(tag => {
+        if (
+            Array.isArray(
+                data.monthly_tag_stats
+            )
+        ) {
 
-            const countElement =
-                document.getElementById(
-                    `pc-tag-${tag.code}-count`
-                );
+            data.monthly_tag_stats.forEach(
+                tag => {
 
-            const barElement =
-                document.getElementById(
-                    `pc-tag-${tag.code}-bar`
-                );
-
-
-            if (countElement) {
-
-                countElement.textContent =
-                    `${tag.completed}/${tag.total}`;
-
-            }
+                    const countElement =
+                        document.getElementById(
+                            `pc-tag-${tag.code}-count`
+                        );
 
 
-            if (barElement) {
-
-                barElement.style.width =
-                    `${tag.rate}%`;
-
-            }
-
-        });
+                    const barElement =
+                        document.getElementById(
+                            `pc-tag-${tag.code}-bar`
+                        );
 
 
-        // =========================
-        // 우선순위 통계
-        // =========================
+                    // -------------------------
+                    // 완료 / 전체
+                    // -------------------------
 
-        data.priority_stats.forEach(priority => {
+                    if (countElement) {
 
-            const totalElement =
-                document.getElementById(
-                    `pc-priority-${priority.code}-total`
-                );
+                        countElement.textContent =
+                            `${tag.completed}/${tag.total}`;
 
-            const completedElement =
-                document.getElementById(
-                    `pc-priority-${priority.code}-completed`
-                );
+                    }
 
 
-            if (totalElement) {
+                    // -------------------------
+                    // 완료율
+                    // -------------------------
 
-                totalElement.textContent =
-                    priority.total;
+                    if (barElement) {
 
-            }
+                        barElement.style.width =
+                            `${tag.rate}%`;
+
+                    }
+
+                }
+            );
+
+        }
 
 
-            if (completedElement) {
+        // ==================================================
+        // 우선순위별 현황
+        //
+        // 이번달 전체 기준
+        // ==================================================
 
-                completedElement.textContent =
-                    `${priority.completed}완료`;
+        if (
+            Array.isArray(
+                data.monthly_priority_stats
+            )
+        ) {
 
-            }
+            data.monthly_priority_stats.forEach(
+                priority => {
 
-        });
+                    const totalElement =
+                        document.getElementById(
+                            `pc-priority-${priority.code}-total`
+                        );
+
+
+                    const completedElement =
+                        document.getElementById(
+                            `pc-priority-${priority.code}-completed`
+                        );
+
+
+                    // -------------------------
+                    // 전체
+                    // -------------------------
+
+                    if (totalElement) {
+
+                        totalElement.textContent =
+                            priority.total;
+
+                    }
+
+
+                    // -------------------------
+                    // 완료
+                    // -------------------------
+
+                    if (completedElement) {
+
+                        completedElement.textContent =
+                            `${priority.completed}완료`;
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        console.log(
+            '중앙 완료:',
+            `${data.selected_completed_count}/${data.selected_total_count}`
+        );
+
+
+        console.log(
+            '이번달 완료:',
+            `${data.monthly_completed_count}/${data.monthly_total_count}`
+        );
+
+
+        console.log(
+            'updatePcStats 종료'
+        );
+
+        console.log(
+            '=============================='
+        );
 
     }
 
-    /* Todo 수정 모달 */
+
+
+
+
+    /*
+        ============================================================
+        Todo 수정 모달
+        ============================================================
+    */
+
     function openEditModal(button) {
 
+
         const modal =
-            document.getElementById('editModal');
+            document.getElementById(
+                'editModal'
+            );
+
 
         const form =
-            document.getElementById('editForm');
+            document.getElementById(
+                'editForm'
+            );
 
 
+        // =========================
         // data-* 속성값
+        // =========================
+
         const id =
             button.dataset.id;
+
 
         const title =
             button.dataset.title;
 
+
         const tag =
             button.dataset.tag;
 
+
         const priority =
             button.dataset.priority;
+
 
         const dueDate =
             button.dataset.date;
 
 
+        // =========================
         // Form Action
-        form.action = `/edit/${id}/`;
+        // =========================
+
+        form.action =
+            `/edit/${id}/`;
 
 
+        // =========================
         // Input 값
-        document.getElementById('edit-title').value =
+        // =========================
+
+        document.getElementById(
+            'edit-title'
+        ).value =
             title;
 
-        document.getElementById('edit-tag').value =
+
+        document.getElementById(
+            'edit-tag'
+        ).value =
             tag;
 
-        document.getElementById('edit-priority').value =
+
+        document.getElementById(
+            'edit-priority'
+        ).value =
             priority;
 
-        document.getElementById('edit-due_date').value =
+
+        document.getElementById(
+            'edit-due_date'
+        ).value =
             dueDate;
 
 
-        modal.classList.remove('hidden');
+        modal.classList.remove(
+            'hidden'
+        );
 
-        modal.classList.add('flex');
+
+        modal.classList.add(
+            'flex'
+        );
 
     }
+
 
     function closeEditModal() {
 
+
         const modal =
-            document.getElementById('editModal');
+            document.getElementById(
+                'editModal'
+            );
 
 
-        modal.classList.add('hidden');
+        modal.classList.add(
+            'hidden'
+        );
 
-        modal.classList.remove('flex');
+
+        modal.classList.remove(
+            'flex'
+        );
 
     }
 
-    //PC 월 선택
+
+    /*
+        ============================================================
+        PC 월 선택
+        ============================================================
+    */
+
     let pcPickerYear = {{ year }};
 
 
+    // 월 선택창 열기
 
-    //월 선택창 열기
     function openPcMonthPicker() {
 
-        const picker =
-            document.getElementById('pcMonthPicker');
 
-        picker.classList.remove('hidden');
+        const picker =
+            document.getElementById(
+                'pcMonthPicker'
+            );
+
+
+        picker.classList.remove(
+            'hidden'
+        );
+
 
         updatePcMonthButton();
 
     }
 
 
-    //월 선택창 닫기
+    // 월 선택창 닫기
+
     function closePcMonthPicker() {
 
-        const picker =
-            document.getElementById('pcMonthPicker');
 
-        picker.classList.add('hidden');
+        const picker =
+            document.getElementById(
+                'pcMonthPicker'
+            );
+
+
+        picker.classList.add(
+            'hidden'
+        );
 
     }
 
 
-    //연도 변경
+    // 연도 변경
+
     function changePcPickerYear(direction) {
+
 
         pcPickerYear += direction;
 
-        document.getElementById('pcPickerYear').textContent =
+
+        document.getElementById(
+            'pcPickerYear'
+        ).textContent =
             `${pcPickerYear}년`;
 
     }
 
 
-    //현재 월 강조
+    // 현재 월 강조
+
     function updatePcMonthButton() {
+
 
         const currentMonth = {{ month }};
 
+
         document
-            .querySelectorAll('.pc-month-button')
+            .querySelectorAll(
+                '.pc-month-button'
+            )
             .forEach(button => {
 
+
                 const buttonMonth =
-                    Number(button.dataset.month);
+                    Number(
+                        button.dataset.month
+                    );
 
 
-                if (buttonMonth === currentMonth) {
+                if (
+                    buttonMonth === currentMonth
+                ) {
+
 
                     button.classList.add(
                         'bg-black',
                         'text-white'
                     );
 
+
                     button.classList.remove(
                         'bg-gray-100',
                         'text-gray-700'
                     );
 
+
                 } else {
+
 
                     button.classList.add(
                         'bg-gray-100',
                         'text-gray-700'
                     );
+
 
                     button.classList.remove(
                         'bg-black',
@@ -1459,11 +1878,16 @@
     }
 
 
-    //월 선택
+    // 월 선택
+
     function selectPcMonth(month) {
 
+
         const monthString =
-            String(month).padStart(2, '0');
+            String(month).padStart(
+                2,
+                '0'
+            );
 
 
         const date =
@@ -1472,6 +1896,128 @@
 
         window.location.href =
             `/?year=${pcPickerYear}&month=${monthString}&date=${date}`;
+
+    }
+
+
+    /*
+        ============================================================
+        기간 할 일
+        ============================================================
+    */
+
+    function toggleEndDate() {
+
+
+        const rangeRadio =
+            document.querySelector(
+                'input[name="schedule_type"][value="range"]'
+            );
+
+
+        const endDateWrapper =
+            document.getElementById(
+                'endDateWrapper'
+            );
+
+
+        const endDateInput =
+            document.getElementById(
+                'endDateInput'
+            );
+
+
+        const dueDateInput =
+            document.getElementById(
+                'dueDateInput'
+            );
+
+
+        if (!rangeRadio || !endDateWrapper) {
+            return;
+        }
+
+
+        if (rangeRadio.checked) {
+
+
+            // 종료일 표시
+
+            endDateWrapper.classList.remove(
+                'hidden'
+            );
+
+
+            // 종료일 필수
+
+            endDateInput.required =
+                true;
+
+
+            // 시작일 이전 선택 방지
+
+            endDateInput.min =
+                dueDateInput.value;
+
+
+        } else {
+
+
+            // 종료일 숨김
+
+            endDateWrapper.classList.add(
+                'hidden'
+            );
+
+
+            // 종료일 선택 해제
+
+            endDateInput.required =
+                false;
+
+
+            endDateInput.value = '';
+
+        }
+
+    }
+
+
+    /*
+        ============================================================
+        시작일 변경 시 종료일 최소 날짜 변경
+        ============================================================
+    */
+
+    const dueDateInput =
+        document.getElementById(
+            'dueDateInput'
+        );
+
+
+    if (dueDateInput) {
+
+
+        dueDateInput.addEventListener(
+            'change',
+            function () {
+
+
+                const endDateInput =
+                    document.getElementById(
+                        'endDateInput'
+                    );
+
+
+                if (endDateInput) {
+
+                    endDateInput.min =
+                        this.value;
+
+                }
+
+            }
+        );
 
     }
 

@@ -1,164 +1,689 @@
 # todos/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
-from django.db.models import Case, When, Value, IntegerField
-from .models import Todo
+from django.db.models import Case, When, Value, IntegerField, Q
+from .models import Todo, TodoCompletion
 import calendar
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 import json
 
 
 def todo_list(request):
+
     today = date.today()
-    year = int(request.GET.get('year', today.year))
-    month = int(request.GET.get('month', today.month))
-    selected_date_str = request.GET.get('date', today.strftime('%Y-%m-%d'))
-    selected_tag = request.GET.get('tag', '').strip()
 
-    filter_kwargs = {'due_date': selected_date_str}
 
-    monthly_stats =Get_Monthly_Stats(
+    # =========================
+    # 기본 요청값
+    # =========================
+
+    year = int(
+        request.GET.get(
+            'year',
+            today.year
+        )
+    )
+
+    month = int(
+        request.GET.get(
+            'month',
+            today.month
+        )
+    )
+
+    selected_date_str = request.GET.get(
+        'date',
+        today.strftime('%Y-%m-%d')
+    )
+
+    selected_tag = request.GET.get(
+        'tag',
+        ''
+    ).strip()
+
+
+    # =========================
+    # 선택 날짜 객체
+    # =========================
+
+    selected_date_obj = datetime.strptime(
+        selected_date_str,
+        '%Y-%m-%d'
+    ).date()
+
+
+    # =========================
+    # 선택 날짜에 완료된
+    # 기간 Todo ID 조회
+    # =========================
+
+    selected_completed_todo_ids = set(
+
+        TodoCompletion.objects.filter(
+
+            completed_date=selected_date_obj
+
+        ).values_list(
+
+            'todo_id',
+            flat=True
+
+        )
+
+    )
+
+
+    # =========================
+    # 월간 통계
+    # =========================
+
+    monthly_stats = Get_Monthly_Stats(
         year,
         month
     )
 
-    #통계 제목
-    is_current_month = (
-        year == today.year
-        and month == today.month
-    )
-    if is_current_month:
-        stats_title = '이번달 통계'
-    else:
-        stats_title = f'{year}년 {month}월 통계'
 
+    # =========================
+    # 통계 제목
+    # =========================
+
+    is_current_month = (
+
+        year == today.year
+
+        and
+
+        month == today.month
+
+    )
+
+
+    if is_current_month:
+
+        stats_title = '이번달 통계'
+
+    else:
+
+        stats_title = (
+            f'{year}년 {month}월 통계'
+        )
+
+
+    # =========================
+    # 선택 날짜 Todo 조회
+    #
+    # 하루 Todo
+    # → due_date == 선택 날짜
+    #
+    # 기간 Todo
+    # → due_date <= 선택 날짜 <= end_date
+    # =========================
+
+    todo_query = (
+
+        Q(
+
+            due_date=selected_date_obj,
+
+            end_date__isnull=True
+
+        )
+
+        |
+
+        Q(
+
+            due_date__lte=selected_date_obj,
+
+            end_date__gte=selected_date_obj
+
+        )
+
+    )
+
+
+    # =========================
+    # 태그 필터
+    # =========================
 
     if selected_tag:
-        filter_kwargs['tag'] = selected_tag
 
-    todos = Todo.objects.filter(**filter_kwargs).annotate(
-        priority_order=Case(
-            When(priority='H', then=Value(1)),
-            When(priority='M', then=Value(2)),
-            When(priority='L', then=Value(3)),
-            default=Value(4),
-            output_field=IntegerField(),
+        todo_query &= Q(
+            tag=selected_tag
         )
-    ).order_by('priority_order', 'created_at')
+
+
+    # =========================
+    # Todo 조회
+    # =========================
+
+    todos = Todo.objects.filter(
+
+        todo_query
+
+    ).annotate(
+
+        priority_order=Case(
+
+            When(
+                priority='H',
+                then=Value(1)
+            ),
+
+            When(
+                priority='M',
+                then=Value(2)
+            ),
+
+            When(
+                priority='L',
+                then=Value(3)
+            ),
+
+            default=Value(4),
+
+            output_field=IntegerField(),
+
+        )
+
+    ).order_by(
+
+        'priority_order',
+
+        'created_at'
+
+    )
+
+
+    # =========================
+    # 선택 날짜 기준 완료 상태
+    # =========================
+
+    for todo in todos:
+
+        # -------------------------
+        # 하루 Todo
+        # -------------------------
+
+        if todo.end_date is None:
+
+            todo.display_completed = (
+                todo.is_completed
+            )
+
+        # -------------------------
+        # 기간 Todo
+        # -------------------------
+
+        else:
+
+            todo.display_completed = (
+                todo.id
+                in selected_completed_todo_ids
+            )
+
+
+    # =========================
+    # 기본 통계
+    # =========================
 
     total_todos = todos.count()
-    completed_todos = todos.filter(is_completed=True).count()
 
-    # 현재 달의 Todo를 캘린더 표시용으로 조회
+
+    completed_todos = sum(
+
+        1
+
+        for todo in todos
+
+        if todo.display_completed
+
+    )
+
+
+    # =========================
+    # 현재 달 시작 / 종료
+    # =========================
+
+    month_start = date(
+
+        year,
+
+        month,
+
+        1
+
+    )
+
+
+    month_end = date(
+
+        year,
+
+        month,
+
+        calendar.monthrange(
+
+            year,
+
+            month
+
+        )[1]
+
+    )
+
+
+    # =========================
+    # 현재 달과 겹치는 Todo
+    # =========================
+
     calendar_todos = Todo.objects.filter(
-        # Django ORM 문법
-        due_date__year=year,
-        due_date__month=month
-    ).order_by('due_date', 'created_at')
 
-    # 날짜별 Todo를 그룹화
+        due_date__lte=month_end
+
+    ).filter(
+
+        Q(
+
+            end_date__isnull=True
+
+        )
+
+        |
+
+        Q(
+
+            end_date__gte=month_start
+
+        )
+
+    ).order_by(
+
+        'due_date',
+
+        'created_at'
+
+    )
+
+
+    # =========================
+    # 날짜별 일반 Todo
+    # =========================
+
     calendar_todos_by_date = {}
 
+
+    # =========================
+    # 기간 Todo
+    # =========================
+
+    period_todos = []
+
+
     for todo in calendar_todos:
-        date_key = todo.due_date.strftime('%Y-%m-%d')
 
-        if date_key not in calendar_todos_by_date:
-            calendar_todos_by_date[date_key] = []
+        todo_start = todo.due_date
 
-        # 한 날짜에 최대 5개의 Todo만 캘린더에 표시
-        if len(calendar_todos_by_date[date_key]) < 5:
-            calendar_todos_by_date[date_key].append(todo)
+        todo_end = (
 
-    # 터미널 확인용 디버깅 출력
-    # print(f"====================================")
-    # print(f"선택 날짜: {selected_date_str}")
-    # print(f"선택 태그: '{selected_tag}'")
-    # print(f"실제 실행된 SQL 조건: {todos.query}")
-    # print(f"최종 조회된 데이터 개수: {todos.count()}")
-    # print(f"====================================")
+            todo.end_date
 
-    cal = calendar.Calendar(firstweekday=6)
-    month_days = cal.monthdayscalendar(year, month)
+            or
 
-    # 캘린더에서 바로 사용할 수 있는 데이터 생성
+            todo.due_date
+
+        )
+
+
+        # =========================
+        # 기간 Todo
+        # =========================
+
+        if todo.end_date:
+
+            period_todos.append(
+                todo
+            )
+
+            continue
+
+
+        # =========================
+        # 일반 Todo
+        # =========================
+
+        if (
+
+            month_start
+
+            <=
+
+            todo_start
+
+            <=
+
+            month_end
+
+        ):
+
+            date_key = (
+                todo_start.strftime(
+                    '%Y-%m-%d'
+                )
+            )
+
+
+            if date_key not in calendar_todos_by_date:
+
+                calendar_todos_by_date[
+                    date_key
+                ] = []
+
+
+            if len(
+
+                calendar_todos_by_date[
+                    date_key
+                ]
+
+            ) < 5:
+
+                calendar_todos_by_date[
+                    date_key
+                ].append(todo)
+
+
+    # =========================
+    # 캘린더 생성
+    # =========================
+
+    cal = calendar.Calendar(
+
+        firstweekday=6
+
+    )
+
+
+    month_days = cal.monthdayscalendar(
+
+        year,
+
+        month
+
+    )
+
+
+    # =========================
+    # 캘린더 데이터
+    # =========================
+
     calendar_data = []
 
+
     for week in month_days:
+
         week_data = []
 
+
         for day in week:
+
+            # =========================
+            # 빈 날짜
+            # =========================
+
             if day == 0:
+
                 week_data.append({
+
                     'day': 0,
+
                     'date': None,
+
                     'todos': [],
-                })
-            else:
-                date_key = f'{year}-{month:02d}-{day:02d}'
 
-                week_data.append({
-                    'day': day,
-                    'date': date_key,
-                    'todos': calendar_todos_by_date.get(date_key, []),
+                    'period_todos': [],
+
                 })
 
-        calendar_data.append(week_data)
+                continue
+
+
+            # =========================
+            # 현재 날짜
+            # =========================
+
+            current_date = date(
+
+                year,
+
+                month,
+
+                day
+
+            )
+
+
+            date_key = (
+
+                current_date.strftime(
+                    '%Y-%m-%d'
+                )
+
+            )
+
+
+            # =========================
+            # 현재 날짜에 걸쳐있는
+            # 기간 Todo
+            # =========================
+
+            current_period_todos = []
+
+
+            for todo in period_todos:
+
+                if (
+
+                    todo.due_date
+
+                    <=
+
+                    current_date
+
+                    <=
+
+                    todo.end_date
+
+                ):
+
+                    current_period_todos.append(
+                        todo
+                    )
+
+
+            # =========================
+            # 하루 Todo
+            # =========================
+
+            current_todos = (
+
+                calendar_todos_by_date.get(
+
+                    date_key,
+
+                    []
+
+                )
+
+            )
+
+
+            # =========================
+            # 날짜 데이터
+            # =========================
+
+            week_data.append({
+
+                'day':
+                    day,
+
+                'date':
+                    date_key,
+
+                'todos':
+                    current_todos,
+
+                'period_todos':
+                    current_period_todos,
+
+            })
+
+
+        calendar_data.append(
+
+            week_data
+
+        )
+
+
+    # =========================
+    # 이전 달
+    # =========================
 
     if month == 1:
-        prev_year, prev_month = year - 1, 12
+
+        prev_year = year - 1
+
+        prev_month = 12
+
     else:
-        prev_year, prev_month = year, month - 1
+
+        prev_year = year
+
+        prev_month = month - 1
+
+
+    # =========================
+    # 다음 달
+    # =========================
 
     if month == 12:
-        next_year, next_month = year + 1, 1
-    else:
-        next_year, next_month = year, month + 1
 
-    selected_date_obj = datetime.strptime(selected_date_str, '%Y-%m-%d')
+        next_year = year + 1
+
+        next_month = 1
+
+    else:
+
+        next_year = year
+
+        next_month = month + 1
+
+
+    # =========================
+    # Context
+    # =========================
 
     context = {
-        'todos': todos,
-        'calendar_data': calendar_data,
-        'calendar_todos_by_date': calendar_todos_by_date,
 
-        'total_todos': total_todos,
-        'completed_todos': completed_todos,
-        'year': year,
-        'month': f'{month:02d}',
-        'month_days': month_days,
-        'selected_date': selected_date_str,
-        'selected_date_obj': selected_date_obj,
-        'selected_tag': selected_tag,
-        'today_str': today.strftime('%Y-%m-%d'),
-        'prev_year': prev_year,
-        'prev_month': prev_month,
-        'next_year': next_year,
-        'next_month': next_month,
+        'todos':
+            todos,
 
-        'stats_title': stats_title,
+        'calendar_data':
+            calendar_data,
+
+        'calendar_todos_by_date':
+            calendar_todos_by_date,
+
+        'total_todos':
+            total_todos,
+
+        'completed_todos':
+            completed_todos,
+
+        'year':
+            year,
+
+        'month':
+            f'{month:02d}',
+
+        'month_days':
+            month_days,
+
+        'selected_date':
+            selected_date_str,
+
+        'selected_date_obj':
+            datetime.combine(
+
+                selected_date_obj,
+
+                datetime.min.time()
+
+            ),
+
+        'selected_completed_todo_ids':
+            selected_completed_todo_ids,
+
+        'selected_tag':
+            selected_tag,
+
+        'today_str':
+            today.strftime(
+                '%Y-%m-%d'
+            ),
+
+        'prev_year':
+            prev_year,
+
+        'prev_month':
+            prev_month,
+
+        'next_year':
+            next_year,
+
+        'next_month':
+            next_month,
+
+        'stats_title':
+            stats_title,
 
         **monthly_stats,
+
     }
 
-    return render(request, 'todos/todo_list.html', context)
 
+    return render(
+
+        request,
+
+        'todos/todo_list.html',
+
+        context
+
+    )
 
 def todo_create(request):
-
     if request.method == 'POST':
 
         title = request.POST.get('title')
         due_date = request.POST.get('due_date')
+        end_date = request.POST.get('end_date')
         tag = request.POST.get('tag')
         priority = request.POST.get('priority')
+
+        if not end_date:
+            end_date = None
 
         Todo.objects.create(
             title=title,
             due_date=due_date,
+            end_date=end_date,
             tag=tag,
             priority=priority
         )
 
+        #현재 화면 상태 유지
         year = request.POST.get('year')
         month = request.POST.get('month')
         current_tag = request.POST.get('current_tag', '')
@@ -179,82 +704,366 @@ def todo_create(request):
 
 def todo_toggle(request, todo_id):
 
-    if request.method == 'POST':
-
-        todo = get_object_or_404(Todo, pk=todo_id)
-
-        # 현재 화면의 태그 필터 가져오기
-        try:
-            data = json.loads(request.body)
-            selected_tag = data.get('tag', '').strip()
-
-        except (json.JSONDecodeError, AttributeError):
-            selected_tag = ''
-
-
-        # 완료 상태 변경
-        todo.is_completed = not todo.is_completed
-        todo.save()
-
-
-        # =========================
-        # 현재 선택된 날짜 + 태그 필터 기준
-        # =========================
-
-        filter_kwargs = {
-            'due_date': todo.due_date
-        }
-
-        if selected_tag:
-            filter_kwargs['tag'] = selected_tag
-
-
-        filtered_todos = Todo.objects.filter(
-            **filter_kwargs
-        )
-
-        total_todos = filtered_todos.count()
-
-        completed_todos = filtered_todos.filter(
-            is_completed=True
-        ).count()
-
-
-        # =========================
-        # 월간 통계 갱신
-        # =========================
-
-        monthly_stats = Get_Monthly_Stats(
-            todo.due_date.year,
-            todo.due_date.month
-        )
-
+    if request.method != 'POST':
 
         return JsonResponse({
+            'status': 'error',
+            'message': '잘못된 요청입니다.'
+        }, status=400)
 
-            'status': 'success',
 
-            'is_completed': todo.is_completed,
+    todo = get_object_or_404(
+        Todo,
+        pk=todo_id
+    )
 
-            'total_todos': total_todos,
 
-            'completed_todos': completed_todos,
+    # =========================
+    # 요청 데이터
+    # =========================
 
-            # 월간 통계
-            'total_count': monthly_stats['total_count'],
-            'completed_count': monthly_stats['completed_count'],
-            'incomplete_count': monthly_stats['incomplete_count'],
-            'completion_rate': monthly_stats['completion_rate'],
+    try:
 
-            'tag_stats': monthly_stats['tag_stats'],
+        data = json.loads(
+            request.body
+        )
 
-            'priority_stats': monthly_stats['priority_stats'],
-        })
+        selected_date_str = data.get(
+            'date'
+        )
 
+    except (
+        json.JSONDecodeError,
+        AttributeError
+    ):
+
+        selected_date_str = None
+
+
+    # =========================
+    # 선택 날짜
+    # =========================
+
+    if selected_date_str:
+
+        try:
+
+            selected_date = datetime.strptime(
+                selected_date_str,
+                '%Y-%m-%d'
+            ).date()
+
+        except ValueError:
+
+            return JsonResponse({
+
+                'status': 'error',
+
+                'message':
+                    '날짜 형식이 올바르지 않습니다.'
+
+            }, status=400)
+
+    else:
+
+        selected_date = todo.due_date
+
+
+    # =========================
+    # 기간 Todo인지 확인
+    # =========================
+
+    is_period_todo = (
+        todo.end_date is not None
+    )
+
+
+    # =========================
+    # 기간 Todo
+    # =========================
+
+    if is_period_todo:
+
+        # -------------------------
+        # 기간 밖 날짜 방지
+        # -------------------------
+
+        if not (
+
+            todo.due_date
+            <=
+            selected_date
+            <=
+            todo.end_date
+
+        ):
+
+            return JsonResponse({
+
+                'status': 'error',
+
+                'message':
+                    '기간에 포함되지 않은 날짜입니다.'
+
+            }, status=400)
+
+
+        # -------------------------
+        # 해당 날짜 완료 기록 확인
+        # -------------------------
+
+        completion = TodoCompletion.objects.filter(
+
+            todo=todo,
+
+            completed_date=selected_date
+
+        ).first()
+
+
+        # -------------------------
+        # 완료 → 미완료
+        # -------------------------
+
+        if completion:
+
+            completion.delete()
+
+            is_completed = False
+
+
+        # -------------------------
+        # 미완료 → 완료
+        # -------------------------
+
+        else:
+
+            TodoCompletion.objects.create(
+
+                todo=todo,
+
+                completed_date=selected_date
+
+            )
+
+            is_completed = True
+
+
+    # =========================
+    # 하루 Todo
+    # =========================
+
+    else:
+
+        # -------------------------
+        # 하루 Todo는 해당 날짜에서만
+        # 변경 가능
+        # -------------------------
+
+        if selected_date != todo.due_date:
+
+            return JsonResponse({
+
+                'status': 'error',
+
+                'message':
+                    '잘못된 날짜입니다.'
+
+            }, status=400)
+
+
+        todo.is_completed = (
+            not todo.is_completed
+        )
+
+
+        todo.save(
+
+            update_fields=[
+                'is_completed'
+            ]
+
+        )
+
+
+        is_completed = (
+            todo.is_completed
+        )
+
+
+    # ==================================================
+    # 1. 중앙 Todo 통계
+    #
+    # 선택한 날짜 기준
+    #
+    # 예:
+    # 5일에 기간 Todo를 체크
+    # → 중앙에서는 완료 1개로 표시
+    #
+    # ==================================================
+
+    selected_date_query = (
+
+        Q(
+
+            due_date=selected_date,
+
+            end_date__isnull=True
+
+        )
+
+        |
+
+        Q(
+
+            due_date__lte=selected_date,
+
+            end_date__gte=selected_date
+
+        )
+
+    )
+
+
+    selected_todos = Todo.objects.filter(
+        selected_date_query
+    )
+
+
+    selected_total_count = (
+        selected_todos.count()
+    )
+
+
+    selected_completed_count = 0
+
+
+    for current_todo in selected_todos:
+
+        # -------------------------
+        # 기간 Todo
+        # -------------------------
+
+        if current_todo.end_date:
+
+            if TodoCompletion.objects.filter(
+
+                todo=current_todo,
+
+                completed_date=selected_date
+
+            ).exists():
+
+                selected_completed_count += 1
+
+
+        # -------------------------
+        # 하루 Todo
+        # -------------------------
+
+        elif current_todo.is_completed:
+
+            selected_completed_count += 1
+
+
+    selected_incomplete_count = (
+
+        selected_total_count
+        -
+        selected_completed_count
+
+    )
+
+
+    if selected_total_count > 0:
+
+        selected_completion_rate = round(
+
+            selected_completed_count
+            /
+            selected_total_count
+            *
+            100
+
+        )
+
+    else:
+
+        selected_completion_rate = 0
+
+
+    # ==================================================
+    # 2. 이번달 통계
+    #
+    # 선택 날짜가 속한 월 전체 기준
+    #
+    # Get_Monthly_Stats()에서
+    # 기간 Todo 전체 완료 여부를 판단한다.
+    #
+    # ==================================================
+
+    monthly_stats = Get_Monthly_Stats(
+
+        selected_date.year,
+
+        selected_date.month
+
+    )
+
+
+    # =========================
+    # 응답
+    # =========================
 
     return JsonResponse({
-        'status': 'error'
-    }, status=400)
+
+        'status':
+            'success',
+
+
+        # =========================
+        # 중앙 통계
+        # =========================
+
+        'is_completed':
+            is_completed,
+
+        'selected_total_count':
+            selected_total_count,
+
+        'selected_completed_count':
+            selected_completed_count,
+
+        'selected_incomplete_count':
+            selected_incomplete_count,
+
+        'selected_completion_rate':
+            selected_completion_rate,
+
+
+        # =========================
+        # 우측 이번달 통계
+        # =========================
+
+        'monthly_total_count':
+            monthly_stats['total_count'],
+
+        'monthly_completed_count':
+            monthly_stats['completed_count'],
+
+        'monthly_incomplete_count':
+            monthly_stats['incomplete_count'],
+
+        'monthly_completion_rate':
+            monthly_stats['completion_rate'],
+
+        'monthly_tag_stats':
+            monthly_stats['tag_stats'],
+
+        'monthly_priority_stats':
+            monthly_stats['priority_stats'],
+
+    })
 
 
 def todo_delete(request, todo_id):
@@ -337,49 +1146,181 @@ def stats(request):
         context
     )
 
+
 def Get_Monthly_Stats(year, month):
 
-    monthly_todos = Todo.objects.filter(
-        due_date__year=year,
-        due_date__month=month
+    # =========================
+    # 해당 월 시작 / 종료
+    # =========================
+
+    month_start = date(
+        year,
+        month,
+        1
+    )
+
+    month_end = date(
+        year,
+        month,
+        calendar.monthrange(
+            year,
+            month
+        )[1]
     )
 
 
     # =========================
-    # 기본 통계
+    # 해당 월과 겹치는 Todo
     # =========================
+
+    monthly_todos = Todo.objects.filter(
+
+        due_date__lte=month_end
+
+    ).filter(
+
+        Q(
+            end_date__isnull=True
+        )
+
+        |
+
+        Q(
+            end_date__gte=month_start
+        )
+
+    )
+
+
+    # ==================================================
+    # 기본 통계
+    # ==================================================
 
     total_count = monthly_todos.count()
 
-    completed_count = monthly_todos.filter(
-        is_completed=True
-    ).count()
+    completed_count = 0
 
-    incomplete_count = monthly_todos.filter(
-        is_completed=False
-    ).count()
 
+    for todo in monthly_todos:
+
+        # =========================
+        # 기간 Todo
+        # =========================
+
+        if todo.end_date:
+
+            period_start = max(
+                todo.due_date,
+                month_start
+            )
+
+            period_end = min(
+                todo.end_date,
+                month_end
+            )
+
+
+            total_days = (
+                period_end
+                - period_start
+            ).days + 1
+
+
+            completed_days = (
+                TodoCompletion.objects.filter(
+
+                    todo=todo,
+
+                    completed_date__gte=period_start,
+
+                    completed_date__lte=period_end
+
+                ).count()
+            )
+
+
+            # =========================
+            # 기간 전체 완료시에만
+            # Todo 1개 완료
+            # =========================
+
+            if (
+
+                total_days > 0
+
+                and
+
+                completed_days >= total_days
+
+            ):
+
+                completed_count += 1
+
+
+        # =========================
+        # 하루 Todo
+        # =========================
+
+        elif todo.is_completed:
+
+            completed_count += 1
+
+
+    # =========================
+    # 미완료 개수
+    # =========================
+
+    incomplete_count = max(
+
+        total_count
+        -
+        completed_count,
+
+        0
+
+    )
+
+
+    # =========================
+    # 완료율
+    # =========================
 
     if total_count > 0:
+
         completion_rate = round(
-            completed_count / total_count * 100
+
+            completed_count
+            /
+            total_count
+            *
+            100
+
         )
+
     else:
+
         completion_rate = 0
 
 
-    # =========================
+    # ==================================================
     # 태그별 통계
-    # =========================
+    # ==================================================
 
     tag_stats = []
 
+
     tag_list = [
+
         ('WORK', '업무'),
+
         ('PERSONAL', '개인'),
+
         ('HEALTH', '건강'),
+
         ('STUDY', '공부'),
+
         ('ETC', '기타'),
+
     ]
 
 
@@ -389,69 +1330,251 @@ def Get_Monthly_Stats(year, month):
             tag=tag_code
         )
 
+
         tag_total = tag_todos.count()
 
-        tag_completed = tag_todos.filter(
-            is_completed=True
-        ).count()
+        tag_completed = 0
 
+
+        for todo in tag_todos:
+
+            # =========================
+            # 기간 Todo
+            # =========================
+
+            if todo.end_date:
+
+                period_start = max(
+                    todo.due_date,
+                    month_start
+                )
+
+                period_end = min(
+                    todo.end_date,
+                    month_end
+                )
+
+
+                total_days = (
+                    period_end
+                    - period_start
+                ).days + 1
+
+
+                completed_days = (
+                    TodoCompletion.objects.filter(
+
+                        todo=todo,
+
+                        completed_date__gte=period_start,
+
+                        completed_date__lte=period_end
+
+                    ).count()
+                )
+
+
+                if (
+
+                    total_days > 0
+
+                    and
+
+                    completed_days >= total_days
+
+                ):
+
+                    tag_completed += 1
+
+
+            # =========================
+            # 하루 Todo
+            # =========================
+
+            elif todo.is_completed:
+
+                tag_completed += 1
+
+
+        # =========================
+        # 태그 완료율
+        # =========================
 
         if tag_total > 0:
+
             tag_completion_rate = round(
-                tag_completed / tag_total * 100
+
+                tag_completed
+                /
+                tag_total
+                *
+                100
+
             )
+
         else:
+
             tag_completion_rate = 0
 
 
         tag_stats.append({
-            'code': tag_code,
-            'name': tag_name,
-            'total': tag_total,
-            'completed': tag_completed,
-            'rate': tag_completion_rate,
+
+            'code':
+                tag_code,
+
+            'name':
+                tag_name,
+
+            'total':
+                tag_total,
+
+            'completed':
+                tag_completed,
+
+            'rate':
+                tag_completion_rate,
+
         })
 
 
-    # =========================
+    # ==================================================
     # 우선순위별 통계
-    # =========================
+    # ==================================================
 
     priority_stats = []
 
+
     priority_list = [
+
         ('H', '높음'),
+
         ('M', '보통'),
+
         ('L', '낮음'),
+
     ]
 
 
     for priority_code, priority_name in priority_list:
 
         priority_todos = monthly_todos.filter(
+
             priority=priority_code
+
         )
 
-        priority_total = priority_todos.count()
 
-        priority_completed = priority_todos.filter(
-            is_completed=True
-        ).count()
+        priority_total = (
+            priority_todos.count()
+        )
 
+        priority_completed = 0
+
+
+        for todo in priority_todos:
+
+            # =========================
+            # 기간 Todo
+            # =========================
+
+            if todo.end_date:
+
+                period_start = max(
+                    todo.due_date,
+                    month_start
+                )
+
+                period_end = min(
+                    todo.end_date,
+                    month_end
+                )
+
+
+                total_days = (
+                    period_end
+                    - period_start
+                ).days + 1
+
+
+                completed_days = (
+                    TodoCompletion.objects.filter(
+
+                        todo=todo,
+
+                        completed_date__gte=period_start,
+
+                        completed_date__lte=period_end
+
+                    ).count()
+                )
+
+
+                if (
+
+                    total_days > 0
+
+                    and
+
+                    completed_days >= total_days
+
+                ):
+
+                    priority_completed += 1
+
+
+            # =========================
+            # 하루 Todo
+            # =========================
+
+            elif todo.is_completed:
+
+                priority_completed += 1
+
+
+        # =========================
+        # 우선순위 통계
+        # =========================
 
         priority_stats.append({
-            'code': priority_code,
-            'name': priority_name,
-            'total': priority_total,
-            'completed': priority_completed,
+
+            'code':
+                priority_code,
+
+            'name':
+                priority_name,
+
+            'total':
+                priority_total,
+
+            'completed':
+                priority_completed,
+
         })
 
 
+    # =========================
+    # 결과
+    # =========================
+
     return {
-        'total_count': total_count,
-        'completed_count': completed_count,
-        'incomplete_count': incomplete_count,
-        'completion_rate': completion_rate,
-        'tag_stats': tag_stats,
-        'priority_stats': priority_stats,
+
+        'total_count':
+            total_count,
+
+        'completed_count':
+            completed_count,
+
+        'incomplete_count':
+            incomplete_count,
+
+        'completion_rate':
+            completion_rate,
+
+        'tag_stats':
+            tag_stats,
+
+        'priority_stats':
+            priority_stats,
+
     }
+

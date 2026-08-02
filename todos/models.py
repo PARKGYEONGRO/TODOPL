@@ -19,7 +19,8 @@ class Todo(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     title = models.CharField(max_length=200, verbose_name='할 일 제목')
     is_completed = models.BooleanField(default=False, verbose_name='완료 여부')
-    due_date = models.DateField(db_index=True, verbose_name='마감일') #명세서상 db_index
+    due_date = models.DateField(db_index=True, verbose_name='시작일') #명세서상 db_index -> 시작일로 변경
+    end_date = models.DateField(null=True, blank=True, verbose_name='종료일')
     priority = models.CharField(max_length=1, choices=PRIORITY_CHOICES, default='M', verbose_name='우선순위')
     tag = models.CharField(max_length=20, choices=TAG_CHOICES, default='WORK', verbose_name='태그')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -29,3 +30,35 @@ class Todo(models.Model):
 
     def __str__(self):
         return self.title
+
+class TodoCompletion(models.Model):
+
+    todo = models.ForeignKey(
+        Todo,
+        on_delete=models.CASCADE,
+        related_name='completions'
+    )
+
+    completed_date = models.DateField()
+
+    completed_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    class Meta:
+
+        unique_together = (
+            'todo',
+            'completed_date'
+        )
+
+        ordering = [
+            'completed_date'
+        ]
+
+    def __str__(self):
+
+        return (
+            f'{self.todo.title} - '
+            f'{self.completed_date}'
+        )
