@@ -1,0 +1,126 @@
+<!--
+    ============================================================
+    Todo 삭제 확인 모달
+    ============================================================
+-->
+
+<div
+    id="deleteModal"
+    class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50 p-4">
+
+
+    <div
+        class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-xl">
+
+
+        <!-- 헤더 -->
+
+        <div class="flex justify-between items-center mb-5">
+
+            <h3 class="text-lg font-bold text-gray-900">
+                할 일 삭제
+            </h3>
+
+
+            <button
+                type="button"
+                onclick="closeDeleteModal()"
+                class="text-gray-400 hover:text-gray-600">
+
+                <i class="fa-solid fa-xmark text-xl"></i>
+
+            </button>
+
+        </div>
+
+
+        <!-- 내용 -->
+
+        <div class="mb-6">
+
+            <p class="text-sm text-gray-500 mb-3">
+                정말 이 할 일을 삭제하시겠습니까?
+            </p>
+
+
+            <div
+                id="deleteTodoTitle"
+                class="px-3 py-3 bg-gray-50 rounded-lg text-sm font-semibold text-gray-800 break-words">
+
+            </div>
+
+        </div>
+
+
+        <!-- 삭제 Form -->
+
+        <form
+            id="deleteForm"
+            method="POST"
+            action="">
+
+
+            {% csrf_token %}
+
+
+            <!-- 현재 화면 상태 유지 -->
+
+            <input
+                type="hidden"
+                name="year"
+                value="{{ year }}">
+
+
+            <input
+                type="hidden"
+                name="month"
+                value="{{ month }}">
+
+
+            <input
+                type="hidden"
+                name="current_tag"
+                value="{{ selected_tag }}">
+
+
+            <input
+                type="hidden"
+                name="date"
+                value="{{ selected_date }}">
+
+
+            <!-- 버튼 -->
+
+            <div class="flex gap-2">
+
+
+                <!-- 취소 -->
+
+                <button
+                    type="button"
+                    onclick="closeDeleteModal()"
+                    class="flex-1 py-2 text-sm font-medium text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
+
+                    취소
+
+                </button>
+
+
+                <!-- 삭제 -->
+
+                <button
+                    type="submit"
+                    class="flex-1 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 transition">
+
+                    삭제
+
+                </button>
+
+            </div>
+
+
+        </form>
+
+    </div>
+
+</div>

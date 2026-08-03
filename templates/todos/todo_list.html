@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
 
@@ -50,15 +51,14 @@
 </style>
 
 
-<!-- 전체 레이아웃
-    중요:
-    min-h-0을 추가해서 자식 flex 영역이
-    필요한 경우 내부에서 overflow 되도록 함
--->
+<!-- 전체 레이아웃 -->
 <div class="flex flex-col md:flex-row h-full min-h-0">
 
 
-    <!-- [좌측] 미니 캘린더 및 태그 필터 -->
+    <!-- =========================================================
+         [좌측] 미니 캘린더 및 태그 필터
+    ========================================================== -->
+
     <aside class="w-full md:w-80 border-r border-gray-200 p-6 flex flex-col justify-between flex-shrink-0">
 
         <div>
@@ -130,9 +130,7 @@
                                     href="?year={{ year }}&month={{ month }}&date={{ calendar_day.date }}"
                                     class="flex flex-col items-center justify-start mx-auto w-full">
 
-                                    <!-- =========================
-                                        날짜 원
-                                    ========================= -->
+                                    <!-- 날짜 원 -->
                                     <span
                                         class="w-7 h-7 flex items-center justify-center rounded-full transition-all
                                         {% if selected_date == calendar_day.date %}
@@ -145,9 +143,8 @@
 
                                     </span>
 
-                                    <!-- =========================
-                                        기간 Todo 막대
-                                    ========================= -->
+
+                                    <!-- 기간 Todo 막대 -->
                                     <div class="w-full h-1.5 flex items-center justify-center mb-1">
 
                                         {% for todo in calendar_day.period_todos %}
@@ -167,10 +164,8 @@
 
                                     </div>
 
-                                    <!-- =========================
-                                        하루 Todo 점
-                                    ========================= -->
 
+                                    <!-- 하루 Todo 점 -->
                                     <span
                                         class="flex items-center justify-center gap-0.5 mt-0.5 h-1.5">
 
@@ -195,7 +190,6 @@
 
                                     </span>
 
-
                                 </a>
 
                             {% endif %}
@@ -211,11 +205,7 @@
         </div>
 
 
-        <!--
-            ========================================================
-            태그 필터
-            ========================================================
-        -->
+        <!-- 태그 필터 -->
         <div class="border-t border-gray-100 pt-4">
 
             <p class="text-xs font-bold text-gray-400 mb-2">
@@ -321,31 +311,15 @@
     </aside>
 
 
-    <!--
-        ============================================================
-        [중앙]
-        메인 Todo 영역
+    <!-- =========================================================
+         [중앙] Todo 영역
+    ========================================================== -->
 
-        중요:
-        flex flex-col
-        min-h-0
-
-        이 두 가지를 이용해서
-        Todo 목록이 남은 공간만 차지하도록 함
-        ============================================================
-    -->
     <section
         class="todo-main-section flex-1 min-w-0 min-h-0 flex flex-col p-6 md:p-8">
 
 
-        <!--
-            ========================================================
-            날짜 헤더
-
-            flex-shrink-0
-            → Todo 스크롤 영역에 밀려나지 않음
-            ========================================================
-        -->
+        <!-- 날짜 헤더 -->
         <div class="flex-shrink-0 flex justify-between items-start mb-6">
 
 
@@ -398,25 +372,7 @@
         </div>
 
 
-        <!--
-            ========================================================
-            Todo 목록
-
-            ★★★ 핵심 부분 ★★★
-
-            flex-1
-            → 위 날짜 영역을 제외한 남은 공간을 사용
-
-            min-h-0
-            → flex 내부에서 실제 높이를 제한할 수 있게 함
-
-            overflow-y-auto
-            → Todo가 많을 때 이 영역만 세로 스크롤
-
-            flex-shrink-0
-            → Todo 한 줄 자체가 찌그러지는 것을 방지
-            ========================================================
-        -->
+        <!-- Todo 목록 -->
         <div
             class="todo-scroll flex-1 min-h-0 overflow-y-auto pr-1 space-y-3">
 
@@ -433,7 +389,7 @@
                     <div class="flex items-center gap-3 min-w-0">
 
 
-                        <!-- 우선순위 색상 바 -->
+                        <!-- 우선순위 색상 -->
                         <div
                             class="w-1 h-5 rounded-full flex-shrink-0
                             {% if todo.priority == 'H' %}
@@ -551,31 +507,45 @@
                         <!-- 수정 -->
                         <button
                             type="button"
+
                             data-id="{{ todo.id }}"
+
                             data-title="{{ todo.title }}"
+
                             data-tag="{{ todo.tag }}"
+
                             data-priority="{{ todo.priority }}"
+
                             data-date="{{ todo.due_date|date:'Y-m-d' }}"
+
+                            data-end-date="{% if todo.end_date %}{{ todo.end_date|date:'Y-m-d' }}{% endif %}"
+
+                            data-schedule-type="{% if todo.end_date %}range{% else %}single{% endif %}"
+
                             onclick="openEditModal(this)"
+
                             class="text-gray-400 hover:text-black transition-colors mr-1">
 
                             <i class="fa-regular fa-pen-to-square"></i>
 
                         </button>
 
-
                         <!-- 삭제 -->
-                        <a
-                            href="{% url 'todo_delete' todo.id %}"
-                            onclick="return confirm('정말 삭제하시겠습니까?')"
-                            class="text-gray-300 hover:text-red-500">
+                        <button
+                            type="button"
+
+                            data-id="{{ todo.id }}"
+
+                            data-title="{{ todo.title }}"
+
+                            onclick="openDeleteModal(this)"
+
+                            class="text-gray-300 hover:text-red-500 transition-colors">
 
                             <i class="fa-regular fa-trash-can"></i>
 
-                        </a>
-
+                        </button>
                     </div>
-
                 </div>
 
 
@@ -603,13 +573,19 @@
     </section>
 
 
-    <!-- [우측] 통계 대시보드 (PC 전용 / 모바일 통계 탭) -->
+    <!-- =========================================================
+         [우측] 통계
+    ========================================================== -->
+
     {% include 'todos/partials/desktop_stats.html' %}
 
 </div>
 
 
-<!-- 할 일 추가 모달 -->
+<!-- =========================================================
+     할 일 추가 모달
+========================================================== -->
+
 <div
     id="todoModal"
     class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -637,7 +613,10 @@
         </div>
 
 
-        <form action="{% url 'todo_create' %}" method="POST" class="space-y-4">
+        <form
+            action="{% url 'todo_create' %}"
+            method="POST"
+            class="space-y-4">
 
             {% csrf_token %}
 
@@ -734,13 +713,20 @@
                         시작일
                     </label>
 
-                    <input
-                        type="date"
-                        id="dueDateInput"
-                        name="due_date"
-                        required
-                        value="{{ selected_date }}"
-                        class="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-black">
+                    <div
+                        class="relative cursor-pointer"
+                        onclick="openDatePicker('dueDateInput')">
+                                    
+                        <input
+                            type="date"
+                            id="dueDateInput"
+                            name="due_date"
+                            required
+                            value="{{ selected_date }}"
+                            onclick="openDatePicker('dueDateInput'); event.stopPropagation();"
+                            class="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-black cursor-pointer">
+                                    
+                    </div>
 
                 </div>
 
@@ -753,14 +739,22 @@
                     <label class="block text-xs font-bold text-gray-500 mb-1">
                         종료일
                     </label>
-
-                    <input
-                        type="date"
-                        id="endDateInput"
-                        name="end_date"
-                        class="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-black">
-
+                
+                    <div
+                        class="relative cursor-pointer"
+                        onclick="openDatePicker('endDateInput')">
+                
+                        <input
+                            type="date"
+                            id="endDateInput"
+                            name="end_date"
+                            onclick="openDatePicker('endDateInput'); event.stopPropagation();"
+                            class="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-black cursor-pointer">
+                
+                    </div>
+                
                 </div>
+
             </div>
 
 
@@ -795,7 +789,6 @@
 
 
                 <div class="flex gap-4 text-sm mt-1">
-
 
                     <label class="flex items-center gap-1 cursor-pointer">
 
@@ -877,184 +870,19 @@
 </div>
 
 
-<!--
-    ==================================================================
-    수정 모달
-    ==================================================================
--->
-<div
-    id="editModal"
-    class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50 p-4">
+<!-- 수정 모달 edit_modal.html에서 관리 -->
+{% include 'todos/partials/edit_modal.html' %}
 
+<!-- 삭제 모달 delete_modal.html에서 관리 -->
+{% include 'todos/partials/delete_modal.html' %}
 
-    <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl">
-
-
-        <div class="flex justify-between items-center mb-5">
-
-            <h3 class="text-lg font-bold text-gray-900">
-                할 일 수정
-            </h3>
-
-
-            <button
-                onclick="closeEditModal()"
-                class="text-gray-400 hover:text-gray-600">
-
-                <i class="fa-solid fa-xmark text-xl"></i>
-
-            </button>
-
-        </div>
-
-
-        <form
-            id="editForm"
-            method="POST"
-            action="">
-
-
-            {% csrf_token %}
-
-
-            <input
-                type="hidden"
-                name="year"
-                value="{{ year }}">
-
-
-            <input
-                type="hidden"
-                name="month"
-                value="{{ month }}">
-
-
-            <input
-                type="hidden"
-                name="current_tag"
-                value="{{ selected_tag }}">
-
-
-            <div class="space-y-4">
-
-
-                <div>
-
-                    <label class="block text-xs font-semibold text-gray-500 mb-1">
-                        제목
-                    </label>
-
-                    <input
-                        type="text"
-                        id="edit-title"
-                        name="title"
-                        required
-                        class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black">
-
-                </div>
-
-
-                <div class="grid grid-cols-2 gap-3">
-
-
-                    <div>
-
-                        <label class="block text-xs font-semibold text-gray-500 mb-1">
-                            태그
-                        </label>
-
-                        <select
-                            id="edit-tag"
-                            name="tag"
-                            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black">
-
-                            <option value="PERSONAL">개인</option>
-                            <option value="WORK">업무</option>
-                            <option value="HEALTH">건강</option>
-                            <option value="STUDY">공부</option>
-                            <option value="ETC">기타</option>
-
-                        </select>
-
-                    </div>
-
-
-                    <div>
-
-                        <label class="block text-xs font-semibold text-gray-500 mb-1">
-                            우선순위
-                        </label>
-
-                        <select
-                            id="edit-priority"
-                            name="priority"
-                            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black">
-
-                            <option value="H">높음</option>
-                            <option value="M">보통</option>
-                            <option value="L">낮음</option>
-
-                        </select>
-
-                    </div>
-
-                </div>
-
-
-                <div>
-
-                    <label class="block text-xs font-semibold text-gray-500 mb-1">
-                        날짜
-                    </label>
-
-                    <input
-                        type="date"
-                        id="edit-due_date"
-                        name="due_date"
-                        required
-                        class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black">
-
-                </div>
-
-            </div>
-
-
-            <div class="flex gap-2 mt-6">
-
-
-                <button
-                    type="button"
-                    onclick="closeEditModal()"
-                    class="flex-1 py-2 text-sm font-medium text-gray-500 bg-gray-100 rounded-lg">
-
-                    취소
-
-                </button>
-
-
-                <button
-                    type="submit"
-                    class="flex-1 py-2 text-sm font-medium text-white bg-black rounded-lg">
-
-                    저장
-
-                </button>
-
-            </div>
-
-        </form>
-
-    </div>
-
-</div>
-
-
-<!-- =========================
+<!-- =========================================================
      PC 월 선택 모달
-========================= -->
+========================================================== -->
 <div
     id="pcMonthPicker"
     class="hidden fixed inset-0 z-50">
+
 
     <!-- 배경 -->
     <div
@@ -1070,8 +898,8 @@
                w-80 bg-white rounded-2xl
                p-5 shadow-xl">
 
-        <!-- 헤더 -->
 
+        <!-- 헤더 -->
         <div class="flex items-center justify-between mb-5">
 
             <h3 class="text-base font-bold text-gray-900">
@@ -1092,7 +920,6 @@
 
 
         <!-- 연도 선택 -->
-
         <div class="flex items-center justify-between mb-5">
 
             <button
@@ -1127,7 +954,6 @@
 
 
         <!-- 월 목록 -->
-
         <div class="grid grid-cols-4 gap-2">
 
             <button
@@ -1232,20 +1058,42 @@
 
 </div>
 
+
+<!-- 기본 Todo JS -->
 <script>
+
+    /*
+        ============================================================
+        할 일 추가 모달
+        ============================================================
+    */
+
     function openModal() {
 
-        document.getElementById('todoModal').classList.remove('hidden');
+        document
+            .getElementById('todoModal')
+            .classList
+            .remove('hidden');
 
     }
+
 
     function closeModal() {
 
-        document.getElementById('todoModal').classList.add('hidden');
+        document
+            .getElementById('todoModal')
+            .classList
+            .add('hidden');
 
     }
 
-    //Todo 완료 상태 변경
+
+    /*
+        ============================================================
+        Todo 완료 상태 변경
+        ============================================================
+    */
+
     function toggleTodo(
         todoId,
         selectedTag,
@@ -1256,24 +1104,22 @@
             '{{ csrf_token }}';
 
 
-        fetch(`/toggle/${todoId}/`, {
+        fetch(
+            `/toggle/${todoId}/`,
+            {
+                method: 'POST',
 
-            method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                },
 
-            headers: {
-                'X-CSRFToken': csrfToken,
-                'Content-Type': 'application/json'
-            },
-
-            body: JSON.stringify({
-
-                tag: selectedTag,
-
-                date: selectedDate
-
-            })
-
-        })
+                body: JSON.stringify({
+                    tag: selectedTag,
+                    date: selectedDate
+                })
+            }
+        )
 
         .then(response => {
 
@@ -1307,10 +1153,7 @@
             }
 
 
-            // =========================
-            // 할 일 제목 상태 변경
-            // =========================
-
+            // 제목 상태 변경
             const titleElement =
                 document.getElementById(
                     `todo-title-${todoId}`
@@ -1348,10 +1191,12 @@
             }
 
 
-            // =========================
             // PC 통계 즉시 갱신
-            // =========================
-            console.log('통계 응답:', data);
+            console.log(
+                '통계 응답:',
+                data
+            );
+
             updatePcStats(data);
 
         })
@@ -1370,10 +1215,7 @@
             );
 
 
-            // =========================
-            // 체크박스 상태 원상복구
-            // =========================
-
+            // 체크박스 원상복구
             const checkbox =
                 document.getElementById(
                     `todo-check-${todoId}`
@@ -1400,15 +1242,22 @@
 
     function updatePcStats(data) {
 
-        console.log('==============================');
-        console.log('updatePcStats 실행');
-        console.log('응답 데이터:', data);
+        console.log(
+            '=============================='
+        );
+
+        console.log(
+            'updatePcStats 실행'
+        );
+
+        console.log(
+            '응답 데이터:',
+            data
+        );
 
 
         // ==================================================
         // 중앙 완료 현황
-        //
-        // 선택한 날짜 기준
         // ==================================================
 
         const todoProgress =
@@ -1427,8 +1276,6 @@
 
         // ==================================================
         // 우측 이번달 기본 통계
-        //
-        // 선택한 날짜가 속한 월 전체 기준
         // ==================================================
 
         const totalCount =
@@ -1455,10 +1302,6 @@
             );
 
 
-        // =========================
-        // 전체 할 일
-        // =========================
-
         if (totalCount) {
 
             totalCount.textContent =
@@ -1466,10 +1309,6 @@
 
         }
 
-
-        // =========================
-        // 완료
-        // =========================
 
         if (completedCount) {
 
@@ -1479,10 +1318,6 @@
         }
 
 
-        // =========================
-        // 완료율
-        // =========================
-
         if (completionRate) {
 
             completionRate.textContent =
@@ -1490,10 +1325,6 @@
 
         }
 
-
-        // =========================
-        // 완료율 바
-        // =========================
 
         if (completionBar) {
 
@@ -1505,8 +1336,6 @@
 
         // ==================================================
         // 태그별 현황
-        //
-        // 이번달 전체 기준
         // ==================================================
 
         if (
@@ -1530,10 +1359,6 @@
                         );
 
 
-                    // -------------------------
-                    // 완료 / 전체
-                    // -------------------------
-
                     if (countElement) {
 
                         countElement.textContent =
@@ -1541,10 +1366,6 @@
 
                     }
 
-
-                    // -------------------------
-                    // 완료율
-                    // -------------------------
 
                     if (barElement) {
 
@@ -1561,8 +1382,6 @@
 
         // ==================================================
         // 우선순위별 현황
-        //
-        // 이번달 전체 기준
         // ==================================================
 
         if (
@@ -1586,10 +1405,6 @@
                         );
 
 
-                    // -------------------------
-                    // 전체
-                    // -------------------------
-
                     if (totalElement) {
 
                         totalElement.textContent =
@@ -1597,10 +1412,6 @@
 
                     }
 
-
-                    // -------------------------
-                    // 완료
-                    // -------------------------
 
                     if (completedElement) {
 
@@ -1638,123 +1449,6 @@
     }
 
 
-
-
-
-    /*
-        ============================================================
-        Todo 수정 모달
-        ============================================================
-    */
-
-    function openEditModal(button) {
-
-
-        const modal =
-            document.getElementById(
-                'editModal'
-            );
-
-
-        const form =
-            document.getElementById(
-                'editForm'
-            );
-
-
-        // =========================
-        // data-* 속성값
-        // =========================
-
-        const id =
-            button.dataset.id;
-
-
-        const title =
-            button.dataset.title;
-
-
-        const tag =
-            button.dataset.tag;
-
-
-        const priority =
-            button.dataset.priority;
-
-
-        const dueDate =
-            button.dataset.date;
-
-
-        // =========================
-        // Form Action
-        // =========================
-
-        form.action =
-            `/edit/${id}/`;
-
-
-        // =========================
-        // Input 값
-        // =========================
-
-        document.getElementById(
-            'edit-title'
-        ).value =
-            title;
-
-
-        document.getElementById(
-            'edit-tag'
-        ).value =
-            tag;
-
-
-        document.getElementById(
-            'edit-priority'
-        ).value =
-            priority;
-
-
-        document.getElementById(
-            'edit-due_date'
-        ).value =
-            dueDate;
-
-
-        modal.classList.remove(
-            'hidden'
-        );
-
-
-        modal.classList.add(
-            'flex'
-        );
-
-    }
-
-
-    function closeEditModal() {
-
-
-        const modal =
-            document.getElementById(
-                'editModal'
-            );
-
-
-        modal.classList.add(
-            'hidden'
-        );
-
-
-        modal.classList.remove(
-            'flex'
-        );
-
-    }
-
-
     /*
         ============================================================
         PC 월 선택
@@ -1764,10 +1458,11 @@
     let pcPickerYear = {{ year }};
 
 
-    // 월 선택창 열기
+    /*
+        월 선택창 열기
+    */
 
     function openPcMonthPicker() {
-
 
         const picker =
             document.getElementById(
@@ -1785,10 +1480,11 @@
     }
 
 
-    // 월 선택창 닫기
+    /*
+        월 선택창 닫기
+    */
 
     function closePcMonthPicker() {
-
 
         const picker =
             document.getElementById(
@@ -1803,10 +1499,13 @@
     }
 
 
-    // 연도 변경
+    /*
+        연도 변경
+    */
 
-    function changePcPickerYear(direction) {
-
+    function changePcPickerYear(
+        direction
+    ) {
 
         pcPickerYear += direction;
 
@@ -1819,75 +1518,74 @@
     }
 
 
-    // 현재 월 강조
+    /*
+        현재 월 강조
+    */
 
     function updatePcMonthButton() {
 
-
-        const currentMonth = {{ month }};
+        const currentMonth =
+            {{ month }};
 
 
         document
             .querySelectorAll(
                 '.pc-month-button'
             )
-            .forEach(button => {
+            .forEach(
+                button => {
+
+                    const buttonMonth =
+                        Number(
+                            button.dataset.month
+                        );
 
 
-                const buttonMonth =
-                    Number(
-                        button.dataset.month
-                    );
+                    if (
+                        buttonMonth === currentMonth
+                    ) {
 
+                        button.classList.add(
+                            'bg-black',
+                            'text-white'
+                        );
 
-                if (
-                    buttonMonth === currentMonth
-                ) {
+                        button.classList.remove(
+                            'bg-gray-100',
+                            'text-gray-700'
+                        );
 
+                    } else {
 
-                    button.classList.add(
-                        'bg-black',
-                        'text-white'
-                    );
+                        button.classList.add(
+                            'bg-gray-100',
+                            'text-gray-700'
+                        );
 
+                        button.classList.remove(
+                            'bg-black',
+                            'text-white'
+                        );
 
-                    button.classList.remove(
-                        'bg-gray-100',
-                        'text-gray-700'
-                    );
-
-
-                } else {
-
-
-                    button.classList.add(
-                        'bg-gray-100',
-                        'text-gray-700'
-                    );
-
-
-                    button.classList.remove(
-                        'bg-black',
-                        'text-white'
-                    );
+                    }
 
                 }
-
-            });
+            );
 
     }
 
 
-    // 월 선택
+    /*
+        월 선택
+    */
 
-    function selectPcMonth(month) {
-
+    function selectPcMonth(
+        month
+    ) {
 
         const monthString =
-            String(month).padStart(
-                2,
-                '0'
-            );
+            String(month)
+                .padStart(2, '0');
 
 
         const date =
@@ -1907,7 +1605,6 @@
     */
 
     function toggleEndDate() {
-
 
         const rangeRadio =
             document.querySelector(
@@ -1933,50 +1630,43 @@
             );
 
 
-        if (!rangeRadio || !endDateWrapper) {
+        if (
+            !rangeRadio ||
+            !endDateWrapper
+        ) {
+
             return;
+
         }
 
 
         if (rangeRadio.checked) {
-
-
-            // 종료일 표시
 
             endDateWrapper.classList.remove(
                 'hidden'
             );
 
 
-            // 종료일 필수
-
             endDateInput.required =
                 true;
 
 
-            // 시작일 이전 선택 방지
-
             endDateInput.min =
                 dueDateInput.value;
 
-
         } else {
-
-
-            // 종료일 숨김
 
             endDateWrapper.classList.add(
                 'hidden'
             );
 
 
-            // 종료일 선택 해제
-
             endDateInput.required =
                 false;
 
 
-            endDateInput.value = '';
+            endDateInput.value =
+                '';
 
         }
 
@@ -1997,11 +1687,9 @@
 
     if (dueDateInput) {
 
-
         dueDateInput.addEventListener(
             'change',
             function () {
-
 
                 const endDateInput =
                     document.getElementById(
@@ -2021,6 +1709,69 @@
 
     }
 
+
+    /*
+        ============================================================
+        날짜 선택창 열기
+        ============================================================
+    */
+    function openDatePicker(
+        inputId
+    ) {
+
+        const input =
+            document.getElementById(
+                inputId
+            );
+
+
+        if (!input) {
+
+            return;
+
+        }
+
+
+        /*
+            Chrome 등 showPicker 지원 브라우저
+        */
+
+        if (
+            typeof input.showPicker === 'function'
+        ) {
+
+            try {
+
+                input.showPicker();
+
+                return;
+
+            } catch (error) {
+
+                console.warn(
+                    'showPicker 실행 실패:',
+                    error
+                );
+
+            }
+
+        }
+
+
+        /*
+            showPicker를 지원하지 않는 경우
+            input 자체에 focus
+        */
+
+        input.focus();
+
+    }
+
 </script>
 
+
+<!-- 수정 모달 JS 별도 파일 -->
+<script src="{% static 'todos/js/edit_modal.js' %}"></script>
+<!-- 삭제 모달 JS 별도 파일 -->
+<script src="{% static 'todos/js/delete_modal.js' %}"></script>
 {% endblock %}

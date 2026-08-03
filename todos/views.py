@@ -663,6 +663,7 @@ def todo_list(request):
 
     )
 
+
 def todo_create(request):
     if request.method == 'POST':
 
@@ -1067,21 +1068,105 @@ def todo_toggle(request, todo_id):
 
 
 def todo_delete(request, todo_id):
-    todo = get_object_or_404(Todo, pk=todo_id)
-    todo.delete()
 
-    return redirect('todo_list')
+    todo = get_object_or_404(
+        Todo,
+        pk=todo_id
+    )
+
+
+    if request.method == 'POST':
+
+        todo.delete()
+
+
+        return redirect(
+            f"/?year={request.POST.get('year')}"
+            f"&month={request.POST.get('month')}"
+            f"&date={request.POST.get('date')}"
+            f"&tag={request.POST.get('current_tag', '')}"
+        )
+
+
+    return redirect(
+        'todo_list'
+    )
 
 
 def todo_edit(request, todo_id):
-    todo = get_object_or_404(Todo, pk=todo_id)
+
+    todo = get_object_or_404(
+        Todo,
+        pk=todo_id
+    )
+
 
     if request.method == 'POST':
-        todo.title = request.POST.get('title')
-        todo.tag = request.POST.get('tag')
-        todo.priority = request.POST.get('priority')
-        todo.due_date = request.POST.get('due_date')
+
+        # ============================================================
+        # 기본 정보
+        # ============================================================
+
+        todo.title = request.POST.get(
+            'title'
+        )
+
+        todo.tag = request.POST.get(
+            'tag'
+        )
+
+        todo.priority = request.POST.get(
+            'priority'
+        )
+
+
+        # ============================================================
+        # 일정 유형
+        # ============================================================
+
+        schedule_type = request.POST.get(
+            'schedule_type',
+            'single'
+        )
+
+
+        # ============================================================
+        # 시작일
+        # ============================================================
+
+        due_date = request.POST.get(
+            'due_date'
+        )
+
+
+        todo.due_date = due_date
+
+
+        # ============================================================
+        # 종료일
+        # ============================================================
+
+        if schedule_type == 'range':
+
+            todo.end_date = request.POST.get(
+                'end_date'
+            )
+
+        else:
+
+            todo.end_date = None
+
+
+        # ============================================================
+        # 저장
+        # ============================================================
+
         todo.save()
+
+
+        # ============================================================
+        # 수정 후 원래 화면으로 복귀
+        # ============================================================
 
         return redirect(
             f"/?year={request.POST.get('year')}"
@@ -1090,7 +1175,10 @@ def todo_edit(request, todo_id):
             f"&tag={request.POST.get('current_tag', '')}"
         )
 
-    return redirect('todo_list')
+
+    return redirect(
+        'todo_list'
+    )
 
 
 def stats(request):
