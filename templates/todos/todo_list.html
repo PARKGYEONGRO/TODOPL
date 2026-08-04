@@ -145,7 +145,7 @@
 
 
                                     <!-- 기간 Todo 막대 -->
-                                    <div class="w-full h-1.5 flex items-center justify-center mb-1">
+                                    <div class="w-full flex flex-col items-center justify-center mb-1">
 
                                         {% for todo in calendar_day.period_todos %}
 
@@ -397,7 +397,7 @@
                             {% elif todo.priority == 'M' %}
                                 bg-amber-500
                             {% else %}
-                                bg-gray-400
+                                bg-green-500
                             {% endif %}">
                         </div>
 
@@ -582,10 +582,7 @@
 </div>
 
 
-<!-- =========================================================
-     할 일 추가 모달
-========================================================== -->
-
+<!-- 할 일 추가 모달 -->
 <div
     id="todoModal"
     class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -875,6 +872,12 @@
 
 <!-- 삭제 모달 delete_modal.html에서 관리 -->
 {% include 'todos/partials/delete_modal.html' %}
+
+<!-- 설정 모달 settings_modal.html에서 관리-->
+{% include 'todos/partials/settings_modal.html' %}
+
+<!-- 프로필 설정 모달 profile_setting.html에서 관리-->
+{% include 'todos/partials/profile_setting.html' %}
 
 <!-- =========================================================
      PC 월 선택 모달
@@ -1774,4 +1777,6 @@
 <script src="{% static 'todos/js/edit_modal.js' %}"></script>
 <!-- 삭제 모달 JS 별도 파일 -->
 <script src="{% static 'todos/js/delete_modal.js' %}"></script>
+<!-- 설정 모달 JS 별도 파일 -->
+ <script src="{% static 'todos/js/settings_modal.js' %}"></script>
 {% endblock %}

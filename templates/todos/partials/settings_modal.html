@@ -1,0 +1,784 @@
+<!--
+    ==================================================================
+    설정 모달
+    모바일 퍼스트
+    ==================================================================
+-->
+
+<div
+    id='settingsModal'
+    class='fixed inset-0 z-[60] hidden bg-white/30'
+    onclick='backdropClick(event)'>
+
+
+    <!-- ============================================================
+         설정 전체 영역
+    ============================================================= -->
+    <div
+        class='h-full flex flex-col bg-white
+            md:w-[430px] md:ml-auto
+            md:shadow-2xl'
+        onclick='event.stopPropagation()'>
+
+
+        <!-- ========================================================
+             상단 헤더
+        ========================================================= -->
+
+        <header
+            class='flex-shrink-0 px-5 pt-5 pb-4 border-b border-gray-100'>
+
+
+            <div
+                class='flex items-start justify-between'>
+
+
+                <div>
+
+                    <p
+                        class='text-[11px] text-gray-400 font-medium tracking-wide mb-1'>
+
+                        앱 환경설정
+
+                    </p>
+
+
+                    <h2
+                        class='text-xl font-extrabold text-gray-900'>
+
+                        설정
+
+                    </h2>
+
+                </div>
+
+
+                <button
+                    type='button'
+                    onclick='closeSettingsModal()'
+                    class='w-9 h-9 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 transition'>
+
+                    <i
+                        class='fa-solid fa-xmark text-lg'>
+                    </i>
+
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <!-- ========================================================
+             설정 내용
+        ========================================================= -->
+
+        <main
+            class='flex-1 overflow-y-auto px-4 py-4 pb-24'>
+
+
+            <!-- ====================================================
+                 프로필
+            ===================================================== -->
+
+            <section
+                class='mb-5'>
+
+
+                <button
+                    type='button'
+                    onclick='openProfilePage()'
+                    class='w-full rounded-2xl bg-gray-950 text-white p-5 text-left shadow-sm active:scale-[0.99] transition'>
+
+
+                    <div
+                        class='flex items-center gap-4'>
+
+
+                        <!-- 프로필 아이콘 -->
+
+                        <div
+                            class='w-12 h-12 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0'>
+
+                            <i
+                                class='fa-regular fa-user text-xl text-white'>
+                            </i>
+
+                        </div>
+
+
+                        <!-- 프로필 내용 -->
+
+                        <div
+                            class='flex-1 min-w-0'>
+
+
+                            <p
+                                class='text-sm font-extrabold'>
+
+                                사용자
+
+                            </p>
+
+
+                            <p
+                                class='text-xs text-gray-400 mt-1 truncate'>
+
+                                나만의 하루를 차근차근 기록해요.
+
+                            </p>
+
+                        </div>
+
+
+                        <!-- 이동 -->
+
+                        <i
+                            class='fa-solid fa-chevron-right text-xs text-gray-500'>
+                        </i>
+
+                    </div>
+
+                </button>
+
+            </section>
+
+
+            <!-- ====================================================
+                 업데이트
+            ===================================================== -->
+
+            <section
+                class='mb-5'>
+
+
+                <p
+                    class='text-[11px] text-gray-400 font-medium px-1 mb-2'>
+
+                    업데이트
+
+                </p>
+
+
+                <button
+                    type='button'
+                    class='w-full flex items-center gap-3 px-4 py-4 border border-gray-200 rounded-xl bg-white active:bg-gray-50 transition'>
+
+
+                    <div
+                        class='w-8 h-8 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center flex-shrink-0'>
+
+                        <i
+                            class='fa-regular fa-circle-info'>
+                        </i>
+
+                    </div>
+
+
+                    <div
+                        class='flex-1 text-left'>
+
+
+                        <p
+                            class='text-sm font-bold text-gray-900'>
+
+                            릴리즈 노트
+
+                        </p>
+
+                    </div>
+
+
+                    <span
+                        class='px-2 py-1 rounded-full bg-gray-100 text-gray-500 text-[10px] font-bold'>
+
+                        v1.0.0
+
+                    </span>
+
+
+                    <i
+                        class='fa-solid fa-chevron-right text-[10px] text-gray-400'>
+                    </i>
+
+                </button>
+
+            </section>
+
+
+            <!-- ====================================================
+                 할 일 관리
+            ===================================================== -->
+
+            <section
+                class='mb-5'>
+
+
+                <p
+                    class='text-[11px] text-gray-400 font-medium px-1 mb-2'>
+
+                    할 일 관리
+
+                </p>
+
+
+                <button
+                    type='button'
+                    class='w-full flex items-center gap-3 px-4 py-4 border border-gray-200 rounded-xl bg-white active:bg-gray-50 transition'>
+
+
+                    <div
+                        class='w-8 h-8 rounded-lg bg-green-50 text-green-500 flex items-center justify-center flex-shrink-0'>
+
+                        <i
+                            class='fa-regular fa-tag'>
+                        </i>
+
+                    </div>
+
+
+                    <div
+                        class='flex-1 text-left'>
+
+
+                        <p
+                            class='text-sm font-bold text-gray-900'>
+
+                            카테고리 편집
+
+                        </p>
+
+
+                        <p
+                            class='text-[11px] text-gray-400 mt-0.5'>
+
+                            태그 추가 · 수정 · 삭제 · 순서 변경
+
+                        </p>
+
+                    </div>
+
+
+                    <i
+                        class='fa-solid fa-chevron-right text-[10px] text-gray-400'>
+                    </i>
+
+                </button>
+
+            </section>
+
+
+            <!-- ====================================================
+                 화면 표시
+            ===================================================== -->
+
+            <section
+                class='mb-5'>
+
+
+                <p
+                    class='text-[11px] text-gray-400 font-medium px-1 mb-2'>
+
+                    화면 표시
+
+                </p>
+
+
+                <div
+                    class='border border-gray-200 rounded-xl overflow-hidden bg-white'>
+
+
+                    <!-- 폰트 설정 -->
+
+                    <button
+                        type='button'
+                        class='w-full flex items-center gap-3 px-4 py-4 text-left border-b border-gray-100 active:bg-gray-50 transition'>
+
+
+                        <div
+                            class='w-8 h-8 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center flex-shrink-0'>
+
+                            <i
+                                class='fa-solid fa-palette'>
+                            </i>
+
+                        </div>
+
+
+                        <div
+                            class='flex-1'>
+
+
+                            <p
+                                class='text-sm font-bold text-gray-900'>
+
+                                폰트 설정
+
+                            </p>
+
+
+                            <p
+                                class='text-[11px] text-gray-400 mt-0.5'>
+
+                                크기 및 서체 변경
+
+                            </p>
+
+                        </div>
+
+
+                        <i
+                            class='fa-solid fa-chevron-right text-[10px] text-gray-400'>
+                        </i>
+
+                    </button>
+
+
+                    <!-- 프리미엄 -->
+
+                    <button
+                        type='button'
+                        class='w-full text-left p-3 active:opacity-90 transition'>
+
+
+                        <div
+                            class='rounded-xl overflow-hidden bg-gradient-to-br from-gray-950 via-slate-900 to-blue-950 p-4 relative'>
+
+
+                            <!-- 장식 -->
+
+                            <div
+                                class='absolute -right-8 -top-8 w-24 h-24 rounded-full bg-blue-500/10'>
+                            </div>
+
+
+                            <div
+                                class='relative flex items-start gap-3'>
+
+
+                                <div
+                                    class='w-8 h-8 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center flex-shrink-0'>
+
+                                    <i
+                                        class='fa-regular fa-bell'>
+                                    </i>
+
+                                </div>
+
+
+                                <div
+                                    class='flex-1'>
+
+
+                                    <div
+                                        class='flex items-center gap-2'>
+
+
+                                        <p
+                                            class='text-sm font-extrabold text-white'>
+
+                                            프리미엄
+
+                                        </p>
+
+
+                                        <span
+                                            class='px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-red-500 text-white'>
+
+                                            AI
+
+                                        </span>
+
+                                    </div>
+
+
+                                    <p
+                                        class='text-[11px] text-gray-300 leading-relaxed mt-1'>
+
+                                        AI 일정 추천 · 스마트 우선순위<br>
+                                        자동 리마인더 기능
+
+                                    </p>
+
+
+                                    <span
+                                        class='inline-flex mt-3 px-3 py-1.5 rounded bg-red-500 text-white text-[11px] font-bold'>
+
+                                        프리미엄 시작하기 →
+
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </button>
+
+
+                    <!-- 홈화면 설정 -->
+
+                    <button
+                        type='button'
+                        class='w-full flex items-center gap-3 px-4 py-4 text-left border-t border-gray-100 active:bg-gray-50 transition'>
+
+
+                        <div
+                            class='w-8 h-8 rounded-lg bg-sky-50 text-sky-500 flex items-center justify-center flex-shrink-0'>
+
+                            <i
+                                class='fa-regular fa-sun'>
+                            </i>
+
+                        </div>
+
+
+                        <div
+                            class='flex-1'>
+
+
+                            <p
+                                class='text-sm font-bold text-gray-900'>
+
+                                홈화면 설정
+
+                            </p>
+
+
+                            <p
+                                class='text-[11px] text-gray-400 mt-0.5'>
+
+                                위젯 및 기본 뷰 구성
+
+                            </p>
+
+                        </div>
+
+
+                        <i
+                            class='fa-solid fa-chevron-right text-[10px] text-gray-400'>
+                        </i>
+
+                    </button>
+
+
+                    <!-- 캘린더 설정 -->
+
+                    <button
+                        type='button'
+                        class='w-full flex items-center gap-3 px-4 py-4 text-left border-t border-gray-100 active:bg-gray-50 transition'>
+
+
+                        <div
+                            class='w-8 h-8 rounded-lg bg-violet-50 text-violet-500 flex items-center justify-center flex-shrink-0'>
+
+                            <i
+                                class='fa-regular fa-calendar'>
+                            </i>
+
+                        </div>
+
+
+                        <div
+                            class='flex-1'>
+
+
+                            <p
+                                class='text-sm font-bold text-gray-900'>
+
+                                캘린더 설정
+
+                            </p>
+
+
+                            <p
+                                class='text-[11px] text-gray-400 mt-0.5'>
+
+                                시작 요일 · 주간/월간 뷰
+
+                            </p>
+
+                        </div>
+
+
+                        <i
+                            class='fa-solid fa-chevron-right text-[10px] text-gray-400'>
+                        </i>
+
+                    </button>
+
+
+                    <!-- 화면 모드 -->
+
+                    <div
+                        class='border-t border-gray-100 px-4 py-4'>
+
+
+                        <div
+                            class='flex items-center gap-3 mb-3'>
+
+
+                            <div
+                                class='w-8 h-8 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center flex-shrink-0'>
+
+                                <i
+                                    class='fa-regular fa-moon'>
+                                </i>
+
+                            </div>
+
+
+                            <div>
+
+                                <p
+                                    class='text-sm font-bold text-gray-900'>
+
+                                    화면 모드
+
+                                </p>
+
+
+                                <p
+                                    class='text-[11px] text-gray-400 mt-0.5'>
+
+                                    테마를 선택하세요
+
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            class='grid grid-cols-3 gap-2'>
+
+
+                            <button
+                                type='button'
+                                data-theme="light"
+                                class='py-3 rounded-lg bg-black text-white text-xs font-bold'>
+
+                                <i
+                                    class='fa-regular fa-sun mr-1'>
+                                </i>
+
+                                라이트
+
+                            </button>
+
+
+                            <button
+                                type='button'
+                                data-theme="dark"
+                                class='py-3 rounded-lg bg-gray-100 text-gray-500 text-xs font-bold'>
+
+                                <i
+                                    class='fa-regular fa-moon mr-1'>
+                                </i>
+
+                                다크
+
+                            </button>
+
+
+                            <button
+                                type='button'
+                                data-theme="system"
+                                class='py-3 rounded-lg bg-gray-100 text-gray-500 text-xs font-bold'>
+
+                                <i
+                                    class='fa-solid fa-globe mr-1'>
+                                </i>
+
+                                자동
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ====================================================
+                 지원
+            ===================================================== -->
+
+            <section
+                class='mb-5'>
+
+
+                <p
+                    class='text-[11px] text-gray-400 font-medium px-1 mb-2'>
+
+                    지원
+
+                </p>
+
+
+                <div
+                    class='border border-gray-200 rounded-xl overflow-hidden bg-white'>
+
+
+                    <!-- 앱 리뷰 -->
+
+                    <button
+                        type='button'
+                        class='w-full flex items-center gap-3 px-4 py-4 text-left active:bg-gray-50 transition'>
+
+
+                        <div
+                            class='w-8 h-8 rounded-lg bg-yellow-50 text-yellow-500 flex items-center justify-center flex-shrink-0'>
+
+                            <i
+                                class='fa-regular fa-star'>
+                            </i>
+
+                        </div>
+
+
+                        <div
+                            class='flex-1'>
+
+
+                            <p
+                                class='text-sm font-bold text-gray-900'>
+
+                                앱 리뷰 남기기
+
+                            </p>
+
+                        </div>
+
+
+                        <i
+                            class='fa-solid fa-chevron-right text-[10px] text-gray-400'>
+                        </i>
+
+                    </button>
+
+
+                    <!-- 문의 -->
+
+                    <button
+                        type='button'
+                        class='w-full flex items-center gap-3 px-4 py-4 text-left border-t border-gray-100 active:bg-gray-50 transition'>
+
+
+                        <div
+                            class='w-8 h-8 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center flex-shrink-0'>
+
+                            <i
+                                class='fa-regular fa-comments'>
+                            </i>
+
+                        </div>
+
+
+                        <div
+                            class='flex-1'>
+
+
+                            <p
+                                class='text-sm font-bold text-gray-900'>
+
+                                문의하기
+
+                            </p>
+
+
+                            <p
+                                class='text-[11px] text-gray-400 mt-0.5'>
+
+                                이메일 · 채팅 지원
+
+                            </p>
+
+                        </div>
+
+
+                        <i
+                            class='fa-solid fa-chevron-right text-[10px] text-gray-400'>
+                        </i>
+
+                    </button>
+
+
+                    <!-- 로그아웃 -->
+
+                    <button
+                        type='button'
+                        class='w-full flex items-center gap-3 px-4 py-4 text-left border-t border-gray-100 active:bg-gray-50 transition'>
+
+
+                        <div
+                            class='w-8 h-8 rounded-lg bg-gray-100 text-gray-500 flex items-center justify-center flex-shrink-0'>
+
+                            <i
+                                class='fa-solid fa-arrow-right-from-bracket'>
+                            </i>
+
+                        </div>
+
+
+                        <p
+                            class='flex-1 text-sm font-bold text-gray-700'>
+
+                            로그아웃
+
+                        </p>
+
+
+                        <i
+                            class='fa-solid fa-chevron-right text-[10px] text-gray-400'>
+                        </i>
+
+                    </button>
+
+
+                    <!-- 탈퇴 -->
+
+                    <button
+                        type='button'
+                        class='w-full flex items-center gap-3 px-4 py-4 text-left border-t border-red-100 active:bg-red-50 transition'>
+
+
+                        <div
+                            class='w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center flex-shrink-0'>
+
+                            <i
+                                class='fa-regular fa-circle-xmark'>
+                            </i>
+
+                        </div>
+
+
+                        <p
+                            class='flex-1 text-sm font-bold text-red-500'>
+
+                            탈퇴하기
+
+                        </p>
+
+
+                        <i
+                            class='fa-solid fa-chevron-right text-[10px] text-red-300'>
+                        </i>
+
+                    </button>
+
+                </div>
+
+            </section>
+
+
+        </main>
+
+    </div>
+
+</div>

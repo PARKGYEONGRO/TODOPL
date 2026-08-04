@@ -500,6 +500,10 @@ def todo_list(request):
                         todo
                     )
 
+            #기간 할일 우선 순위 H -> M -> L 순서 표시
+            current_period_todos.sort(
+                key=lambda todo : {'H':1, 'M':2, 'L':3,}.get(todo.priority, 4)
+            )
 
             # =========================
             # 하루 Todo
