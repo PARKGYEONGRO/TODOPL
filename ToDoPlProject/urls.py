@@ -25,5 +25,7 @@ urlpatterns = [
     path('toggle/<int:todo_id>/', views.todo_toggle, name='todo_toggle'), #토글 추가
     path('delete/<int:todo_id>/', views.todo_delete, name='todo_delete'), #삭제 추가
     path('edit/<int:todo_id>/', views.todo_edit, name='todo_edit'), #수정 추가
+    path('todo_list/', views.todo_list, name='todo_list'), #todo 추가
+    path('home/', views.home, name='home'), #모바일 home 추가
     path('stats/', views.stats, name='stats'), #통계 추가
 ]

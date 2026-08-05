@@ -693,10 +693,9 @@ def todo_create(request):
         month = request.POST.get('month')
         current_tag = request.POST.get('current_tag', '')
 
-        redirect_url = (
-            f'/?year={year}'
-            f'&month={month}'
-            f'&date={due_date}'
+        redirect_url = request.POST.get(
+            'return_url',
+            '/'
         )
 
         if current_tag:
@@ -704,7 +703,12 @@ def todo_create(request):
 
         return redirect(redirect_url)
 
-    return redirect('todo_list')
+    return redirect(
+        request.POST.get(
+            'return_url',
+            '/'
+        )
+    )
 
 
 def todo_toggle(request, todo_id):
@@ -1084,16 +1088,31 @@ def todo_delete(request, todo_id):
         todo.delete()
 
 
+        return_url = request.POST.get(
+            'return_url'
+        )
+
+
+        if return_url:
+
+            return redirect(
+                return_url
+            )
+
+
         return redirect(
-            f"/?year={request.POST.get('year')}"
-            f"&month={request.POST.get('month')}"
-            f"&date={request.POST.get('date')}"
-            f"&tag={request.POST.get('current_tag', '')}"
+            request.META.get(
+                'HTTP_REFERER',
+                '/home/'
+            )
         )
 
 
     return redirect(
-        'todo_list'
+        request.META.get(
+            'HTTP_REFERER',
+            '/home/'
+        )
     )
 
 
@@ -1106,10 +1125,6 @@ def todo_edit(request, todo_id):
 
 
     if request.method == 'POST':
-
-        # ============================================================
-        # 기본 정보
-        # ============================================================
 
         todo.title = request.POST.get(
             'title'
@@ -1124,19 +1139,11 @@ def todo_edit(request, todo_id):
         )
 
 
-        # ============================================================
-        # 일정 유형
-        # ============================================================
-
         schedule_type = request.POST.get(
             'schedule_type',
             'single'
         )
 
-
-        # ============================================================
-        # 시작일
-        # ============================================================
 
         due_date = request.POST.get(
             'due_date'
@@ -1145,10 +1152,6 @@ def todo_edit(request, todo_id):
 
         todo.due_date = due_date
 
-
-        # ============================================================
-        # 종료일
-        # ============================================================
 
         if schedule_type == 'range':
 
@@ -1161,27 +1164,34 @@ def todo_edit(request, todo_id):
             todo.end_date = None
 
 
-        # ============================================================
-        # 저장
-        # ============================================================
-
         todo.save()
 
 
-        # ============================================================
-        # 수정 후 원래 화면으로 복귀
-        # ============================================================
+        return_url = request.POST.get(
+            'return_url'
+        )
+
+
+        if return_url:
+
+            return redirect(
+                return_url
+            )
+
 
         return redirect(
-            f"/?year={request.POST.get('year')}"
-            f"&month={request.POST.get('month')}"
-            f"&date={todo.due_date}"
-            f"&tag={request.POST.get('current_tag', '')}"
+            request.META.get(
+                'HTTP_REFERER',
+                '/home/'
+            )
         )
 
 
     return redirect(
-        'todo_list'
+        request.META.get(
+            'HTTP_REFERER',
+            '/home/'
+        )
     )
 
 
@@ -1669,4 +1679,129 @@ def Get_Monthly_Stats(year, month):
             priority_stats,
 
     }
+
+
+def home(request):
+
+    today = date.today()
+
+    today_query = (
+
+        Q(
+            due_date=today,
+            end_date__isnull=True
+        )
+
+        |
+
+        Q(
+            due_date__lte=today,
+            end_date__gte=today
+        )
+
+    )
+
+    today_todos = (
+
+        Todo.objects
+        .filter(today_query)
+        .annotate(
+
+            priority_order=Case(
+
+                When(priority='H', then=Value(1)),
+                When(priority='M', then=Value(2)),
+                When(priority='L', then=Value(3)),
+
+                default=Value(4),
+                output_field=IntegerField(),
+
+            )
+
+        )
+        .order_by(
+            'priority_order',
+            'created_at'
+        )
+
+    )
+
+
+    completed_period_ids = set(
+
+        TodoCompletion.objects.filter(
+            completed_date=today
+        ).values_list(
+            'todo_id',
+            flat=True
+        )
+
+    )
+
+
+    for todo in today_todos:
+
+        if todo.end_date:
+
+            todo.display_completed = (
+                todo.id in completed_period_ids
+            )
+
+        else:
+
+            todo.display_completed = todo.is_completed
+
+
+    today_total_count = today_todos.count()
+
+    today_completed_count = sum(
+
+        1
+
+        for todo in today_todos
+
+        if todo.display_completed
+
+    )
+
+
+    context = {
+
+        'today_todos': today_todos,
+
+        'today_total_count': today_total_count,
+
+        'today_completed_count': today_completed_count,
+
+        # ===== 추가 =====
+
+        'selected_tag': '',
+
+        'selected_date': today.strftime('%Y-%m-%d'),
+
+        'selected_date_obj': datetime.combine(
+            today,
+            datetime.min.time()
+        ),
+
+        'today_str': today.strftime('%Y-%m-%d'),
+
+        'year': today.year,
+
+        'month': f'{today.month:02d}',
+
+        'selected_completed_todo_ids': completed_period_ids,
+
+    }
+
+    return render(
+
+        request,
+
+        'todos/home.html',
+
+        context
+
+    )
+
 

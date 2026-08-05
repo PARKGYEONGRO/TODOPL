@@ -1,0 +1,288 @@
+<!-- 할 일 추가 모달 -->
+<div
+    id="createModal"
+    class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+
+
+    <div class="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl">
+
+
+        <div class="flex justify-between items-center mb-4">
+
+            <h3 class="text-lg font-extrabold">
+                새 할 일 추가
+            </h3>
+
+
+            <button
+                type="button"
+                onclick="closeModal()"
+                class="text-gray-400 hover:text-black">
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+
+        <form
+            action="{% url 'todo_create' %}"
+            method="POST"
+            class="space-y-4">
+
+            {% csrf_token %}
+
+
+            <!-- 현재 화면 상태 유지 -->
+            <input
+                type="hidden"
+                name="year"
+                value="{{ year }}">
+
+            <input
+                type="hidden"
+                name="month"
+                value="{{ month }}">
+
+            <input
+                type="hidden"
+                name="current_tag"
+                value="{{ selected_tag }}">
+
+            <input
+                type="hidden"
+                name="return_url"
+                value="{{ request.get_full_path }}">
+
+
+            <!-- 제목 -->
+            <div>
+
+                <label class="block text-xs font-bold text-gray-500 mb-1">
+                    제목
+                </label>
+
+                <input
+                    type="text"
+                    name="title"
+                    required
+                    placeholder="할 일을 입력하세요"
+                    class="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-black">
+
+            </div>
+
+
+            <!-- 일정 유형 -->
+            <div>
+
+                <label class="block text-xs font-bold text-gray-500 mb-2">
+                    일정
+                </label>
+
+
+                <div class="flex gap-5 text-sm">
+
+                    <label class="flex items-center gap-1.5 cursor-pointer">
+
+                        <input
+                            type="radio"
+                            name="schedule_type"
+                            value="single"
+                            checked
+                            onchange="toggleEndDate()"
+                            class="accent-black">
+
+                        <span>
+                            하루
+                        </span>
+
+                    </label>
+
+
+                    <label class="flex items-center gap-1.5 cursor-pointer">
+
+                        <input
+                            type="radio"
+                            name="schedule_type"
+                            value="range"
+                            onchange="toggleEndDate()"
+                            class="accent-black">
+
+                        <span>
+                            기간
+                        </span>
+
+                    </label>
+
+                </div>
+
+            </div>
+
+
+            <!-- 날짜 -->
+            <div class="grid grid-cols-2 gap-3">
+
+
+                <!-- 시작일 -->
+                <div>
+
+                    <label class="block text-xs font-bold text-gray-500 mb-1">
+                        시작일
+                    </label>
+
+                    <div
+                        class="relative cursor-pointer"
+                        onclick="openDatePicker('dueDateInput')">
+                                    
+                        <input
+                            type="date"
+                            id="dueDateInput"
+                            name="due_date"
+                            required
+                            value="{{ selected_date }}"
+                            onclick="openDatePicker('dueDateInput'); event.stopPropagation();"
+                            class="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-black cursor-pointer">
+                                    
+                    </div>
+
+                </div>
+
+
+                <!-- 종료일 -->
+                <div
+                    id="endDateWrapper"
+                    class="hidden">
+
+                    <label class="block text-xs font-bold text-gray-500 mb-1">
+                        종료일
+                    </label>
+                
+                    <div
+                        class="relative cursor-pointer"
+                        onclick="openDatePicker('endDateInput')">
+                
+                        <input
+                            type="date"
+                            id="endDateInput"
+                            name="end_date"
+                            onclick="openDatePicker('endDateInput'); event.stopPropagation();"
+                            class="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-black cursor-pointer">
+                
+                    </div>
+                
+                </div>
+
+            </div>
+
+
+            <!-- 태그 -->
+            <div>
+
+                <label class="block text-xs font-bold text-gray-500 mb-1">
+                    태그
+                </label>
+
+                <select
+                    name="tag"
+                    class="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-black">
+
+                    <option value="WORK">업무</option>
+                    <option value="PERSONAL">개인</option>
+                    <option value="HEALTH">건강</option>
+                    <option value="STUDY">공부</option>
+                    <option value="ETC">기타</option>
+
+                </select>
+
+            </div>
+
+
+            <!-- 우선순위 -->
+            <div>
+
+                <label class="block text-xs font-bold text-gray-500 mb-1">
+                    우선순위
+                </label>
+
+
+                <div class="flex gap-4 text-sm mt-1">
+
+                    <label class="flex items-center gap-1 cursor-pointer">
+
+                        <input
+                            type="radio"
+                            name="priority"
+                            value="H"
+                            class="accent-red-500">
+
+                        <span class="text-red-500 font-bold">
+                            높음(H)
+                        </span>
+
+                    </label>
+
+
+                    <label class="flex items-center gap-1 cursor-pointer">
+
+                        <input
+                            type="radio"
+                            name="priority"
+                            value="M"
+                            checked
+                            class="accent-amber-500">
+
+                        <span class="text-amber-500 font-bold">
+                            보통(M)
+                        </span>
+
+                    </label>
+
+
+                    <label class="flex items-center gap-1 cursor-pointer">
+
+                        <input
+                            type="radio"
+                            name="priority"
+                            value="L"
+                            class="accent-gray-400">
+
+                        <span class="text-gray-400 font-bold">
+                            낮음(L)
+                        </span>
+
+                    </label>
+
+                </div>
+
+            </div>
+
+
+            <!-- 버튼 -->
+            <div class="flex justify-end gap-2 pt-3">
+
+                <button
+                    type="button"
+                    onclick="closeModal()"
+                    class="px-4 py-2 border border-gray-300 rounded text-sm text-gray-600 font-bold">
+
+                    취소
+
+                </button>
+
+
+                <button
+                    type="submit"
+                    class="px-4 py-2 bg-black text-white rounded text-sm font-bold">
+
+                    저장하기
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>

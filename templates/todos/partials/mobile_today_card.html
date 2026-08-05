@@ -1,0 +1,199 @@
+<div
+    class="relative flex items-center gap-3 px-3 py-3
+           border border-gray-200 rounded-xl
+           {% if todo.display_completed %}
+                bg-gray-50
+           {% else %}
+                bg-white
+           {% endif %}">
+
+
+    <!-- 우선순위 -->
+    <div
+        class="w-1 h-7 rounded-full flex-shrink-0
+        {% if todo.priority == 'H' %}
+            bg-red-500
+        {% elif todo.priority == 'M' %}
+            bg-orange-400
+        {% elif todo.priority == 'L' %}
+            bg-gray-400
+        {% else %}
+            bg-gray-300
+        {% endif %}">
+    </div>
+
+
+
+    <!-- 완료 체크 -->
+    <button
+        type="button"
+
+        data-todo-id="{{ todo.id }}"
+
+        onclick="toggleTodo(
+            {{ todo.id }},
+            '{{ todo.tag }}',
+            '{{ today_str }}'
+        )"
+
+        class="w-6 h-6 rounded-full flex items-center justify-center
+
+        {% if todo.display_completed %}
+            bg-black text-white
+
+        {% else %}
+            border-2 border-gray-300 bg-white
+
+        {% endif %}">
+
+
+        {% if todo.display_completed %}
+
+            <i class="fa-solid fa-check text-[10px]"></i>
+
+        {% endif %}
+
+
+    </button>
+
+
+
+
+    <!-- 내용 -->
+    <div class="flex-1 min-w-0">
+
+
+        <p
+            id="todo-title-{{ todo.id }}"
+
+            class="text-[13px] font-medium
+
+            {% if todo.display_completed %}
+
+                line-through text-gray-400
+
+            {% else %}
+
+                text-gray-900
+
+            {% endif %}">
+
+
+            {{ todo.title }}
+
+
+        </p>
+
+
+
+
+        <div class="flex items-center gap-2 mt-1">
+
+
+            <!-- 태그 -->
+            <span
+                class="px-2 py-0.5 rounded-md
+                       border border-gray-200
+                       text-[10px] text-gray-600">
+
+
+                {{ todo.get_tag_display }}
+
+
+            </span>
+
+
+
+
+            <!-- 우선순위 -->
+            <span
+                class="px-2 py-0.5 rounded-full text-[10px] font-bold
+
+
+                {% if todo.priority == 'H' %}
+
+                    bg-red-100 text-red-500
+
+
+                {% elif todo.priority == 'M' %}
+
+                    bg-orange-100 text-orange-500
+
+
+                {% else %}
+
+                    bg-gray-100 text-gray-500
+
+
+                {% endif %}">
+
+
+                {{ todo.get_priority_display }}
+
+
+            </span>
+
+
+        </div>
+
+
+    </div>
+
+
+
+
+
+
+    <!-- 오른쪽 버튼 -->
+    <div class="flex items-center gap-1">
+
+
+
+        <!-- 수정 -->
+        <button
+            type="button"
+
+            data-id="{{ todo.id }}"
+            data-title="{{ todo.title }}"
+            data-tag="{{ todo.tag }}"
+            data-priority="{{ todo.priority }}"
+            data-date="{{ todo.due_date|date:'Y-m-d' }}"
+            data-end-date="{% if todo.end_date %}{{ todo.end_date|date:'Y-m-d' }}{% endif %}"
+            data-schedule-type="{% if todo.end_date %}range{% else %}single{% endif %}"
+
+            onclick="openEditModal(this)"
+
+            class="w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center">
+
+
+            <i class="fa-regular fa-pen-to-square text-[16px] text-gray-500"></i>
+
+
+        </button>
+
+
+
+
+
+        <!-- 삭제 -->
+        <button
+            type="button"
+
+            data-id="{{ todo.id }}"
+            data-title="{{ todo.title }}"
+
+            onclick="openDeleteModal(this)"
+
+            class="w-9 h-9 rounded-full hover:bg-red-50 flex items-center justify-center">
+
+
+            <i class="fa-regular fa-trash-can text-[16px] text-gray-400"></i>
+
+
+        </button>
+
+
+    </div>
+
+
+</div>

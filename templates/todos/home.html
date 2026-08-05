@@ -1,0 +1,378 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class='md:hidden min-h-screen bg-white pb-24'>
+
+    <!-- 오늘 할 일 -->
+    <section class='px-2 pt-2 mb-3'>
+
+        <!-- 헤더 -->
+
+        <div class='flex items-center justify-between mb-2'>
+
+            <!-- 왼쪽 : 오늘 / 할 일 / 추가 -->
+
+            <div class='flex items-center gap-2'>
+
+                <span
+                    class='px-1.5 py-0.5 rounded bg-red-500 text-white text-[10px] font-bold'>
+                    오늘
+                </span>
+
+                <h1
+                    class='text-[20px] font-extrabold text-gray-950'>
+                    할 일
+                </h1>
+
+                <button
+                    type='button'
+                    onclick='openModal()'
+                    class='w-7 h-7 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center'>
+
+                    <i class='fa-solid fa-plus text-[11px]'></i>
+
+                </button>
+
+            </div>
+
+
+            <!-- 오른쪽 : 완료 / 전체 -->
+
+            <div id="mobile-progress"
+                 class='w-10 h-10 rounded-full border-2 border-red-500
+                       flex items-center justify-center
+                       text-[11px] font-extrabold text-gray-900'>
+
+                {{ today_completed_count }}/{{ today_total_count }}
+
+            </div>
+
+        </div>
+
+
+        <!-- 오늘 할 일 목록 -->
+        <div
+            id='todayTodoList'
+            class='space-y-1.5'>
+
+            {% for todo in today_todos %}
+
+                {% include 'todos/partials/mobile_today_card.html' %}
+
+            {% empty %}
+
+                <div
+                    class='py-8 text-center text-[11px] text-gray-400'>
+
+                    오늘 할 일이 없습니다.
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+       
+
+
+        <!-- 오늘 접기 / 펼치기 -->
+
+        <button
+            type='button'
+            id='todayTodoToggle'
+            onclick='ToggleTodayTodos()'
+            class='w-full mt-2 py-1 text-[10px] font-bold text-gray-400'>
+
+            접기
+
+        </button>
+
+    </section>
+
+
+    <!-- ============================================================
+         언젠가 할 일
+         ============================================================ -->
+
+    <section class='px-2 mt-3'>
+
+        <!-- 헤더 -->
+
+        <div class='flex items-center justify-between mb-2'>
+
+            <!-- 왼쪽 : 제목 + 추가 -->
+
+            <div class='flex items-center gap-2'>
+
+                <h2
+                    class='text-[13px] font-extrabold text-gray-900'>
+
+                    언젠가 할 일
+
+                </h2>
+
+                <button
+                    type='button'
+                    class='w-7 h-7 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center'>
+
+                    <i class='fa-solid fa-plus text-[11px]'></i>
+
+                </button>
+
+            </div>
+
+
+            <!-- 오른쪽 : 전체 개수 -->
+
+            <span
+                class='text-[11px] font-bold text-gray-500'>
+
+                5
+
+            </span>
+
+        </div>
+
+
+        <!-- 언젠가 할 일 목록 -->
+
+        <div
+            id='somedayTodoList'
+            class='space-y-1.5'>
+
+
+            <!-- 언젠가 할 일 1 -->
+
+            <div
+                class='relative flex items-center gap-3 px-3 py-3 border border-gray-200 rounded-xl bg-white'>
+
+                <div
+                    class='w-1 h-7 rounded-full bg-gray-400 flex-shrink-0'>
+                </div>
+
+                <button
+                    type='button'
+                    class='w-6 h-6 rounded-full border-2 border-gray-300 flex-shrink-0'>
+                </button>
+
+                <div class='flex-1 min-w-0'>
+
+                    <p class='text-[13px] font-medium text-gray-900'>
+                        제주도 여행 계획 짜기
+                    </p>
+
+                    <p class='text-[10px] text-gray-400 mt-0.5'>
+                        개인
+                    </p>
+
+                </div>
+
+                <button
+                    type='button'
+                    class='text-gray-300'>
+
+                    <i class='fa-regular fa-trash-can text-[11px]'></i>
+
+                </button>
+
+            </div>
+
+
+            <!-- 언젠가 할 일 2 -->
+
+            <div
+                class='relative flex items-center gap-3 px-3 py-3 border border-gray-200 rounded-xl bg-white'>
+
+                <div
+                    class='w-1 h-7 rounded-full bg-red-500 flex-shrink-0'>
+                </div>
+
+                <button
+                    type='button'
+                    class='w-6 h-6 rounded-full border-2 border-gray-300 flex-shrink-0'>
+                </button>
+
+                <div class='flex-1 min-w-0'>
+
+                    <p class='text-[13px] font-medium text-gray-900'>
+                        사이드 프로젝트 기획
+                    </p>
+
+                    <p class='text-[10px] text-gray-400 mt-0.5'>
+                        업무
+                    </p>
+
+                </div>
+
+                <button
+                    type='button'
+                    class='text-gray-300'>
+
+                    <i class='fa-regular fa-trash-can text-[11px]'></i>
+
+                </button>
+
+            </div>
+
+
+            <!-- 언젠가 할 일 3 -->
+
+            <div
+                class='relative flex items-center gap-3 px-3 py-3 border border-gray-200 rounded-xl bg-white'>
+
+                <div
+                    class='w-1 h-7 rounded-full bg-orange-400 flex-shrink-0'>
+                </div>
+
+                <button
+                    type='button'
+                    class='w-6 h-6 rounded-full border-2 border-gray-300 flex-shrink-0'>
+                </button>
+
+                <div class='flex-1 min-w-0'>
+
+                    <p class='text-[13px] font-medium text-gray-900'>
+                        새로운 운동 배우기
+                    </p>
+
+                    <p class='text-[10px] text-gray-400 mt-0.5'>
+                        건강
+                    </p>
+
+                </div>
+
+                <button
+                    type='button'
+                    class='text-gray-300'>
+
+                    <i class='fa-regular fa-trash-can text-[11px]'></i>
+
+                </button>
+
+            </div>
+
+
+            <!-- 언젠가 할 일 4 -->
+
+            <div
+                class='relative flex items-center gap-3 px-3 py-3 border border-gray-200 rounded-xl bg-white'>
+
+                <div
+                    class='w-1 h-7 rounded-full bg-gray-400 flex-shrink-0'>
+                </div>
+
+                <button
+                    type='button'
+                    class='w-6 h-6 rounded-full border-2 border-gray-300 flex-shrink-0'>
+                </button>
+
+                <div class='flex-1 min-w-0'>
+
+                    <p class='text-[13px] font-medium text-gray-900'>
+                        새로운 책 읽기
+                    </p>
+
+                    <p class='text-[10px] text-gray-400 mt-0.5'>
+                        개인
+                    </p>
+
+                </div>
+
+                <button
+                    type='button'
+                    class='text-gray-300'>
+
+                    <i class='fa-regular fa-trash-can text-[11px]'></i>
+
+                </button>
+
+            </div>
+
+
+            <!-- 언젠가 할 일 5 -->
+
+            <div
+                class='relative flex items-center gap-3 px-3 py-3 border border-gray-200 rounded-xl bg-gray-50'>
+
+                <div
+                    class='w-1 h-7 rounded-full bg-gray-200 flex-shrink-0'>
+                </div>
+
+                <button
+                    type='button'
+                    class='w-6 h-6 rounded-full bg-gray-950 text-white flex items-center justify-center flex-shrink-0'>
+
+                    <i class='fa-solid fa-check text-[10px]'></i>
+
+                </button>
+
+                <div class='flex-1 min-w-0'>
+
+                    <p class='text-[13px] font-medium text-gray-400 line-through'>
+                        나중에 정리할 자료
+                    </p>
+
+                    <p class='text-[10px] text-gray-400 mt-0.5'>
+                        공부
+                    </p>
+
+                </div>
+
+                <button
+                    type='button'
+                    class='text-gray-300'>
+
+                    <i class='fa-regular fa-trash-can text-[11px]'></i>
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- 언젠가 접기 / 펼치기 -->
+
+        <button
+            type='button'
+            id='somedayTodoToggle'
+            onclick='ToggleSomedayTodos()'
+            class='w-full mt-2 py-1 text-[10px] font-bold text-gray-400'>
+
+            접기
+
+        </button>
+
+    </section>
+
+</div>
+
+
+<!-- 프로필 설정 -->
+{% include 'todos/partials/profile_setting.html' %}
+
+<!-- 생성 모달 create_modal.html에서 관리 -->
+{% include 'todos/partials/create_modal.html' %}
+<!-- 수정 모달 edit_modal.html에서 관리 -->
+{% include 'todos/partials/edit_modal.html' %}
+<!-- 삭제 모달 delete_modal.html에서 관리 -->
+{% include 'todos/partials/delete_modal.html' %}
+<!-- 설정 모달 settings_modal.html에서 관리-->
+{% include 'todos/partials/settings_modal.html' %}
+
+
+<!-- todo.js -->
+<script src="{% static 'todos/js/todo.js' %}"></script>
+<!-- home.js -->
+<script src="{% static 'todos/js/home.js' %}"></script>
+
+
+<!-- 수정 모달 JS 별도 파일 -->
+<script src="{% static 'todos/js/edit_modal.js' %}"></script>
+<!-- 삭제 모달 JS 별도 파일 -->
+<script src="{% static 'todos/js/delete_modal.js' %}"></script>
+<!-- 설정 모달 JS 별도 파일 -->
+<script src="{% static 'todos/js/settings_modal.js' %}"></script>
+
+{% endblock %}
