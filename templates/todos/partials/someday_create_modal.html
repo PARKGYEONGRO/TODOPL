@@ -1,0 +1,233 @@
+<!--
+    ============================================================
+    언젠가 할 일 생성 모달
+    ============================================================
+-->
+
+<div
+    id='somedayCreateModal'
+    class='hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4'>
+
+
+    <div
+        class='bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl'>
+
+
+        <!-- 헤더 -->
+
+        <div
+            class='flex justify-between items-center mb-5'>
+
+            <h3
+                class='text-lg font-extrabold text-gray-900'>
+
+                언젠가 할 일 추가
+
+            </h3>
+
+
+            <button
+                type='button'
+                onclick='closeSomedayCreateModal()'
+                class='text-gray-400 hover:text-black'>
+
+                <i class='fa-solid fa-xmark text-xl'></i>
+
+            </button>
+
+        </div>
+
+
+        <!-- Form -->
+
+        <form
+            method='POST'
+            action='{% url "todo_someday_create" %}'
+            class='space-y-4'>
+
+            {% csrf_token %}
+
+
+            <input
+                type='hidden'
+                name='return_url'
+                value='{{ request.get_full_path }}'>
+
+
+
+            <!-- 제목 -->
+
+            <div>
+
+                <label
+                    class='block text-xs font-bold text-gray-500 mb-1'>
+
+                    제목
+
+                </label>
+
+
+                <input
+                    type='text'
+                    name='title'
+                    required
+                    autofocus
+                    placeholder='언젠가 할 일을 입력하세요'
+                    class='w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-black'>
+
+            </div>
+
+
+            <!-- 태그 -->
+
+            <div>
+
+                <label
+                    class='block text-xs font-bold text-gray-500 mb-1'>
+
+                    태그
+
+                </label>
+
+
+                <select
+                    name='tag'
+                    class='w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-black'>
+
+                    <option value='WORK'>
+                        업무
+                    </option>
+
+                    <option value='PERSONAL'>
+                        개인
+                    </option>
+
+                    <option value='HEALTH'>
+                        건강
+                    </option>
+
+                    <option value='STUDY'>
+                        공부
+                    </option>
+
+                    <option value='ETC'>
+                        기타
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- 우선순위 -->
+
+            <div>
+
+                <label
+                    class='block text-xs font-bold text-gray-500 mb-1'>
+
+                    우선순위
+
+                </label>
+
+
+                <div
+                    class='flex gap-4 text-sm mt-1'>
+
+
+                    <label
+                        class='flex items-center gap-1 cursor-pointer'>
+
+                        <input
+                            type='radio'
+                            name='priority'
+                            value='H'
+                            class='accent-red-500'>
+
+                        <span
+                            class='text-red-500 font-bold'>
+
+                            높음(H)
+
+                        </span>
+
+                    </label>
+
+
+                    <label
+                        class='flex items-center gap-1 cursor-pointer'>
+
+                        <input
+                            type='radio'
+                            name='priority'
+                            value='M'
+                            checked
+                            class='accent-amber-500'>
+
+                        <span
+                            class='text-amber-500 font-bold'>
+
+                            보통(M)
+
+                        </span>
+
+                    </label>
+
+
+                    <label
+                        class='flex items-center gap-1 cursor-pointer'>
+
+                        <input
+                            type='radio'
+                            name='priority'
+                            value='L'
+                            class='accent-gray-400'>
+
+                        <span
+                            class='text-gray-400 font-bold'>
+
+                            낮음(L)
+
+                        </span>
+
+                    </label>
+
+
+                </div>
+
+            </div>
+
+
+            <!-- 버튼 -->
+
+            <div
+                class='flex gap-2 pt-3'>
+
+
+                <button
+                    type='button'
+                    onclick='closeSomedayCreateModal()'
+                    class='flex-1 py-2 border border-gray-200 rounded-lg text-sm font-bold text-gray-500 hover:bg-gray-50'>
+
+                    취소
+
+                </button>
+
+
+                <button
+                    type='submit'
+                    class='flex-1 py-2 bg-black text-white rounded-lg text-sm font-bold hover:bg-gray-800'>
+
+                    저장하기
+
+                </button>
+
+
+            </div>
+
+
+        </form>
+
+    </div>
+
+</div>

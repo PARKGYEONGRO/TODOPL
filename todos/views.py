@@ -1,8 +1,8 @@
-# todos/views.py
+#todos/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.db.models import Case, When, Value, IntegerField, Q
-from .models import Todo, TodoCompletion
+from .models import Todo, TodoCompletion, TodoSomeday
 import calendar
 from datetime import date, datetime, timedelta
 import json
@@ -1765,6 +1765,23 @@ def home(request):
     )
 
 
+    # ============================================================
+    # 언젠가 할 일
+    # ============================================================
+
+    someday_todos = (
+
+        TodoSomeday.objects
+
+        .all()
+
+        .order_by(
+            'is_completed',
+            '-created_at'
+        )
+
+    )
+
     context = {
 
         'today_todos': today_todos,
@@ -1773,7 +1790,11 @@ def home(request):
 
         'today_completed_count': today_completed_count,
 
-        # ===== 추가 =====
+
+        'someday_todos': someday_todos,
+
+        'someday_total_count': someday_todos.count(),
+
 
         'selected_tag': '',
 
@@ -1801,6 +1822,244 @@ def home(request):
         'todos/home.html',
 
         context
+
+    )
+
+
+# ============================================================
+# 언젠가 할 일 목록
+# ============================================================
+
+def todo_someday_list(request):
+
+    someday_todos = TodoSomeday.objects.all().order_by(
+        'is_completed',
+        '-created_at'
+    )
+
+    context = {
+        'someday_todos': someday_todos,
+    }
+
+    return render(
+        request,
+        'todos/someday.html',
+        context
+    )
+
+
+# ============================================================
+# 언젠가 할 일 생성
+# ============================================================
+
+def todo_someday_create(request):
+
+    if request.method != 'POST':
+
+        return redirect(
+            request.POST.get(
+                'return_url',
+                '/'
+            )
+        )
+
+
+    title = request.POST.get(
+        'title',
+        ''
+    ).strip()
+
+
+    tag = request.POST.get(
+        'tag',
+        'WORK'
+    )
+
+
+    priority = request.POST.get(
+        'priority',
+        'M'
+    )
+
+
+    if not title:
+
+        return redirect(
+            request.POST.get(
+                'return_url',
+                '/'
+            )
+        )
+
+
+    TodoSomeday.objects.create(
+
+        title=title,
+
+        tag=tag,
+
+        priority=priority,
+
+    )
+
+
+    return redirect(
+
+        request.POST.get(
+            'return_url',
+            '/'
+        )
+
+    )
+
+
+# ============================================================
+# 언젠가 할 일 완료 / 미완료
+# ============================================================
+
+def todo_someday_toggle(
+    request,
+    someday_id
+):
+
+    if request.method != 'POST':
+
+        return JsonResponse({
+
+            'status':
+                'error',
+
+            'message':
+                '잘못된 요청입니다.'
+
+        }, status=400)
+
+
+    someday_todo = get_object_or_404(
+
+        TodoSomeday,
+
+        pk=someday_id
+
+    )
+
+
+    someday_todo.is_completed = (
+
+        not someday_todo.is_completed
+
+    )
+
+
+    someday_todo.save(
+
+        update_fields=[
+            'is_completed'
+        ]
+
+    )
+
+
+    return JsonResponse({
+
+        'status':
+            'success',
+
+        'is_completed':
+            someday_todo.is_completed,
+
+    })
+
+
+# ============================================================
+# 언젠가 할 일 삭제
+# ============================================================
+
+def todo_someday_delete(
+    request,
+    someday_id
+):
+
+    someday_todo = get_object_or_404(
+
+        TodoSomeday,
+
+        pk=someday_id
+
+    )
+
+
+    if request.method == 'POST':
+
+        someday_todo.delete()
+
+
+    return redirect(
+
+        request.POST.get(
+            'return_url',
+            '/'
+        )
+
+    )
+
+
+# ============================================================
+# 언젠가 할 일 수정
+# ============================================================
+
+def todo_someday_edit(
+    request,
+    someday_id
+):
+
+    someday_todo = get_object_or_404(
+
+        TodoSomeday,
+
+        pk=someday_id
+
+    )
+
+
+    if request.method == 'POST':
+
+        title = request.POST.get(
+            'title',
+            ''
+        ).strip()
+
+
+        tag = request.POST.get(
+            'tag',
+            'WORK'
+        )
+
+
+        priority = request.POST.get(
+            'priority',
+            'M'
+        )
+
+
+        if title:
+
+            someday_todo.title = title
+
+            someday_todo.tag = tag
+
+            someday_todo.priority = priority
+
+
+            someday_todo.save()
+
+
+    return redirect(
+
+        request.POST.get(
+            'return_url',
+            '/'
+        )
 
     )
 

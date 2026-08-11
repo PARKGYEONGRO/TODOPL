@@ -18,14 +18,143 @@ from django.contrib import admin
 from django.urls import path
 from todos import views
 
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', views.todo_list, name='todo_list'),
-    path('create/', views.todo_create, name='todo_create'),
-    path('toggle/<int:todo_id>/', views.todo_toggle, name='todo_toggle'), #토글 추가
-    path('delete/<int:todo_id>/', views.todo_delete, name='todo_delete'), #삭제 추가
-    path('edit/<int:todo_id>/', views.todo_edit, name='todo_edit'), #수정 추가
-    path('todo_list/', views.todo_list, name='todo_list'), #todo 추가
-    path('home/', views.home, name='home'), #모바일 home 추가
-    path('stats/', views.stats, name='stats'), #통계 추가
+
+    # ============================================================
+    # 관리자
+    # ============================================================
+
+    path(
+        'admin/',
+        admin.site.urls
+    ),
+
+
+    # ============================================================
+    # Todo 목록
+    # ============================================================
+
+    path(
+        '',
+        views.todo_list,
+        name='todo_list'
+    ),
+
+    path(
+        'todo_list/',
+        views.todo_list,
+        name='todo_list'
+    ),
+
+
+    # ============================================================
+    # Todo 생성
+    # ============================================================
+
+    path(
+        'create/',
+        views.todo_create,
+        name='todo_create'
+    ),
+
+
+    # ============================================================
+    # Todo 완료 / 미완료
+    # ============================================================
+
+    path(
+        'toggle/<int:todo_id>/',
+        views.todo_toggle,
+        name='todo_toggle'
+    ),
+
+
+    # ============================================================
+    # Todo 삭제
+    # ============================================================
+
+    path(
+        'delete/<int:todo_id>/',
+        views.todo_delete,
+        name='todo_delete'
+    ),
+
+
+    # ============================================================
+    # Todo 수정
+    # ============================================================
+
+    path(
+        'edit/<int:todo_id>/',
+        views.todo_edit,
+        name='todo_edit'
+    ),
+
+
+    # ============================================================
+    # 모바일 Home
+    # ============================================================
+
+    path(
+        'home/',
+        views.home,
+        name='home'
+    ),
+
+
+    # ============================================================
+    # 통계
+    # ============================================================
+
+    path(
+        'stats/',
+        views.stats,
+        name='stats'
+    ),
+
+
+    # ============================================================
+    # 언젠가 할 일
+    # ============================================================
+
+    # 언젠가 할 일 목록
+    path(
+        'someday/',
+        views.todo_someday_list,
+        name='todo_someday_list'
+    ),
+
+
+    # 언젠가 할 일 생성
+    path(
+        'someday/create/',
+        views.todo_someday_create,
+        name='todo_someday_create'
+    ),
+
+
+    # 언젠가 할 일 완료 / 미완료
+    path(
+        'someday/toggle/<int:someday_id>/',
+        views.todo_someday_toggle,
+        name='todo_someday_toggle'
+    ),
+
+
+    # 언젠가 할 일 삭제
+    path(
+        'someday/delete/<int:someday_id>/',
+        views.todo_someday_delete,
+        name='todo_someday_delete'
+    ),
+
+
+    # 언젠가 할 일 수정
+    path(
+        'someday/edit/<int:someday_id>/',
+        views.todo_someday_edit,
+        name='todo_someday_edit'
+    ),
+
 ]

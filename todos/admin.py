@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Todo, TodoCompletion
+from .models import Todo, TodoCompletion, TodoSomeday
 
 
 @admin.register(Todo)
@@ -56,11 +56,9 @@ class TodoAdmin(admin.ModelAdmin):
         # =========================
 
         total_days = (
-
             obj.end_date
             -
             obj.due_date
-
         ).days + 1
 
 
@@ -77,4 +75,43 @@ class TodoAdmin(admin.ModelAdmin):
 
         # 모든 기간을 완료해야
         # 최종 완료로 판단
+
         return completed_days == total_days
+
+
+# ============================================================
+# 언젠가 할 일 Admin
+# ============================================================
+
+@admin.register(TodoSomeday)
+class TodoSomedayAdmin(admin.ModelAdmin):
+
+    # 어드민 목록 화면 컬럼
+    list_display = (
+        'title',
+        'priority',
+        'tag',
+        'is_completed',
+        'created_at',
+    )
+
+
+    # 필터 옵션
+    list_filter = (
+        'is_completed',
+        'priority',
+        'tag',
+    )
+
+
+    # 검색 기능
+    search_fields = (
+        'title',
+    )
+
+
+    # 정렬
+    ordering = (
+        'is_completed',
+        '-created_at',
+    )

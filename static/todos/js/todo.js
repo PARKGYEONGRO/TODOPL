@@ -23,6 +23,27 @@ function closeModal() {
 }
 
 
+// 언젠가 할 일 추가 모달
+function openSomedayCreateModal() {
+
+    document
+        .getElementById('somedayCreateModal')
+        .classList
+        .remove('hidden');
+
+}
+
+
+function closeSomedayCreateModal() {
+
+    document
+        .getElementById('somedayCreateModal')
+        .classList
+        .add('hidden');
+
+}
+
+
 // Todo 완료 상태 변경
 const csrfToken = document.body.dataset.csrf;
 

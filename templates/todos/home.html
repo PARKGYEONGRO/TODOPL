@@ -96,7 +96,6 @@
          ============================================================ -->
 
     <section class='px-2 mt-3'>
-
         <!-- 헤더 -->
 
         <div class='flex items-center justify-between mb-2'>
@@ -112,10 +111,12 @@
 
                 </h2>
 
+
                 <button
                     type='button'
-                    class='w-7 h-7 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center'>
-
+                    onclick='openSomedayCreateModal()'
+                    class='w-7 h-7 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center hover:bg-gray-200 transition'>
+                    
                     <i class='fa-solid fa-plus text-[11px]'></i>
 
                 </button>
@@ -128,7 +129,7 @@
             <span
                 class='text-[11px] font-bold text-gray-500'>
 
-                5
+                {{ someday_total_count }}
 
             </span>
 
@@ -142,192 +143,109 @@
             class='space-y-1.5'>
 
 
-            <!-- 언젠가 할 일 1 -->
+            {% for someday_todo in someday_todos %}
 
             <div
-                class='relative flex items-center gap-3 px-3 py-3 border border-gray-200 rounded-xl bg-white'>
+                class='relative flex items-center gap-3 px-3 py-3 border border-gray-200 rounded-xl {% if someday_todo.is_completed %}bg-gray-50{% else %}bg-white{% endif %}'>
+
+
+                <!-- 우선순위 색상 -->
 
                 <div
-                    class='w-1 h-7 rounded-full bg-gray-400 flex-shrink-0'>
+                    class='w-1 h-7 rounded-full flex-shrink-0
+
+                    {% if someday_todo.priority == "H" %}
+                        bg-red-500
+                    {% elif someday_todo.priority == "M" %}
+                        bg-orange-400
+                    {% elif someday_todo.priority == "L" %}
+                        bg-gray-400
+                    {% else %}
+                        bg-gray-400
+                    {% endif %}'>
+
                 </div>
+
+
+                <!-- 완료 버튼 -->
 
                 <button
                     type='button'
-                    class='w-6 h-6 rounded-full border-2 border-gray-300 flex-shrink-0'>
+                    onclick='toggleSomedayTodo({{ someday_todo.id }})'
+                    class='w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0
+
+                    {% if someday_todo.is_completed %}
+                        bg-gray-950 text-white
+                    {% else %}
+                        border-2 border-gray-300 bg-white
+                    {% endif %}'>
+
+                    {% if someday_todo.is_completed %}
+
+                        <i
+                            class='fa-solid fa-check text-[10px]'>
+                        </i>
+
+                    {% endif %}
+
                 </button>
+
+
+                <!-- 제목 / 태그 -->
 
                 <div class='flex-1 min-w-0'>
 
-                    <p class='text-[13px] font-medium text-gray-900'>
-                        제주도 여행 계획 짜기
+                    <p
+                        id='someday-title-{{ someday_todo.id }}'
+                        class='text-[13px] font-medium
+
+                        {% if someday_todo.is_completed %}
+                            text-gray-400 line-through
+                        {% else %}
+                            text-gray-900
+                        {% endif %}'>
+
+                        {{ someday_todo.title }}
+
                     </p>
 
-                    <p class='text-[10px] text-gray-400 mt-0.5'>
-                        개인
+
+                    <p
+                        class='text-[10px] text-gray-400 mt-0.5'>
+
+                        {{ someday_todo.get_tag_display }}
+
                     </p>
 
                 </div>
 
+
+                <!-- 삭제 -->
+
                 <button
                     type='button'
-                    class='text-gray-300'>
+                    onclick='deleteSomedayTodo({{ someday_todo.id }}, "{{ someday_todo.title|escapejs }}")'
+                    class='text-gray-300 hover:text-red-500'>
 
-                    <i class='fa-regular fa-trash-can text-[11px]'></i>
+                    <i
+                        class='fa-regular fa-trash-can text-[11px]'>
+                    </i>
 
                 </button>
 
+
             </div>
 
-
-            <!-- 언젠가 할 일 2 -->
+            {% empty %}
 
             <div
-                class='relative flex items-center gap-3 px-3 py-3 border border-gray-200 rounded-xl bg-white'>
+                class='py-6 text-center text-[11px] text-gray-400'>
 
-                <div
-                    class='w-1 h-7 rounded-full bg-red-500 flex-shrink-0'>
-                </div>
-
-                <button
-                    type='button'
-                    class='w-6 h-6 rounded-full border-2 border-gray-300 flex-shrink-0'>
-                </button>
-
-                <div class='flex-1 min-w-0'>
-
-                    <p class='text-[13px] font-medium text-gray-900'>
-                        사이드 프로젝트 기획
-                    </p>
-
-                    <p class='text-[10px] text-gray-400 mt-0.5'>
-                        업무
-                    </p>
-
-                </div>
-
-                <button
-                    type='button'
-                    class='text-gray-300'>
-
-                    <i class='fa-regular fa-trash-can text-[11px]'></i>
-
-                </button>
+                아직 등록된 할 일이 없습니다.
 
             </div>
 
-
-            <!-- 언젠가 할 일 3 -->
-
-            <div
-                class='relative flex items-center gap-3 px-3 py-3 border border-gray-200 rounded-xl bg-white'>
-
-                <div
-                    class='w-1 h-7 rounded-full bg-orange-400 flex-shrink-0'>
-                </div>
-
-                <button
-                    type='button'
-                    class='w-6 h-6 rounded-full border-2 border-gray-300 flex-shrink-0'>
-                </button>
-
-                <div class='flex-1 min-w-0'>
-
-                    <p class='text-[13px] font-medium text-gray-900'>
-                        새로운 운동 배우기
-                    </p>
-
-                    <p class='text-[10px] text-gray-400 mt-0.5'>
-                        건강
-                    </p>
-
-                </div>
-
-                <button
-                    type='button'
-                    class='text-gray-300'>
-
-                    <i class='fa-regular fa-trash-can text-[11px]'></i>
-
-                </button>
-
-            </div>
-
-
-            <!-- 언젠가 할 일 4 -->
-
-            <div
-                class='relative flex items-center gap-3 px-3 py-3 border border-gray-200 rounded-xl bg-white'>
-
-                <div
-                    class='w-1 h-7 rounded-full bg-gray-400 flex-shrink-0'>
-                </div>
-
-                <button
-                    type='button'
-                    class='w-6 h-6 rounded-full border-2 border-gray-300 flex-shrink-0'>
-                </button>
-
-                <div class='flex-1 min-w-0'>
-
-                    <p class='text-[13px] font-medium text-gray-900'>
-                        새로운 책 읽기
-                    </p>
-
-                    <p class='text-[10px] text-gray-400 mt-0.5'>
-                        개인
-                    </p>
-
-                </div>
-
-                <button
-                    type='button'
-                    class='text-gray-300'>
-
-                    <i class='fa-regular fa-trash-can text-[11px]'></i>
-
-                </button>
-
-            </div>
-
-
-            <!-- 언젠가 할 일 5 -->
-
-            <div
-                class='relative flex items-center gap-3 px-3 py-3 border border-gray-200 rounded-xl bg-gray-50'>
-
-                <div
-                    class='w-1 h-7 rounded-full bg-gray-200 flex-shrink-0'>
-                </div>
-
-                <button
-                    type='button'
-                    class='w-6 h-6 rounded-full bg-gray-950 text-white flex items-center justify-center flex-shrink-0'>
-
-                    <i class='fa-solid fa-check text-[10px]'></i>
-
-                </button>
-
-                <div class='flex-1 min-w-0'>
-
-                    <p class='text-[13px] font-medium text-gray-400 line-through'>
-                        나중에 정리할 자료
-                    </p>
-
-                    <p class='text-[10px] text-gray-400 mt-0.5'>
-                        공부
-                    </p>
-
-                </div>
-
-                <button
-                    type='button'
-                    class='text-gray-300'>
-
-                    <i class='fa-regular fa-trash-can text-[11px]'></i>
-
-                </button>
-
-            </div>
+            {% endfor %}
 
         </div>
 
@@ -360,6 +278,9 @@
 {% include 'todos/partials/delete_modal.html' %}
 <!-- 설정 모달 settings_modal.html에서 관리-->
 {% include 'todos/partials/settings_modal.html' %}
+
+<!-- 언젠가 할일 생성 모달 someday_create_modal.html에서 관리 -->
+{% include 'todos/partials/someday_create_modal.html' %}
 
 
 <!-- todo.js -->
