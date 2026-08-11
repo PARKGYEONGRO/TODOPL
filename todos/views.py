@@ -241,6 +241,77 @@ def todo_list(request):
     )
 
 
+    # ============================================================
+    # 언젠가 할 일
+    #
+    # 오늘 할 일과 동일하게
+    # View에서 조회 → Context로 전달
+    # ============================================================
+
+    someday_todos = (
+
+        TodoSomeday.objects
+
+        .all()
+
+        .annotate(
+
+            priority_order=Case(
+
+                When(
+                    priority='H',
+                    then=Value(1)
+                ),
+
+                When(
+                    priority='M',
+                    then=Value(2)
+                ),
+
+                When(
+                    priority='L',
+                    then=Value(3)
+                ),
+
+                default=Value(4),
+
+                output_field=IntegerField(),
+
+            )
+
+        )
+
+        .order_by(
+
+            'is_completed',
+
+            'priority_order',
+
+            'created_at'
+
+        )
+
+    )
+
+
+    someday_total_count = (
+        someday_todos.count()
+    )
+
+
+    someday_completed_count = (
+
+        someday_todos
+
+        .filter(
+            is_completed=True
+        )
+
+        .count()
+
+    )
+
+
     # =========================
     # 현재 달 시작 / 종료
     # =========================
@@ -500,10 +571,24 @@ def todo_list(request):
                         todo
                     )
 
-            #기간 할일 우선 순위 H -> M -> L 순서 표시
+
+            # 기간 할일 우선 순위
+            # H → M → L
+
             current_period_todos.sort(
-                key=lambda todo : {'H':1, 'M':2, 'L':3,}.get(todo.priority, 4)
+
+                key=lambda todo:
+                    {
+                        'H': 1,
+                        'M': 2,
+                        'L': 3,
+                    }.get(
+                        todo.priority,
+                        4
+                    )
+
             )
+
 
             # =========================
             # 하루 Todo
@@ -584,26 +669,52 @@ def todo_list(request):
         next_month = month + 1
 
 
-    # =========================
+    # =========================================================
     # Context
-    # =========================
+    # =========================================================
 
     context = {
 
+        # =========================
+        # 오늘 할 일
+        # =========================
+
         'todos':
             todos,
-
-        'calendar_data':
-            calendar_data,
-
-        'calendar_todos_by_date':
-            calendar_todos_by_date,
 
         'total_todos':
             total_todos,
 
         'completed_todos':
             completed_todos,
+
+        'selected_completed_todo_ids':
+            selected_completed_todo_ids,
+
+
+        # =========================
+        # 언젠가 할 일
+        # =========================
+
+        'someday_todos':
+            someday_todos,
+
+        'someday_total_count':
+            someday_total_count,
+
+        'someday_completed_count':
+            someday_completed_count,
+
+
+        # =========================
+        # 캘린더
+        # =========================
+
+        'calendar_data':
+            calendar_data,
+
+        'calendar_todos_by_date':
+            calendar_todos_by_date,
 
         'year':
             year,
@@ -613,6 +724,11 @@ def todo_list(request):
 
         'month_days':
             month_days,
+
+
+        # =========================
+        # 선택 날짜
+        # =========================
 
         'selected_date':
             selected_date_str,
@@ -626,16 +742,24 @@ def todo_list(request):
 
             ),
 
-        'selected_completed_todo_ids':
-            selected_completed_todo_ids,
 
         'selected_tag':
             selected_tag,
+
+
+        # =========================
+        # 오늘
+        # =========================
 
         'today_str':
             today.strftime(
                 '%Y-%m-%d'
             ),
+
+
+        # =========================
+        # 이전 / 다음 달
+        # =========================
 
         'prev_year':
             prev_year,
@@ -648,6 +772,11 @@ def todo_list(request):
 
         'next_month':
             next_month,
+
+
+        # =========================
+        # 통계
+        # =========================
 
         'stats_title':
             stats_title,
@@ -666,7 +795,6 @@ def todo_list(request):
         context
 
     )
-
 
 def todo_create(request):
     if request.method == 'POST':
@@ -689,8 +817,6 @@ def todo_create(request):
         )
 
         #현재 화면 상태 유지
-        year = request.POST.get('year')
-        month = request.POST.get('month')
         current_tag = request.POST.get('current_tag', '')
 
         redirect_url = request.POST.get(
@@ -1709,23 +1835,39 @@ def home(request):
 
             priority_order=Case(
 
-                When(priority='H', then=Value(1)),
-                When(priority='M', then=Value(2)),
-                When(priority='L', then=Value(3)),
+                When(
+                    priority='H',
+                    then=Value(1)
+                ),
+
+                When(
+                    priority='M',
+                    then=Value(2)
+                ),
+
+                When(
+                    priority='L',
+                    then=Value(3)
+                ),
 
                 default=Value(4),
+
                 output_field=IntegerField(),
 
             )
 
         )
         .order_by(
+
+            'is_completed',
+
             'priority_order',
+
             'created_at'
+
         )
 
     )
-
 
     completed_period_ids = set(
 
@@ -1772,15 +1914,50 @@ def home(request):
     someday_todos = (
 
         TodoSomeday.objects
-
         .all()
+        .annotate(
 
+            priority_order=Case(
+
+                When(
+                    priority='H',
+                    then=Value(1)
+                ),
+
+                When(
+                    priority='M',
+                    then=Value(2)
+                ),
+
+                When(
+                    priority='L',
+                    then=Value(3)
+                ),
+
+                default=Value(4),
+
+                output_field=IntegerField(),
+
+            )
+
+        )
         .order_by(
+
             'is_completed',
-            '-created_at'
+
+            'priority_order',
+
+            'created_at'
+
         )
 
     )
+
+    someday_total_count = someday_todos.count()
+
+    someday_completed_count = someday_todos.filter(
+        is_completed=True
+    ).count()
 
     context = {
 
@@ -1793,7 +1970,9 @@ def home(request):
 
         'someday_todos': someday_todos,
 
-        'someday_total_count': someday_todos.count(),
+        'someday_total_count': someday_total_count,
+
+        'someday_completed_count': someday_completed_count,
 
 
         'selected_tag': '',
@@ -1856,12 +2035,7 @@ def todo_someday_create(request):
 
     if request.method != 'POST':
 
-        return redirect(
-            request.POST.get(
-                'return_url',
-                '/'
-            )
-        )
+        return redirect('/')
 
 
     title = request.POST.get(
@@ -1917,59 +2091,68 @@ def todo_someday_create(request):
 # 언젠가 할 일 완료 / 미완료
 # ============================================================
 
-def todo_someday_toggle(
-    request,
-    someday_id
-):
+def todo_someday_toggle(request, someday_id):
 
     if request.method != 'POST':
 
-        return JsonResponse({
-
-            'status':
-                'error',
-
-            'message':
-                '잘못된 요청입니다.'
-
-        }, status=400)
+        return JsonResponse(
+            {
+                'status': 'error',
+                'message': '잘못된 요청입니다.'
+            },
+            status=400
+        )
 
 
-    someday_todo = get_object_or_404(
+    try:
 
-        TodoSomeday,
+        todo_someday = TodoSomeday.objects.get(
+            id=someday_id
+        )
 
-        pk=someday_id
+    except TodoSomeday.DoesNotExist:
 
+        return JsonResponse(
+            {
+                'status': 'error',
+                'message': '언젠가 할 일을 찾을 수 없습니다.'
+            },
+            status=404
+        )
+
+
+    todo_someday.is_completed = (
+        not todo_someday.is_completed
     )
 
-
-    someday_todo.is_completed = (
-
-        not someday_todo.is_completed
-
-    )
-
-
-    someday_todo.save(
-
+    todo_someday.save(
         update_fields=[
             'is_completed'
         ]
-
     )
 
 
-    return JsonResponse({
+    someday_total_count = TodoSomeday.objects.count()
 
-        'status':
-            'success',
+    someday_completed_count = TodoSomeday.objects.filter(
+        is_completed=True
+    ).count()
 
-        'is_completed':
-            someday_todo.is_completed,
 
-    })
+    return JsonResponse(
+        {
+            'status': 'success',
 
+            'is_completed':
+                todo_someday.is_completed,
+
+            'someday_total_count':
+                someday_total_count,
+
+            'someday_completed_count':
+                someday_completed_count,
+        }
+    )
 
 # ============================================================
 # 언젠가 할 일 삭제

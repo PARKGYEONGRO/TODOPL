@@ -1,4 +1,14 @@
+{% for todo in today_todos %}
+
 <div
+    id="todo-card-{{ todo.id }}"
+
+    data-mobile-today-sort-item
+    data-mobile-todo-id="{{ todo.id }}"
+    data-completed="{% if todo.display_completed %}1{% else %}0{% endif %}"
+    data-priority="{{ todo.priority }}"
+    data-created-at="{{ todo.created_at|date:'U.u' }}"
+
     class="relative flex items-center gap-3 px-3 py-3
            border border-gray-200 rounded-xl
            {% if todo.display_completed %}
@@ -10,16 +20,16 @@
 
     <!-- 우선순위 -->
     <div
-        class="w-1 h-7 rounded-full flex-shrink-0
-        {% if todo.priority == 'H' %}
+        class='w-1 h-7 rounded-full flex-shrink-0
+
+        {% if todo.priority == "H" %}
             bg-red-500
-        {% elif todo.priority == 'M' %}
+        {% elif todo.priority == "M" %}
             bg-orange-400
-        {% elif todo.priority == 'L' %}
-            bg-gray-400
         {% else %}
-            bg-gray-300
-        {% endif %}">
+            bg-green-500
+        {% endif %}'>
+
     </div>
 
 
@@ -122,7 +132,7 @@
 
                 {% else %}
 
-                    bg-gray-100 text-gray-500
+                    bg-green-100 text-green-500
 
 
                 {% endif %}">
@@ -197,3 +207,14 @@
 
 
 </div>
+
+{% empty %}
+
+<div
+    class='py-8 text-center text-[11px] text-gray-400'>
+
+    오늘 할 일이 없습니다.
+
+</div>
+
+{% endfor %}

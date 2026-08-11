@@ -1,0 +1,158 @@
+{% for someday_todo in someday_todos %}
+
+<div
+    id="someday-card-{{ someday_todo.id }}"
+
+    data-someday-id="{{ someday_todo.id }}"
+
+    data-mobile-someday-sort-item
+
+    data-mobile-someday-id="{{ someday_todo.id }}"
+
+    data-completed="{% if someday_todo.is_completed %}1{% else %}0{% endif %}"
+
+    data-priority="{{ someday_todo.priority }}"
+
+    data-created-at="{{ someday_todo.created_at|date:'U' }}"
+
+    class="relative flex items-center gap-3 px-3 py-3 border border-gray-200 rounded-xl
+    {% if someday_todo.is_completed %}
+        bg-gray-50
+    {% else %}
+        bg-white
+    {% endif %}">
+
+
+    <!-- 우선순위 -->
+    <div
+        class="w-1 h-7 rounded-full flex-shrink-0
+
+        {% if someday_todo.priority == 'H' %}
+            bg-red-500
+        {% elif someday_todo.priority == 'M' %}
+            bg-orange-400
+        {% else %}
+            bg-green-500
+        {% endif %}">
+
+    </div>
+
+
+    <!-- 완료 -->
+    <button
+        type="button"
+
+        data-someday-toggle
+
+        onclick="toggleSomedayTodo({{ someday_todo.id }})"
+
+        class="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0
+
+        {% if someday_todo.is_completed %}
+            bg-gray-950 text-white
+        {% else %}
+            border-2 border-gray-300 bg-white
+        {% endif %}">
+
+
+        {% if someday_todo.is_completed %}
+
+            <i class="fa-solid fa-check text-[10px]"></i>
+
+        {% endif %}
+
+    </button>
+
+
+    <!-- 제목 / 태그 -->
+    <div class="flex-1 min-w-0">
+
+        <p
+            id="someday-title-{{ someday_todo.id }}"
+
+            class="text-[13px] font-medium
+
+            {% if someday_todo.is_completed %}
+                text-gray-400 line-through
+            {% else %}
+                text-gray-900
+            {% endif %}">
+
+            {{ someday_todo.title }}
+
+        </p>
+
+
+        <p class="text-[10px] text-gray-400 mt-0.5">
+
+            {{ someday_todo.get_tag_display }}
+
+        </p>
+
+    </div>
+
+
+    <!-- 오른쪽 버튼 -->
+
+    <div class="flex items-center gap-1">
+
+
+        <!-- 수정 -->
+
+        <button
+            type="button"
+
+            data-someday-id="{{ someday_todo.id }}"
+            data-someday-title="{{ someday_todo.title|escapejs }}"
+            data-someday-tag="{{ someday_todo.tag }}"
+            data-someday-priority="{{ someday_todo.priority }}"
+
+            onclick="openSomedayEditModal(this)"
+
+            class="w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center">
+
+
+            <i
+                class="fa-regular fa-pen-to-square text-[16px] text-gray-500">
+            </i>
+
+
+        </button>
+
+
+        <!-- 삭제 -->
+
+        <button
+            type="button"
+
+            data-someday-id="{{ someday_todo.id }}"
+            data-someday-title="{{ someday_todo.title|escapejs }}"
+
+            onclick="openSomedayDeleteModal(this)"
+
+            class="w-9 h-9 rounded-full hover:bg-red-50 flex items-center justify-center">
+
+
+            <i
+                class="fa-regular fa-trash-can text-[16px] text-gray-400">
+            </i>
+
+
+        </button>
+
+
+    </div>
+
+
+</div>
+
+
+{% empty %}
+
+<div class="py-6 text-center text-[11px] text-gray-400">
+
+    아직 등록된 할 일이 없습니다.
+
+</div>
+
+{% endfor %}
