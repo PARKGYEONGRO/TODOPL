@@ -1,49 +1,155 @@
 console.log('todo.js 로드됨');
 
 
-//할 일 추가 모달
-function openModal() {
+// ============================================================
+// CSRF
+// ============================================================
 
-    document
-        .getElementById('createModal')
-        .classList
-        .remove('hidden');
+function getCsrfToken() {
+
+    const body = document.body;
+
+    if (body && body.dataset.csrf) {
+
+        return body.dataset.csrf;
+
+    }
+
+
+    const cookie = document.cookie
+        .split('; ')
+        .find(
+            row => row.startsWith('csrftoken=')
+        );
+
+
+    if (!cookie) {
+
+        return '';
+
+    }
+
+
+    return decodeURIComponent(
+        cookie.split('=')[1]
+    );
 
 }
+
+
+// ============================================================
+// 오늘 할 일 추가 모달
+// ============================================================
+
+function openModal() {
+
+    const modal =
+        document.getElementById(
+            'createModal'
+        );
+
+
+    if (!modal) {
+
+        return;
+
+    }
+
+
+    modal.classList.remove(
+        'hidden'
+    );
+
+    modal.classList.add(
+        'flex'
+    );
+
+}
+
 
 function closeModal() {
 
-    document
-        .getElementById('createModal')
-        .classList
-        .add('hidden');
+    const modal =
+        document.getElementById(
+            'createModal'
+        );
+
+
+    if (!modal) {
+
+        return;
+
+    }
+
+
+    modal.classList.add(
+        'hidden'
+    );
+
+    modal.classList.remove(
+        'flex'
+    );
 
 }
 
 
+// ============================================================
 // 언젠가 할 일 추가 모달
+// ============================================================
+
 function openSomedayCreateModal() {
 
-    document
-        .getElementById('somedayCreateModal')
-        .classList
-        .remove('hidden');
+    const modal =
+        document.getElementById(
+            'somedayCreateModal'
+        );
+
+
+    if (!modal) {
+
+        return;
+
+    }
+
+
+    modal.classList.remove(
+        'hidden'
+    );
+
+    modal.classList.add(
+        'flex'
+    );
 
 }
+
 
 function closeSomedayCreateModal() {
 
-    document
-        .getElementById('somedayCreateModal')
-        .classList
-        .add('hidden');
+    const modal =
+        document.getElementById(
+            'somedayCreateModal'
+        );
+
+
+    if (!modal) {
+
+        return;
+
+    }
+
+
+    modal.classList.add(
+        'hidden'
+    );
+
+    modal.classList.remove(
+        'flex'
+    );
 
 }
 
 
-// Todo 완료 상태 변경
-const csrfToken = document.body.dataset.csrf;
-// Todo 완료 상태 변경
+// 오늘 할 일 완료 / 미완료
 function toggleTodo(
     todoId,
     selectedTag,
@@ -51,7 +157,7 @@ function toggleTodo(
 ) {
 
     const csrfToken =
-        document.body.dataset.csrf;
+        getCsrfToken();
 
 
     fetch(
@@ -112,12 +218,7 @@ function toggleTodo(
         }
 
 
-        /*
-            ========================================
-            1. 제목 변경
-            ========================================
-        */
-
+        // 제목
         const titleElement =
             document.getElementById(
                 `todo-title-${todoId}`
@@ -126,42 +227,39 @@ function toggleTodo(
 
         if (titleElement) {
 
+
+            titleElement.classList.remove(
+                'line-through',
+                'text-gray-400',
+                'text-gray-800'
+            );
+
+
             if (data.is_completed) {
+
 
                 titleElement.classList.add(
                     'line-through',
                     'text-gray-400'
                 );
 
-                titleElement.classList.remove(
-                    'text-gray-800',
-                    'text-gray-900'
-                );
 
             }
 
             else {
 
-                titleElement.classList.remove(
-                    'line-through',
-                    'text-gray-400'
-                );
 
                 titleElement.classList.add(
                     'text-gray-800'
                 );
+
 
             }
 
         }
 
 
-        /*
-            ========================================
-            2. 모바일 카드 배경 변경
-            ========================================
-        */
-
+        //모바일 카드
         const mobileCard =
             document.getElementById(
                 `todo-card-${todoId}`
@@ -194,10 +292,6 @@ function toggleTodo(
 
             }
 
-
-            /*
-                모바일 체크 버튼 변경
-            */
 
             const mobileButton =
                 mobileCard.querySelector(
@@ -250,17 +344,11 @@ function toggleTodo(
         }
 
 
-        /*
-            ========================================
-            3. PC 오늘 할 일 정렬 데이터 갱신
-            ========================================
-        */
-
+        // PC 정렬 데이터
         const pcTodoItem =
             document.querySelector(
                 `[data-todo-sort-item][data-todo-id="${todoId}"]`
             );
-
 
         if (pcTodoItem) {
 
@@ -272,12 +360,7 @@ function toggleTodo(
         }
 
 
-        /*
-            ========================================
-            4. 모바일 오늘 할 일 정렬 데이터 갱신
-            ========================================
-        */
-
+        // 모바일 정렬 데이터
         const mobileTodayItem =
             document.querySelector(
                 `[data-mobile-today-sort-item][data-mobile-todo-id="${todoId}"]`
@@ -294,45 +377,20 @@ function toggleTodo(
         }
 
 
-        /*
-            ========================================
-            5. 통계 즉시 갱신
-            ========================================
-        */
 
+        // 통계 및 정렬
         updatePcStats(data);
 
         updateMobileStats(data);
 
 
-        /*
-            ========================================
-            6. PC 오늘 할 일 비동기 정렬
-            ========================================
-        */
+        // ==================================================
+        // 정렬
+        // ==================================================
 
-        if (
-            typeof sortTodayTodoList === 'function'
-        ) {
+        sortTodayTodoList();
 
-            sortTodayTodoList();
-
-        }
-
-
-        /*
-            ========================================
-            7. 모바일 오늘 할 일 비동기 정렬
-            ========================================
-        */
-
-        if (
-            typeof sortMobileTodayTodoList === 'function'
-        ) {
-
-            sortMobileTodayTodoList();
-
-        }
+        sortMobileTodayTodoList();
 
     })
 
@@ -353,11 +411,11 @@ function toggleTodo(
 
 }
 
-// 언젠가 할 일 완료 / 미완료
-function toggleSomedayTodo(somedayId) {
 
-    const csrfToken =
-        document.body.dataset.csrf;
+// 언젠가 할 일 완료 / 미완료
+function toggleSomedayTodo(
+    somedayId
+) {
 
 
     fetch(
@@ -366,9 +424,11 @@ function toggleSomedayTodo(somedayId) {
             method: 'POST',
 
             headers: {
-                'X-CSRFToken': csrfToken,
+                'X-CSRFToken': getCsrfToken(),
                 'Content-Type': 'application/json'
-            }
+            },
+
+            body: JSON.stringify({})
         }
     )
 
@@ -378,10 +438,11 @@ function toggleSomedayTodo(somedayId) {
         if (!response.ok) {
 
             throw new Error(
-                '언젠가 할 일 상태 변경에 실패했습니다.'
+                '언젠가 할 일 변경 실패'
             );
 
         }
+
 
         return response.json();
 
@@ -390,21 +451,99 @@ function toggleSomedayTodo(somedayId) {
 
     .then(data => {
 
-        if (data.status !== 'success') {
+
+        if (
+            data.status !== 'success'
+        ) {
 
             throw new Error(
                 data.message ||
-                '상태 변경에 실패했습니다.'
+                '변경 실패'
             );
 
         }
 
 
-        /*
-            ========================================
-            모바일 카드
-            ========================================
-        */
+        const isCompleted =
+            Boolean(
+                data.is_completed
+            );
+
+
+
+        // ==================================================
+        // PC 언젠가 할 일
+        // ==================================================
+
+        const desktopSomedayItem =
+            document.querySelector(
+                `[data-desktop-someday-id="${somedayId}"]`
+            );
+
+
+        if (
+            desktopSomedayItem
+        ) {
+
+
+            // 정렬용 데이터 갱신
+
+            desktopSomedayItem.dataset.completed =
+                isCompleted
+                    ? '1'
+                    : '0';
+
+
+
+            // 제목 스타일 변경
+
+            const titleElement =
+                desktopSomedayItem.querySelector(
+                    `#desktop-someday-title-${somedayId}`
+                );
+
+
+            if (
+                titleElement
+            ) {
+
+
+                titleElement.classList.remove(
+                    'line-through',
+                    'text-gray-400',
+                    'text-gray-800'
+                );
+
+
+                if (
+                    isCompleted
+                ) {
+
+                    titleElement.classList.add(
+                        'line-through',
+                        'text-gray-400'
+                    );
+
+                }
+
+                else {
+
+                    titleElement.classList.add(
+                        'text-gray-800'
+                    );
+
+                }
+
+            }
+
+
+        }
+
+
+
+        // ==================================================
+        // 모바일 카드
+        // ==================================================
 
         const mobileCard =
             document.querySelector(
@@ -412,7 +551,10 @@ function toggleSomedayTodo(somedayId) {
             );
 
 
-        if (mobileCard) {
+        if (
+            mobileCard
+        ) {
+
 
             const mobileButton =
                 mobileCard.querySelector(
@@ -426,122 +568,93 @@ function toggleSomedayTodo(somedayId) {
                 );
 
 
-            UpdateSomedayCard(
-                mobileCard,
-                mobileButton,
-                mobileTitle,
-                data.is_completed
-            );
-
-        }
+            if (
+                typeof UpdateSomedayCard === 'function'
+            ) {
 
 
-        /*
-            ========================================
-            PC 카드
-            ========================================
-        */
+                UpdateSomedayCard(
+                    mobileCard,
+                    mobileButton,
+                    mobileTitle,
+                    isCompleted
+                );
 
-        const desktopCard =
-            document.querySelector(
-                `[data-desktop-someday-id="${somedayId}"]`
-            );
+            }
 
 
-        if (desktopCard) {
 
-            const desktopButton =
-                desktopCard.querySelector(
-                    '[data-someday-toggle]'
+            const mobileSomedayItem =
+                document.querySelector(
+                    `[data-mobile-someday-id="${somedayId}"]`
                 );
 
 
-            const desktopTitle =
-                desktopCard.querySelector(
-                    `#desktop-someday-title-${somedayId}`
-                );
+            if (
+                mobileSomedayItem
+            ) {
 
+                mobileSomedayItem.dataset.completed =
+                    isCompleted
+                        ? '1'
+                        : '0';
 
-            UpdateSomedayCard(
-                desktopCard,
-                desktopButton,
-                desktopTitle,
-                data.is_completed
-            );
+            }
 
-
-            /*
-                정렬용 완료 상태 갱신
-            */
-
-            desktopCard.dataset.completed =
-                data.is_completed ? '1' : '0';
 
         }
 
 
-            
-        //언젠가 할 일 정렬 데이터 갱신
-        const mobileSomedayItem =
-            document.querySelector(
-                `[data-mobile-someday-sort-item][data-mobile-someday-id="${somedayId}"]`
-            );
 
-
-        if (mobileSomedayItem) {
-
-            mobileSomedayItem.dataset.completed =
-                data.is_completed
-                    ? '1'
-                    : '0';
-
-        }
-
-
-        /*
-            ========================================
-            언젠가 할 일 통계
-            ========================================
-        */
+        // ==================================================
+        // 통계
+        // ==================================================
 
         updateSomedayStats(data);
 
 
-        /*
-            ========================================
-            PC 언젠가 할 일 비동기 정렬
-            ========================================
-        */
 
-        if (
-            typeof sortSomedayTodoList === 'function'
-        ) {
+        // ==================================================
+        // 정렬
+        // DOM 반영 후 실행
+        // ==================================================
 
-            sortSomedayTodoList();
-
-        }
+        setTimeout(
+            () => {
 
 
-        /*
-            ========================================
-            모바일 언젠가 할 일 비동기 정렬
-            ========================================
-        */
+                if (
+                    typeof sortSomedayTodoList === 'function'
+                ) {
 
-        if (
-            typeof sortMobileSomedayTodoList === 'function'
-        ) {
+                    sortSomedayTodoList();
 
-            sortMobileSomedayTodoList();
+                }
 
-        }
+
+
+                if (
+                    typeof sortMobileSomedayTodoList === 'function'
+                ) {
+
+                    sortMobileSomedayTodoList();
+
+                }
+
+
+            },
+            50
+        );
+
+
     })
 
 
     .catch(error => {
 
+
         console.error(
-            '언젠가 할 일 토글 오류:',
+            '언젠가 할 일 오류:',
             error
         );
 
@@ -550,222 +663,180 @@ function toggleSomedayTodo(somedayId) {
             error.message
         );
 
+
     });
 
 }
 
 
-//PC 통계 즉시 갱신
-function updatePcStats(data) {
-    
-    console.log(
-        '=============================='
-    );
-    
-    console.log(
-        'updatePcStats 실행'
-    );
-    
-    console.log(
-        '응답 데이터:',
-        data
-    );
-    
-    
-    // ==================================================
-    // 중앙 완료 현황
-    // ==================================================
-    
+// PC 통계 즉시 갱신
+function updatePcStats(
+    data
+) {
+
     const todoProgress =
-    document.getElementById(
-        'todo-progress'
-    );
-    
-    
+        document.getElementById(
+            'todo-progress'
+        );
+
+
     if (todoProgress) {
-        
+
         todoProgress.textContent =
-        `${data.selected_completed_count}/${data.selected_total_count} 완료`;
-        
+            `${data.selected_completed_count}/${data.selected_total_count} 완료`;
+
     }
-    
-    
-    // ==================================================
-    // 우측 이번달 기본 통계
-    // ==================================================
-    
+
+
     const totalCount =
-    document.getElementById(
-        'pc-total-count'
-    );
-    
-    
+        document.getElementById(
+            'pc-total-count'
+        );
+
+
     const completedCount =
-    document.getElementById(
-        'pc-completed-count'
-    );
-    
-    
+        document.getElementById(
+            'pc-completed-count'
+        );
+
+
     const completionRate =
-    document.getElementById(
-        'pc-completion-rate'
-    );
-    
-    
+        document.getElementById(
+            'pc-completion-rate'
+        );
+
+
     const completionBar =
-    document.getElementById(
-        'pc-completion-bar'
-    );
-    
-    
+        document.getElementById(
+            'pc-completion-bar'
+        );
+
+
     if (totalCount) {
-        
+
         totalCount.textContent =
-        data.monthly_total_count;
-        
+            data.monthly_total_count;
+
     }
-    
-    
+
+
     if (completedCount) {
-        
+
         completedCount.textContent =
-        data.monthly_completed_count;
-        
+            data.monthly_completed_count;
+
     }
-    
-    
+
+
     if (completionRate) {
-        
+
         completionRate.textContent =
-        `${data.monthly_completion_rate}%`;
-        
+            `${data.monthly_completion_rate}%`;
+
     }
-    
-    
+
+
     if (completionBar) {
-        
+
         completionBar.style.width =
-        `${data.monthly_completion_rate}%`;
-        
+            `${data.monthly_completion_rate}%`;
+
     }
-    
-    
-    // ==================================================
-    // 태그별 현황
-    // ==================================================
-    
+
+
     if (
         Array.isArray(
             data.monthly_tag_stats
         )
     ) {
-        
+
         data.monthly_tag_stats.forEach(
             tag => {
-                
+
                 const countElement =
-                document.getElementById(
-                    `pc-tag-${tag.code}-count`
-                );
-                
-                
+                    document.getElementById(
+                        `pc-tag-${tag.code}-count`
+                    );
+
+
                 const barElement =
-                document.getElementById(
-                    `pc-tag-${tag.code}-bar`
-                );
-                
-                
+                    document.getElementById(
+                        `pc-tag-${tag.code}-bar`
+                    );
+
+
                 if (countElement) {
-                    
+
                     countElement.textContent =
-                    `${tag.completed}/${tag.total}`;
-                    
+                        `${tag.completed}/${tag.total}`;
+
                 }
-                
-                
+
+
                 if (barElement) {
-                    
+
                     barElement.style.width =
-                    `${tag.rate}%`;
-                    
+                        `${tag.rate}%`;
+
                 }
-                
+
             }
         );
-        
+
     }
-    
-    
-    // ==================================================
-    // 우선순위별 현황
-    // ==================================================
-    
+
+
     if (
         Array.isArray(
             data.monthly_priority_stats
         )
     ) {
-        
+
         data.monthly_priority_stats.forEach(
             priority => {
-                
+
                 const totalElement =
-                document.getElementById(
-                    `pc-priority-${priority.code}-total`
-                );
-                
-                
+                    document.getElementById(
+                        `pc-priority-${priority.code}-total`
+                    );
+
+
                 const completedElement =
-                document.getElementById(
-                    `pc-priority-${priority.code}-completed`
-                );
-                
-                
+                    document.getElementById(
+                        `pc-priority-${priority.code}-completed`
+                    );
+
+
                 if (totalElement) {
-                    
+
                     totalElement.textContent =
-                    priority.total;
-                    
+                        priority.total;
+
                 }
-                
-                
+
+
                 if (completedElement) {
-                    
+
                     completedElement.textContent =
-                    `${priority.completed}완료`;
-                    
+                        `${priority.completed}완료`;
+
                 }
-                
+
             }
         );
-        
+
     }
-    
-    
-    console.log(
-        '중앙 완료:',
-        `${data.selected_completed_count}/${data.selected_total_count}`
-    );
-    
-    
-    console.log(
-        '이번달 완료:',
-        `${data.monthly_completed_count}/${data.monthly_total_count}`
-    );
-    
-    
-    console.log(
-        'updatePcStats 종료'
-    );
-    
-    console.log(
-        '=============================='
-    );
-    
+
 }
 
-//Mobile 오늘 할 일 즉시 갱신
-function updateMobileStats(data) {
+
+// ============================================================
+// 모바일 오늘 할 일 통계
+// ============================================================
+
+function updateMobileStats(
+    data
+) {
 
     const mobileProgress =
         document.getElementById(
@@ -781,20 +852,29 @@ function updateMobileStats(data) {
     }
 
 }
-//Mobile 언젠가 할 일 즉시 갱신
-function updateSomedayStats(data) {
+
+
+// ============================================================
+// 언젠가 할 일 통계
+// ============================================================
+
+function updateSomedayStats(
+    data
+) {
 
     const totalCount =
-        data.someday_total_count;
+        Number(
+            data.someday_total_count || 0
+        );
 
 
     const completedCount =
-        data.someday_completed_count;
+        Number(
+            data.someday_completed_count || 0
+        );
 
 
-    /*
-        PC
-    */
+    // PC
 
     const desktopProgress =
         document.getElementById(
@@ -810,9 +890,7 @@ function updateSomedayStats(data) {
     }
 
 
-    /*
-        모바일
-    */
+    // 모바일
 
     const mobileProgress =
         document.getElementById(
@@ -828,9 +906,7 @@ function updateSomedayStats(data) {
     }
 
 
-    /*
-        기존 전체 개수
-    */
+    // 기존 전체 개수
 
     const somedayTodoCount =
         document.getElementById(
@@ -846,7 +922,12 @@ function updateSomedayStats(data) {
     }
 
 }
-//언젠가 할 일 카드 변경
+
+
+// ============================================================
+// 언젠가 할 일 카드 변경
+// ============================================================
+
 function UpdateSomedayCard(
     card,
     button,
@@ -854,37 +935,40 @@ function UpdateSomedayCard(
     isCompleted
 ) {
 
-    if (!card || !button || !title) {
+
+    if (
+        !card ||
+        !button ||
+        !title
+    ) {
+
+        console.warn(
+            '언젠가 카드 요소 없음'
+        );
 
         return;
 
     }
 
 
-    /*
-        ========================================
-        완료
-        ========================================
-    */
+
+    // ================================================
+    // 완료
+    // ================================================
 
     if (isCompleted) {
 
-        /*
-            카드
-        */
 
         card.classList.remove(
             'bg-white'
         );
+
 
         card.classList.add(
             'bg-gray-50'
         );
 
 
-        /*
-            버튼
-        */
 
         button.classList.remove(
             'border-2',
@@ -892,109 +976,116 @@ function UpdateSomedayCard(
             'bg-white'
         );
 
+
         button.classList.add(
             'bg-gray-950',
             'text-white'
         );
 
 
+
         button.innerHTML =
             `
-            <i class='fa-solid fa-check text-[10px]'></i>
+            <i class="fa-solid fa-check text-[10px]"></i>
             `;
 
 
-        /*
-            제목
-        */
 
         title.classList.remove(
-            'text-gray-900'
+            'text-gray-900',
+            'text-gray-800'
         );
+
 
         title.classList.add(
             'text-gray-400',
             'line-through'
         );
 
+
     }
 
 
-    /*
-        ========================================
-        미완료
-        ========================================
-    */
+    // ================================================
+    // 미완료
+    // ================================================
 
     else {
 
-        /*
-            카드
-        */
 
         card.classList.remove(
             'bg-gray-50'
         );
+
 
         card.classList.add(
             'bg-white'
         );
 
 
-        /*
-            버튼
-        */
 
         button.classList.remove(
             'bg-gray-950',
             'text-white'
         );
 
+
         button.classList.add(
             'border-2',
             'border-gray-300',
             'bg-white'
         );
+
 
 
         button.innerHTML =
             '';
 
 
-        /*
-            제목
-        */
 
         title.classList.remove(
             'text-gray-400',
             'line-through'
         );
 
+
         title.classList.add(
             'text-gray-900'
         );
 
+
     }
+
 
 }
 
-//PC 월 선택
+// ============================================================
+// PC 월 선택
+// ============================================================
+
 const bodyElement =
     document.body;
 
 
 let pcPickerYear =
     Number(
-        bodyElement.dataset.year
+        bodyElement?.dataset.year
     );
 
-//월 선택창 열기
+
 function openPcMonthPicker() {
 
     const picker =
         document.getElementById(
             'pcMonthPicker'
         );
+
+
+    if (!picker) {
+
+        return;
+
+    }
 
 
     picker.classList.remove(
@@ -1007,13 +1098,19 @@ function openPcMonthPicker() {
 }
 
 
-//월 선택창 닫기
 function closePcMonthPicker() {
 
     const picker =
         document.getElementById(
             'pcMonthPicker'
         );
+
+
+    if (!picker) {
+
+        return;
+
+    }
 
 
     picker.classList.add(
@@ -1023,23 +1120,30 @@ function closePcMonthPicker() {
 }
 
 
-//연도 변경
 function changePcPickerYear(
     direction
 ) {
 
-    pcPickerYear += direction;
+    pcPickerYear +=
+        direction;
 
 
-    document.getElementById(
-        'pcPickerYear'
-    ).textContent =
-        `${pcPickerYear}년`;
+    const yearElement =
+        document.getElementById(
+            'pcPickerYear'
+        );
+
+
+    if (yearElement) {
+
+        yearElement.textContent =
+            `${pcPickerYear}년`;
+
+    }
 
 }
 
 
-//현재 월 강조
 function updatePcMonthButton() {
 
     const currentMonth =
@@ -1062,7 +1166,8 @@ function updatePcMonthButton() {
 
 
                 if (
-                    buttonMonth === currentMonth
+                    buttonMonth ===
+                    currentMonth
                 ) {
 
                     button.classList.add(
@@ -1075,7 +1180,9 @@ function updatePcMonthButton() {
                         'text-gray-700'
                     );
 
-                } else {
+                }
+
+                else {
 
                     button.classList.add(
                         'bg-gray-100',
@@ -1095,7 +1202,6 @@ function updatePcMonthButton() {
 }
 
 
-//월 선택
 function selectPcMonth(
     month
 ) {
@@ -1115,7 +1221,10 @@ function selectPcMonth(
 }
 
 
-//기간 할 일
+// ============================================================
+// 기간 할 일
+// ============================================================
+
 function toggleEndDate() {
 
     const rangeRadio =
@@ -1144,7 +1253,8 @@ function toggleEndDate() {
 
     if (
         !rangeRadio ||
-        !endDateWrapper
+        !endDateWrapper ||
+        !endDateInput
     ) {
 
         return;
@@ -1163,10 +1273,16 @@ function toggleEndDate() {
             true;
 
 
-        endDateInput.min =
-            dueDateInput.value;
+        if (dueDateInput) {
 
-    } else {
+            endDateInput.min =
+                dueDateInput.value;
+
+        }
+
+    }
+
+    else {
 
         endDateWrapper.classList.add(
             'hidden'
@@ -1185,39 +1301,52 @@ function toggleEndDate() {
 }
 
 
-//시작일 변경 시 종료일 최소 날짜 변경
-const dueDateInput =
-    document.getElementById(
-        'dueDateInput'
-    );
+// ============================================================
+// 시작일 변경 시 종료일 최소 날짜 변경
+// ============================================================
+
+document.addEventListener(
+    'DOMContentLoaded',
+    function () {
+
+        const dueDateInput =
+            document.getElementById(
+                'dueDateInput'
+            );
 
 
-if (dueDateInput) {
+        if (dueDateInput) {
 
-    dueDateInput.addEventListener(
-        'change',
-        function () {
+            dueDateInput.addEventListener(
+                'change',
+                function () {
 
-            const endDateInput =
-                document.getElementById(
-                    'endDateInput'
-                );
+                    const endDateInput =
+                        document.getElementById(
+                            'endDateInput'
+                        );
 
 
-            if (endDateInput) {
+                    if (endDateInput) {
 
-                endDateInput.min =
-                    this.value;
+                        endDateInput.min =
+                            this.value;
 
-            }
+                    }
+
+                }
+            );
 
         }
-    );
 
-}
+    }
+);
 
 
-//날짜 선택창 열기
+// ============================================================
+// 날짜 선택창
+// ============================================================
+
 function openDatePicker(
     inputId
 ) {
@@ -1235,12 +1364,9 @@ function openDatePicker(
     }
 
 
-    /*
-        Chrome 등 showPicker 지원 브라우저
-    */
-
     if (
-        typeof input.showPicker === 'function'
+        typeof input.showPicker ===
+        'function'
     ) {
 
         try {
@@ -1249,7 +1375,9 @@ function openDatePicker(
 
             return;
 
-        } catch (error) {
+        }
+
+        catch (error) {
 
             console.warn(
                 'showPicker 실행 실패:',
@@ -1261,274 +1389,16 @@ function openDatePicker(
     }
 
 
-    /*
-        showPicker를 지원하지 않는 경우
-        input 자체에 focus
-    */
-
     input.focus();
 
 }
 
 
 // ============================================================
-// 언젠가 할 일 수정 모달
+// 오늘 할 일 정렬
 // ============================================================
-
-function openSomedayEditModal(button) {
-
-    const modal =
-        document.getElementById(
-            'somedayEditModal'
-        );
-
-
-    const form =
-        document.getElementById(
-            'somedayEditForm'
-        );
-
-
-    const titleInput =
-        document.getElementById(
-            'someday-edit-title'
-        );
-
-
-    const tagInput =
-        document.getElementById(
-            'someday-edit-tag'
-        );
-
-
-    const priorityH =
-        document.getElementById(
-            'someday-edit-priority-H'
-        );
-
-
-    const priorityM =
-        document.getElementById(
-            'someday-edit-priority-M'
-        );
-
-
-    const priorityL =
-        document.getElementById(
-            'someday-edit-priority-L'
-        );
-
-
-    if (
-        !modal ||
-        !form ||
-        !titleInput ||
-        !tagInput
-    ) {
-
-        return;
-
-    }
-
-
-    const somedayId =
-        button.dataset.somedayId;
-
-
-    const title =
-        button.dataset.somedayTitle;
-
-
-    const tag =
-        button.dataset.somedayTag;
-
-
-    const priority =
-        button.dataset.somedayPriority;
-
-
-    // 제목
-
-    titleInput.value =
-        title || '';
-
-
-    // 태그
-
-    tagInput.value =
-        tag || 'WORK';
-
-
-    // 우선순위
-
-    priorityH.checked =
-        priority === 'H';
-
-
-    priorityM.checked =
-        priority === 'M';
-
-
-    priorityL.checked =
-        priority === 'L';
-
-
-    // Form action
-
-    form.action =
-        `/someday/edit/${somedayId}/`;
-
-
-    // 모달 열기
-
-    modal.classList.remove(
-        'hidden'
-    );
-
-
-    modal.classList.add(
-        'flex'
-    );
-
-}
-
-
-// ============================================================
-// 언젠가 할 일 수정 모달 닫기
-// ============================================================
-
-function closeSomedayEditModal() {
-
-    const modal =
-        document.getElementById(
-            'somedayEditModal'
-        );
-
-
-    if (!modal) {
-
-        return;
-
-    }
-
-
-    modal.classList.add(
-        'hidden'
-    );
-
-
-    modal.classList.remove(
-        'flex'
-    );
-
-}
-
-
-// ============================================================
-// 언젠가 할 일 삭제 모달
-// ============================================================
-
-function openSomedayDeleteModal(button) {
-
-    const modal =
-        document.getElementById(
-            'somedayDeleteModal'
-        );
-
-
-    const form =
-        document.getElementById(
-            'somedayDeleteForm'
-        );
-
-
-    const titleElement =
-        document.getElementById(
-            'somedayDeleteTodoTitle'
-        );
-
-
-    if (
-        !modal ||
-        !form ||
-        !titleElement
-    ) {
-
-        return;
-
-    }
-
-
-    const somedayId =
-        button.dataset.somedayId;
-
-
-    const title =
-        button.dataset.somedayTitle;
-
-
-    // 삭제 대상 제목
-
-    titleElement.textContent =
-        title || '';
-
-
-    // Form action
-
-    form.action =
-        `/someday/delete/${somedayId}/`;
-
-
-    // 모달 열기
-
-    modal.classList.remove(
-        'hidden'
-    );
-
-
-    modal.classList.add(
-        'flex'
-    );
-
-}
-
-
-// ============================================================
-// 언젠가 할 일 삭제 모달 닫기
-// ============================================================
-
-function closeSomedayDeleteModal() {
-
-    const modal =
-        document.getElementById(
-            'somedayDeleteModal'
-        );
-
-
-    if (!modal) {
-
-        return;
-
-    }
-
-
-    modal.classList.add(
-        'hidden'
-    );
-
-
-    modal.classList.remove(
-        'flex'
-    );
-
-}
-
 
 function sortTodayTodoList() {
-
-    /*
-        PC 오늘 할 일 목록
-    */
 
     const desktopList =
         document.getElementById(
@@ -1544,35 +1414,12 @@ function sortTodayTodoList() {
 
     }
 
-
-    /*
-        모바일 오늘 할 일 목록
-    */
-
-    const mobileList =
-        document.getElementById(
-            'mobileTodoList'
-        );
-
-
-    if (mobileList) {
-
-        SortTodayTodoItems(
-            mobileList
-        );
-
-    }
-
 }
 
 
-function sortTodayTodoList() {
-
-    const list =
-        document.querySelector(
-            '.todo-scroll'
-        );
-
+function SortTodayTodoItems(
+    list
+) {
 
     if (!list) {
 
@@ -1603,11 +1450,6 @@ function sortTodayTodoList() {
     items.sort(
         (a, b) => {
 
-
-            // ========================================
-            // 1. 미완료 → 완료
-            // ========================================
-
             const completedA =
                 Number(
                     a.dataset.completed || 0
@@ -1632,12 +1474,6 @@ function sortTodayTodoList() {
 
             }
 
-
-            // ========================================
-            // 2. 우선순위
-            //
-            // H → M → L
-            // ========================================
 
             const priorityA =
                 priorityOrder[
@@ -1664,12 +1500,6 @@ function sortTodayTodoList() {
             }
 
 
-            // ========================================
-            // 3. 생성일
-            //
-            // 오래 만든 것 → 최근 만든 것
-            // ========================================
-
             const createdA =
                 Number(
                     a.dataset.createdAt || 0
@@ -1691,9 +1521,133 @@ function sortTodayTodoList() {
     );
 
 
-    // ========================================
-    // DOM 재배치
-    // ========================================
+    items.forEach(
+        item => {
+
+            list.appendChild(
+                item
+            );
+
+        }
+    );
+
+}
+
+
+// ============================================================
+// 모바일 오늘 할 일 정렬
+// ============================================================
+
+function sortMobileTodayTodoList() {
+
+    const mobileList =
+        document.getElementById(
+            'mobileTodoList'
+        );
+
+
+    if (!mobileList) {
+
+        return;
+
+    }
+
+
+    SortMobileTodayTodoItems(
+        mobileList
+    );
+
+}
+
+
+function SortMobileTodayTodoItems(
+    list
+) {
+
+    const priorityOrder = {
+
+        'H': 1,
+
+        'M': 2,
+
+        'L': 3
+
+    };
+
+
+    const items =
+        Array.from(
+            list.querySelectorAll(
+                '[data-mobile-today-sort-item]'
+            )
+        );
+
+
+    items.sort(
+        (a, b) => {
+
+            const completedA =
+                Number(
+                    a.dataset.completed || 0
+                );
+
+
+            const completedB =
+                Number(
+                    b.dataset.completed || 0
+                );
+
+
+            if (
+                completedA !==
+                completedB
+            ) {
+
+                return (
+                    completedA -
+                    completedB
+                );
+
+            }
+
+
+            const priorityA =
+                priorityOrder[
+                    a.dataset.priority
+                ] || 4;
+
+
+            const priorityB =
+                priorityOrder[
+                    b.dataset.priority
+                ] || 4;
+
+
+            if (
+                priorityA !==
+                priorityB
+            ) {
+
+                return (
+                    priorityA -
+                    priorityB
+                );
+
+            }
+
+
+            return (
+                Number(
+                    a.dataset.createdAt || 0
+                ) -
+                Number(
+                    b.dataset.createdAt || 0
+                )
+            );
+
+        }
+    );
+
 
     items.forEach(
         item => {
@@ -1706,6 +1660,11 @@ function sortTodayTodoList() {
     );
 
 }
+
+
+// ============================================================
+// 언젠가 할 일 정렬
+// ============================================================
 
 function sortSomedayTodoList() {
 
@@ -1744,10 +1703,7 @@ function sortSomedayTodoList() {
     items.sort(
         (a, b) => {
 
-            /*
-                1.
-                미완료 → 완료
-            */
+            // 미완료 → 완료
 
             const completedA =
                 Number(
@@ -1774,10 +1730,7 @@ function sortSomedayTodoList() {
             }
 
 
-            /*
-                2.
-                높음 → 보통 → 낮음
-            */
+            // H → M → L
 
             const priorityA =
                 priorityOrder[
@@ -1804,10 +1757,7 @@ function sortSomedayTodoList() {
             }
 
 
-            /*
-                3.
-                오래 만든 것 → 최근 만든 것
-            */
+            // 오래 만든 것 → 최근 만든 것
 
             const createdA =
                 Number(
@@ -1830,9 +1780,110 @@ function sortSomedayTodoList() {
     );
 
 
-    /*
-        DOM 재배치
-    */
+    const fragment =
+        document.createDocumentFragment();
+
+
+    items.forEach(
+        item => {
+
+            fragment.appendChild(
+                item
+            );
+
+        }
+    );
+
+
+    list.appendChild(
+        fragment
+    );
+
+}
+
+// ============================================================
+// 모바일 언젠가 할 일 정렬
+// ============================================================
+
+function sortMobileSomedayTodoList() {
+
+
+    const list =
+        document.getElementById(
+            'somedayTodoList'
+        );
+
+
+    if (!list) {
+
+        return;
+
+    }
+
+
+
+    const items =
+        Array.from(
+            list.querySelectorAll(
+                '[data-mobile-someday-sort-item]'
+            )
+        );
+
+
+
+    items.sort(
+        (a, b) => {
+
+
+            const completedA =
+                Number(
+                    a.dataset.completed || 0
+                );
+
+
+            const completedB =
+                Number(
+                    b.dataset.completed || 0
+                );
+
+
+
+            if (
+                completedA !== completedB
+            ) {
+
+                return (
+                    completedA -
+                    completedB
+                );
+
+            }
+
+
+
+            const createdA =
+                Number(
+                    a.dataset.createdAt || 0
+                );
+
+
+            const createdB =
+                Number(
+                    b.dataset.createdAt || 0
+                );
+
+
+
+            return (
+                createdA -
+                createdB
+            );
+
+
+        }
+    );
+
+
 
     items.forEach(
         item => {
@@ -1844,14 +1895,109 @@ function sortSomedayTodoList() {
         }
     );
 
+
 }
 
-//페이지 로드 시 할 일 정렬
+// ============================================================
+// 언젠가 할 일 버튼 이벤트 위임
+//
+// HTML의 onclick이 빠져도 동작하도록 보강
+// ============================================================
+
+document.addEventListener(
+    'click',
+    function (event) {
+
+        // ------------------------------------------------------
+        // 수정
+        // ------------------------------------------------------
+
+        const editButton =
+            event.target.closest(
+                '[data-someday-edit]'
+            );
+
+
+        if (editButton) {
+
+            event.preventDefault();
+
+            openSomedayEditModal(
+                editButton
+            );
+
+            return;
+
+        }
+
+
+        // ------------------------------------------------------
+        // 삭제
+        // ------------------------------------------------------
+
+        const deleteButton =
+            event.target.closest(
+                '[data-someday-delete]'
+            );
+
+
+        if (deleteButton) {
+
+            event.preventDefault();
+
+            openSomedayDeleteModal(
+                deleteButton
+            );
+
+            return;
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// 모달 ESC 닫기
+// ============================================================
+
+document.addEventListener(
+    'keydown',
+    function (event) {
+
+        if (
+            event.key !==
+            'Escape'
+        ) {
+
+            return;
+
+        }
+
+
+        closeSomedayEditModal();
+
+        closeSomedayDeleteModal();
+
+        closeSomedayCreateModal();
+
+        closeModal();
+
+    }
+);
+
+
+// ============================================================
+// 페이지 로드
+// ============================================================
+
 document.addEventListener(
     'DOMContentLoaded',
     function () {
 
         sortTodayTodoList();
+
+        sortMobileTodayTodoList();
 
         sortSomedayTodoList();
 

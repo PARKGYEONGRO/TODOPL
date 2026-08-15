@@ -151,11 +151,11 @@
 <!-- 설정 모달 settings_modal.html에서 관리-->
 {% include 'todos/partials/settings_modal.html' %}
 
-<!-- 언젠가 할일 생성 모달 someday_create_modal.html에서 관리 -->
+<!-- 언젠가 할 일 생성 모달 someday_create_modal.html에서 관리 -->
 {% include 'todos/partials/someday_create_modal.html' %}
-<!-- 언젠가 할일 수정 모달 someday_edit_modal.html에서 관리 -->
+<!-- 언젠가 할 일 수정 모달 someday_edit_modal.html에서 관리 -->
 {% include 'todos/partials/someday_edit_modal.html' %}
-<!-- 언젠가 할일 삭제 모달 someday_delete_modal.html에서 관리 -->
+<!-- 언젠가 할 일 삭제 모달 someday_delete_modal.html에서 관리 -->
 {% include 'todos/partials/someday_delete_modal.html' %}
 
 <!-- todo.js -->
@@ -170,5 +170,11 @@
 <script src="{% static 'todos/js/delete_modal.js' %}"></script>
 <!-- 설정 모달 JS 별도 파일 -->
 <script src="{% static 'todos/js/settings_modal.js' %}"></script>
+
+<!-- 언젠가 할 일 수정 모달 JS 별도 파일 -->
+<script src="{% static 'todos/js/someday_edit_modal.js' %}"></script>
+<!-- 언젠가 할 일 삭제 모달 JS 별도 파일 -->
+<script src="{% static 'todos/js/someday_delete_modal.js' %}"></script>
+
 
 {% endblock %}

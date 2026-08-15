@@ -1,3 +1,4 @@
+<!-- desktop_todaytodo_list.html -->
 <section
         class="todo-main-section min-w-0 flex flex-col p-6 md:p-8">
 
@@ -127,23 +128,18 @@
                         <span
                             id="todo-title-{{ todo.id }}"
                             class="font-medium truncate
-
                             {% if todo.end_date %}
-
                                 {% if todo.id in selected_completed_todo_ids %}
                                     line-through text-gray-400
                                 {% else %}
                                     text-gray-800
                                 {% endif %}
-
                             {% else %}
-
                                 {% if todo.is_completed %}
                                     line-through text-gray-400
                                 {% else %}
                                     text-gray-800
                                 {% endif %}
-
                             {% endif %}">
 
                             {{ todo.title }}

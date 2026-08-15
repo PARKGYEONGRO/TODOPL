@@ -1,8 +1,5 @@
-/*
-    ============================================================
-    설정 모달
-    ============================================================
-*/
+//settings_modal.js
+console.log('settings_modal.js 로드됨')
 
 
 /*
@@ -252,5 +249,64 @@ function backdropClick(event) {
         closeSettingsModal();
 
     }
+
+}
+
+function logoutUser() {
+
+    if (
+        !confirm(
+            '로그아웃 하시겠습니까?'
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    const form =
+        document.createElement(
+            'form'
+        );
+
+
+    form.method =
+        'POST';
+
+
+    form.action =
+        '/logout/';
+
+
+    const csrf =
+        document.createElement(
+            'input'
+        );
+
+
+    csrf.type =
+        'hidden';
+
+
+    csrf.name =
+        'csrfmiddlewaretoken';
+
+
+    csrf.value =
+        getCsrfToken();
+
+
+    form.appendChild(
+        csrf
+    );
+
+
+    document.body.appendChild(
+        form
+    );
+
+
+    form.submit();
 
 }

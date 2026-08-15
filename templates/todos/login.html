@@ -1,0 +1,1123 @@
+{% load static %}
+
+
+<!DOCTYPE html>
+<html lang='ko'>
+
+<head>
+
+    <meta charset='UTF-8'>
+
+    <meta
+        name='viewport'
+        content='width=device-width, initial-scale=1.0, viewport-fit=cover'
+    >
+
+    <title>TODOPL 로그인</title>
+
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css'>
+    <script src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'></script>
+
+
+    <style>
+
+        /*
+            ============================================================
+            기본 설정
+            ============================================================
+        */
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        html,
+        body {
+
+            margin: 0;
+            padding: 0;
+
+            width: 100%;
+            min-height: 100%;
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                'Segoe UI',
+                'Noto Sans KR',
+                sans-serif;
+
+            background: #ffffff;
+
+            color: #111111;
+
+        }
+
+
+        body {
+
+            min-height: 100dvh;
+
+        }
+
+
+        /*
+            ============================================================
+            전체 페이지
+            ============================================================
+        */
+
+        .login-page {
+
+            width: 100%;
+            min-height: 100dvh;
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            padding:
+                max(80px, env(safe-area-inset-top))
+                24px
+                max(40px, env(safe-area-inset-bottom));
+
+        }
+
+
+        /*
+            ============================================================
+            브랜드
+            ============================================================
+        */
+
+        .brand-section {
+
+            width: 100%;
+            max-width: 430px;
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            margin-top: 100px;
+
+            margin-bottom: 70px;
+
+        }
+
+
+        .brand-logo {
+
+            margin: 0;
+
+            font-size: 48px;
+
+            font-weight: 800;
+
+            letter-spacing: -2px;
+
+            line-height: 1;
+
+        }
+
+
+        .brand-subtitle {
+
+            margin: 18px 0 0;
+
+            font-size: 20px;
+
+            font-weight: 400;
+
+            letter-spacing: -0.5px;
+
+            color: #222222;
+
+        }
+
+
+        /*
+            ============================================================
+            로그인 영역
+            ============================================================
+        */
+
+        .login-section {
+
+            width: 100%;
+            max-width: 430px;
+
+        }
+
+
+        .login-form {
+
+            width: 100%;
+
+        }
+
+
+        /*
+            ============================================================
+            입력창
+            ============================================================
+        */
+
+        .input-group {
+
+            width: 100%;
+
+            margin-bottom: 14px;
+
+        }
+
+
+        .login-input {
+
+            width: 100%;
+
+            height: 64px;
+
+            padding: 0 20px;
+
+            border: 1px solid #dddddd;
+
+            border-radius: 14px;
+
+            background: #ffffff;
+
+            font-size: 17px;
+
+            color: #111111;
+
+            outline: none;
+
+            transition:
+                border-color 0.2s ease,
+                box-shadow 0.2s ease;
+
+        }
+
+
+        .login-input::placeholder {
+
+            color: #999999;
+
+        }
+
+
+        .login-input:focus {
+
+            border-color: #363636;
+
+            box-shadow:
+                0 0 0 3px
+                rgba(22, 131, 255, 0.08);
+
+        }
+
+
+        /*
+            ============================================================
+            회원가입 / 아이디 비밀번호 찾기
+            ============================================================
+        */
+
+        .account-links {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            margin-top: 18px;
+
+            padding: 0 4px;
+
+        }
+
+
+        .text-button {
+
+            padding: 0;
+
+            border: 0;
+
+            background: transparent;
+
+            color: #5c5c5c;
+
+            font-size: 15px;
+
+            font-weight: 400;
+
+            cursor: pointer;
+
+        }
+
+
+        .text-button:hover {
+
+            text-decoration: underline;
+
+        }
+
+
+        /*
+            ============================================================
+            로그인 버튼
+            ============================================================
+        */
+
+        .login-button {
+
+            width: 100%;
+
+            height: 64px;
+
+            margin-top: 34px;
+
+            border: 0;
+
+            border-radius: 14px;
+
+            background: #2c2c2c;
+
+            color: #ffffff;
+
+            font-size: 19px;
+
+            font-weight: 600;
+
+            cursor: pointer;
+
+            transition:
+                transform 0.15s ease,
+                opacity 0.15s ease;
+
+        }
+
+
+        .login-button:hover {
+
+            opacity: 0.92;
+
+        }
+
+
+        .login-button:active {
+
+            transform: scale(0.98);
+
+        }
+
+
+        /*
+            ============================================================
+            소셜 로그인
+            ============================================================
+        */
+
+        .social-section {
+
+            width: 100%;
+
+            margin-top: 48px;
+
+        }
+
+
+        .social-divider {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 16px;
+
+        }
+
+
+        .social-divider span {
+
+            flex: 1;
+
+            height: 1px;
+
+            background: #dddddd;
+
+        }
+
+
+        .social-divider p {
+
+            margin: 0;
+
+            color: #999999;
+
+            font-size: 14px;
+
+        }
+
+
+        /*
+            ============================================================
+            소셜 버튼
+            ============================================================
+        */
+
+        .social-buttons {
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            gap: 54px;
+
+            margin-top: 30px;
+
+        }
+
+
+        .social-button {
+
+            width: 64px;
+
+            height: 64px;
+
+            border-radius: 50%;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            padding: 0;
+
+            cursor: pointer;
+
+            transition:
+                transform 0.15s ease;
+
+        }
+
+
+        .social-button:active {
+
+            transform: scale(0.94);
+
+        }
+
+
+        /*
+            ============================================================
+            카카오
+            ============================================================
+        */
+
+        .kakao-button {
+
+            border: 0;
+
+            background: #fee500;
+
+        }
+
+
+        .kakao-icon {
+
+            width: 26px;
+
+            height: 20px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            color: #111111;
+
+            font-size: 18px;
+
+        }
+
+
+        /*
+            ============================================================
+            Google
+            ============================================================
+        */
+
+        .google-button {
+
+            border: 1px solid #dddddd;
+
+            background: #ffffff;
+
+        }
+
+
+        .google-icon {
+
+            font-size: 25px;
+
+            font-weight: 600;
+
+            color: #4285f4;
+
+        }
+
+
+        /*
+            ============================================================
+            Apple
+            ============================================================
+        */
+
+        .apple-button {
+
+            border: 0;
+
+            background: #000000;
+
+        }
+
+
+        .apple-icon {
+
+            color: #ffffff;
+
+            font-size: 31px;
+
+            line-height: 1;
+
+        }
+
+
+        /*
+            ============================================================
+            모바일
+            ============================================================
+        */
+
+        @media (
+            max-width: 480px
+        ) {
+
+            .login-page {
+
+                padding-left: 24px;
+
+                padding-right: 24px;
+
+            }
+
+
+            .brand-section {
+
+                margin-top: 80px;
+
+                margin-bottom: 60px;
+
+            }
+
+
+            .brand-logo {
+
+                font-size: 44px;
+
+            }
+
+
+            .brand-subtitle {
+
+                font-size: 19px;
+
+                margin-top: 16px;
+
+            }
+
+
+            .login-input {
+
+                height: 62px;
+
+                font-size: 16px;
+
+            }
+
+
+            .login-button {
+
+                height: 62px;
+
+                font-size: 18px;
+
+            }
+
+
+            .social-buttons {
+
+                gap: 42px;
+
+            }
+
+        }
+
+
+        /*
+            ============================================================
+            작은 화면
+            ============================================================
+        */
+
+        @media (
+            max-height: 700px
+        ) {
+
+            .brand-section {
+
+                margin-top: 45px;
+
+                margin-bottom: 40px;
+
+            }
+
+
+            .social-section {
+
+                margin-top: 32px;
+
+            }
+
+
+            .social-buttons {
+
+                margin-top: 20px;
+
+            }
+
+        }
+
+        /*
+            ============================================================
+            입력창 아이콘
+            ============================================================
+        */
+
+        .input-with-icon {
+
+            position: relative;
+
+        }
+
+
+        .input-icon {
+
+            position: absolute;
+
+            left: 20px;
+
+            top: 50%;
+
+            transform: translateY(-50%);
+
+            z-index: 2;
+
+            color: #999999;
+
+            font-size: 18px;
+
+            pointer-events: none;
+
+        }
+
+
+        .input-with-icon .login-input {
+
+            padding-left: 54px;
+
+        }
+
+    </style>
+
+</head>
+
+
+<body
+    data-supabase-url='{{ SUPABASE_URL }}'
+    data-supabase-key='{{ SUPABASE_ANON_KEY }}'>
+
+
+    <main class='login-page'>
+
+
+        <!--
+            ========================================================
+            브랜드
+            ========================================================
+        -->
+
+        <section class='brand-section'>
+
+            <h1 class='brand-logo'>
+                TODOPL
+            </h1>
+
+
+            <p class='brand-subtitle'>
+                To Do Plan
+            </p>
+
+        </section>
+
+
+        <!--
+            ========================================================
+            로그인
+            ========================================================
+        -->
+
+        <section class='login-section'>
+
+
+            <form
+                id='loginForm'
+                class='login-form'
+            >
+
+
+                <!-- 아이디 -->
+
+                <div class='input-group input-with-icon'>
+
+                    <i class='fa-regular fa-user input-icon'></i>
+
+                    <input
+                        type='email'
+                        id='email'
+                        name='email'
+                        class='login-input'
+                        placeholder='이메일 아이디'
+                        autocomplete='email'
+                        required
+                    >
+
+                </div>
+
+
+                <!-- 비밀번호 -->
+
+                <div class='input-group input-with-icon'>
+
+                    <i class='fa-solid fa-lock input-icon'></i>
+
+                    <input
+                        type='password'
+                        id='password'
+                        name='password'
+                        class='login-input'
+                        placeholder='비밀번호'
+                        autocomplete='current-password'
+                        required
+                    >
+
+                </div>
+
+
+                <!-- 회원가입 / 아이디 및 비밀번호 찾기 -->
+
+                <div class='account-links'>
+
+
+                    <button
+                        type='button'
+                        class='text-button'
+                        onclick='openSignupModal()'
+                    >
+                        회원가입
+                    </button>
+
+
+                    <button
+                        type='button'
+                        class='text-button'
+                        onclick='location.href="/find-account/"'
+                    >
+                        아이디 / 비밀번호 찾기
+                    </button>
+
+
+                </div>
+
+
+                <!-- 로그인 -->
+
+                <button
+                    type='submit'
+                    class='login-button'
+                >
+                    로그인
+                </button>
+
+
+            </form>
+
+
+            <!--
+                ====================================================
+                소셜 로그인
+                ====================================================
+            -->
+
+            <div class='social-section'>
+
+
+                <div class='social-divider'>
+
+                    <span></span>
+
+                    <p>
+                        또는
+                    </p>
+
+                    <span></span>
+
+                </div>
+
+
+                <div class='social-buttons'>
+
+
+                    <!-- 카카오 -->
+
+                    <button
+                        type='button'
+                        class='social-button kakao-button'
+                        onclick='SocialLogin("kakao")'
+                        aria-label='카카오 로그인'
+                    >
+
+                        <span class='kakao-icon'>
+                            ●
+                        </span>
+
+                    </button>
+
+
+                    <!-- Google -->
+
+                    <button
+                        type='button'
+                        class='social-button google-button'
+                        onclick='SocialLogin("google")'
+                        aria-label='Google 로그인'
+                    >
+
+                        <span class='google-icon'>
+                            G
+                        </span>
+
+                    </button>
+
+
+                    <!-- Apple -->
+
+                    <button
+                        type='button'
+                        class='social-button apple-button'
+                        onclick='SocialLogin("apple")'
+                        aria-label='Apple 로그인'
+                    >
+
+                        <span class='apple-icon'>
+                            
+                        </span>
+
+                    </button>
+
+
+                </div>
+
+
+            </div>
+
+
+        </section>
+
+
+    </main>
+
+
+    <script>
+
+
+        /*
+            ============================================================
+            로그인
+            ============================================================
+        */
+
+        document
+            .getElementById('loginForm')
+            .addEventListener(
+                'submit',
+                function(event) {
+
+                    event.preventDefault();
+
+
+                    const email =
+                        document
+                            .getElementById(
+                                'email'
+                            )
+                            .value;
+
+
+                    const password =
+                        document
+                            .getElementById(
+                                'password'
+                            )
+                            .value;
+
+
+                    const LoginForm =
+                        document.getElementById(
+                            'loginForm'
+                        );
+
+
+                    LoginForm.addEventListener(
+                        'submit',
+                        async function(event) {
+
+                            event.preventDefault();
+
+
+                            const Email =
+                                document
+                                    .getElementById(
+                                        'email'
+                                    )
+                                    .value
+                                    .trim();
+
+
+                            const Password =
+                                document
+                                    .getElementById(
+                                        'password'
+                                    )
+                                    .value;
+
+
+                            try {
+
+                                const FormDataValue =
+                                    new FormData();
+
+
+                                FormDataValue.append(
+                                    'email',
+                                    Email
+                                );
+
+
+                                FormDataValue.append(
+                                    'password',
+                                    Password
+                                );
+
+
+                                const Response =
+                                    await fetch(
+                                        '/login/auth/',
+                                        {
+                                            method: 'POST',
+
+                                            headers: {
+                                                'X-CSRFToken':
+                                                    getCookie(
+                                                        'csrftoken'
+                                                    )
+                                            },
+
+                                            body:
+                                                FormDataValue
+                                        }
+                                    );
+
+
+                                const Data =
+                                    await Response.json();
+
+
+                                if (!Data.success) {
+
+                                    alert(
+                                        Data.message
+                                    );
+
+                                    return;
+
+                                }
+
+
+                                console.log(
+                                    'Supabase 로그인 성공'
+                                );
+                                window.location.href = '/';
+
+                                /*
+                                    다음 단계:
+                                    Django 세션 연결
+                                */
+
+
+                            }
+                            catch (Error) {
+
+                                console.error(
+                                    '로그인 오류:',
+                                    Error
+                                );
+
+
+                                alert(
+                                    '로그인 중 오류가 발생했습니다.'
+                                );
+
+                            }
+
+                        }
+                    );
+
+
+                    /*
+                        추후 Django 로그인 기능 연결
+                    */
+
+                }
+            );
+
+
+        /*
+            ============================================================
+            소셜 로그인
+            ============================================================
+        */
+
+        function SocialLogin(
+            provider
+        ) {
+
+            console.log(
+                '소셜 로그인:',
+                provider
+            );
+
+
+            /*
+                추후 연결
+
+                Kakao
+                /accounts/kakao/login/
+
+                Google
+                /accounts/google/login/
+
+                Apple
+                /accounts/apple/login/
+            */
+
+        }
+
+
+    </script>
+
+    <!-- 회원가입 signup_modal.html에서 관리 -->
+    {% include 'todos/partials/signup_modal.html' %}
+
+    <script src="{% static 'todos/js/signup_modal.js' %}"></script>
+
+    <script>
+
+        const SupabaseUrl =
+            '{{ SUPABASE_URL|escapejs }}';
+
+        const SupabaseAnonKey =
+            '{{ SUPABASE_ANON_KEY|escapejs }}';
+
+
+        console.log(
+            'Supabase URL:',
+            SupabaseUrl
+        );
+
+
+        console.log(
+            'Supabase Key 존재:',
+            !!SupabaseAnonKey
+        );
+
+        const SupabaseClient =
+            window.supabase.createClient(
+                SupabaseUrl,
+                SupabaseAnonKey
+            );
+
+
+        function getCookie(
+            Name
+        ) {
+
+            const Cookies =
+                document.cookie.split(
+                    ';'
+                );
+
+
+            for (
+                const Cookie of Cookies
+            ) {
+
+                const [Key, Value] =
+                    Cookie.trim().split(
+                        '='
+                    );
+
+
+                if (
+                    Key === Name
+                ) {
+
+                    return decodeURIComponent(
+                        Value
+                    );
+
+                }
+
+            }
+
+
+            return null;
+
+        }
+    </script>
+
+</body>
+
+
+</html>

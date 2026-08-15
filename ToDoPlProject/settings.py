@@ -57,6 +57,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'todos.context_processors.SupabaseConfig',
+
             ],
         },
     },
@@ -64,10 +66,20 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'ToDoPlProject.wsgi.application'
 
+LOGOUT_REDIRECT_URL = '/login/'
+
+#Supabase
+SUPABASE_URL = os.getenv(
+    'SUPABASE_URL'
+)
+
+SUPABASE_ANON_KEY = os.getenv(
+    'SUPABASE_ANON_KEY'
+)
+
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',

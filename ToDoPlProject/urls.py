@@ -14,25 +14,41 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
 from django.urls import path
+from django.contrib import admin
+from django.contrib.auth import views as auth_views
 from todos import views
 
-
 urlpatterns = [
-    # ============================================================
-    # 관리자
-    # ============================================================
 
+    #관리자
     path(
         'admin/',
         admin.site.urls
     ),
 
+    #로그인
+    path(
+        'login/',
+        views.login_view,
+        name='login'
+    ),
 
-    # ============================================================
-    # Todo 목록
-    # ============================================================
+    path(
+        'login/auth/',
+        views.supabase_login,
+        name='supabase_login'
+    ),
+
+    #로그아웃
+    path(
+        'logout/',
+        auth_views.LogoutView.as_view(),
+        name='logout'
+    ),
+
+
+    #Todo 목록
     path(
         '',
         views.todo_list,
@@ -46,9 +62,7 @@ urlpatterns = [
     ),
 
 
-    # ============================================================
-    # Todo 생성
-    # ============================================================
+    #Todo 생성
     path(
         'create/',
         views.todo_create,
@@ -56,9 +70,7 @@ urlpatterns = [
     ),
 
 
-    # ============================================================
-    # Todo 완료 / 미완료
-    # ============================================================
+    #Todo 완료 / 미완료
     path(
         'toggle/<int:todo_id>/',
         views.todo_toggle,
@@ -66,9 +78,7 @@ urlpatterns = [
     ),
 
 
-    # ============================================================
-    # Todo 삭제
-    # ============================================================
+    #Todo 삭제
     path(
         'delete/<int:todo_id>/',
         views.todo_delete,
@@ -76,9 +86,7 @@ urlpatterns = [
     ),
 
 
-    # ============================================================
-    # Todo 수정
-    # ============================================================
+    #Todo 수정
     path(
         'edit/<int:todo_id>/',
         views.todo_edit,
@@ -86,9 +94,7 @@ urlpatterns = [
     ),
 
 
-    # ============================================================
-    # 모바일 Home
-    # ============================================================
+    #모바일 Home
     path(
         'home/',
         views.home,
@@ -96,9 +102,7 @@ urlpatterns = [
     ),
 
 
-    # ============================================================
-    # 통계
-    # ============================================================
+    #통계
     path(
         'stats/',
         views.stats,
@@ -106,10 +110,9 @@ urlpatterns = [
     ),
 
 
-    # ============================================================
-    # 언젠가 할 일
-    # ============================================================
-    # 언젠가 할 일 목록
+    #언젠가 할 일
+    #============================================================
+    #언젠가 할 일 목록
     path(
         'someday/',
         views.todo_someday_list,
@@ -117,7 +120,7 @@ urlpatterns = [
     ),
 
 
-    # 언젠가 할 일 생성
+    #언젠가 할 일 생성
     path(
         'someday/create/',
         views.todo_someday_create,
@@ -125,7 +128,7 @@ urlpatterns = [
     ),
 
 
-    # 언젠가 할 일 완료 / 미완료
+    #언젠가 할 일 완료 / 미완료
     path(
         'someday/toggle/<int:someday_id>/',
         views.todo_someday_toggle,
@@ -133,7 +136,7 @@ urlpatterns = [
     ),
 
 
-    # 언젠가 할 일 삭제
+    #언젠가 할 일 삭제
     path(
         'someday/delete/<int:someday_id>/',
         views.todo_someday_delete,
@@ -141,7 +144,7 @@ urlpatterns = [
     ),
 
 
-    # 언젠가 할 일 수정
+    #언젠가 할 일 수정
     path(
         'someday/edit/<int:someday_id>/',
         views.todo_someday_edit,
