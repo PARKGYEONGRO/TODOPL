@@ -102,20 +102,18 @@
         <button
             type="button"
 
-            data-someday-id="{{ someday_todo.id }}"
-            data-someday-title="{{ someday_todo.title|escapejs }}"
-            data-someday-tag="{{ someday_todo.tag }}"
-            data-someday-priority="{{ someday_todo.priority }}"
+            data-id="{{ someday_todo.id }}"
+            data-title="{{ someday_todo.title|escapejs }}"
+            data-tag="{{ someday_todo.tag }}"
+            data-priority="{{ someday_todo.priority }}"
 
             onclick="openSomedayEditModal(this)"
 
             class="w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center">
 
-
             <i
                 class="fa-regular fa-pen-to-square text-[16px] text-gray-500">
             </i>
-
 
         </button>
 
@@ -125,18 +123,16 @@
         <button
             type="button"
 
-            data-someday-id="{{ someday_todo.id }}"
-            data-someday-title="{{ someday_todo.title|escapejs }}"
+            data-id="{{ someday_todo.id }}"
+            data-title="{{ someday_todo.title|escapejs }}"
 
             onclick="openSomedayDeleteModal(this)"
 
             class="w-9 h-9 rounded-full hover:bg-red-50 flex items-center justify-center">
 
-
             <i
                 class="fa-regular fa-trash-can text-[16px] text-gray-400">
             </i>
-
 
         </button>
 
