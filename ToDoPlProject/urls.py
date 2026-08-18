@@ -27,6 +27,7 @@ urlpatterns = [
         admin.site.urls
     ),
 
+
     #로그인
     path(
         'login/',
@@ -40,6 +41,7 @@ urlpatterns = [
         name='supabase_login'
     ),
 
+
     #로그아웃
     path(
         'logout/',
@@ -47,11 +49,32 @@ urlpatterns = [
         name='logout'
     ),
 
+
     # 회원탈퇴
     path(
         'account/delete/',
         views.account_delete,
         name='account_delete'
+    ),
+
+
+    # 태그 관리
+    path(
+        'tag/create/',
+        views.tag_create,
+        name='tag_create'
+    ),
+
+    path(
+        'tag/update/<int:tag_id>/',
+        views.tag_update,
+        name='tag_update'
+    ),
+
+    path(
+        'tag/delete/<int:tag_id>/',
+        views.tag_delete,
+        name='tag_delete'
     ),
 
     #Todo 목록
