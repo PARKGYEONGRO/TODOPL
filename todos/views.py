@@ -7,7 +7,7 @@ import calendar
 from datetime import date, datetime, timedelta
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 
 from django.http import JsonResponse
@@ -40,7 +40,6 @@ from supabase import create_client
 # ============================================================
 # 로그인 화면
 # ============================================================
-
 def login_view(request):
 
     if request.method == 'GET':
@@ -62,7 +61,6 @@ def login_view(request):
 # ============================================================
 # Supabase 로그인
 # ============================================================
-
 @require_POST
 def supabase_login(request):
 
@@ -175,6 +173,10 @@ def supabase_login(request):
             DjangoUser
         )
 
+        # Supabase User ID 세션 저장
+        request.session['supabase_user_id'] = (
+            SupabaseUser.id
+        )
 
         print(
             '로그인 성공:',
@@ -213,9 +215,249 @@ def supabase_login(request):
 
 
 # ============================================================
+# 회원탈퇴
+# ============================================================
+@require_POST
+def account_delete(request):
+
+    withdrawal_reason = request.POST.get(
+        'withdrawal_reason',
+        ''
+    ).strip()
+
+    withdrawal_detail = request.POST.get(
+        'withdrawal_detail',
+        ''
+    ).strip()
+
+    withdrawal_confirm = request.POST.get(
+        'withdrawal_confirm'
+    )
+
+    withdrawal_identity = request.POST.get(
+        'withdrawal_identity',
+        ''
+    ).strip()
+
+
+    # ========================================================
+    # 로그인 확인
+    # ========================================================
+
+    if not request.user.is_authenticated:
+
+        return JsonResponse(
+            {
+                'success': False,
+                'message':
+                    '로그인이 필요합니다.'
+            },
+            status=401
+        )
+
+
+    # ========================================================
+    # 필수값 확인
+    # ========================================================
+
+    if not withdrawal_reason:
+
+        return JsonResponse(
+            {
+                'success': False,
+                'message':
+                    '탈퇴 사유를 선택해주세요.'
+            },
+            status=400
+        )
+
+
+    if len(withdrawal_detail) < 10:
+
+        return JsonResponse(
+            {
+                'success': False,
+                'message':
+                    '상세 사유를 10자 이상 입력해주세요.'
+            },
+            status=400
+        )
+
+
+    if len(withdrawal_detail) > 500:
+
+        return JsonResponse(
+            {
+                'success': False,
+                'message':
+                    '상세 사유는 500자 이하로 입력해주세요.'
+            },
+            status=400
+        )
+
+
+    if withdrawal_confirm != 'on':
+
+        return JsonResponse(
+            {
+                'success': False,
+                'message':
+                    '계정 및 데이터 복구 불가에 동의해주세요.'
+            },
+            status=400
+        )
+
+
+    # ========================================================
+    # 이메일 / 아이디 확인
+    # ========================================================
+
+    UserEmail = (
+        request.user.email or
+        request.user.username
+    )
+
+
+    if withdrawal_identity != UserEmail:
+
+        return JsonResponse(
+            {
+                'success': False,
+                'message':
+                    '확인 문구가 일치하지 않습니다.'
+            },
+            status=400
+        )
+
+
+    # ========================================================
+    # Supabase 설정
+    # ========================================================
+
+    supabase_url = os.getenv(
+        'SUPABASE_URL'
+    )
+
+    supabase_service_role_key = os.getenv(
+        'SUPABASE_SERVICE_ROLE_KEY'
+    )
+
+
+    if (
+        not supabase_url or
+        not supabase_service_role_key
+    ):
+
+        return JsonResponse(
+            {
+                'success': False,
+                'message':
+                    'Supabase 설정을 확인해주세요.'
+            },
+            status=500
+        )
+
+
+    # ========================================================
+    # Supabase User ID
+    # ========================================================
+
+    SupabaseUserId = request.session.get(
+        'supabase_user_id'
+    )
+
+    print('탈퇴 SupabaseUserID:', SupabaseUserId)
+
+    if not SupabaseUserId:
+
+        return JsonResponse(
+            {
+                'success': False,
+                'message':
+                    '사용자 인증 정보를 찾을 수 없습니다.'
+            },
+            status=400
+        )
+
+
+    try:
+
+        # ====================================================
+        # Supabase 관리자 클라이언트
+        # ====================================================
+
+        Supabase = create_client(
+            supabase_url,
+            supabase_service_role_key
+        )
+
+
+        # ====================================================
+        # 1. 탈퇴 사유 저장
+        # ====================================================
+
+        ReasonResponse = Supabase.table(
+            'account_deletion_reasons'
+        ).insert(
+            {
+                'reason': withdrawal_reason,
+                'detail': withdrawal_detail,
+            }
+        ).execute()
+
+        print('탈퇴사유 저장 결과: ',ReasonResponse)
+
+        # ====================================================
+        # 2. Supabase Auth 사용자 삭제
+        # ====================================================
+
+        DeleteResponse = Supabase.auth.admin.delete_user(
+            SupabaseUserId
+        )
+
+        print('Supabase 사용자 삭제 결과:', DeleteResponse)
+
+        # ====================================================
+        # 3. Django 세션 로그아웃
+        # ====================================================
+
+        logout(
+            request
+        )
+
+
+        return JsonResponse(
+            {
+                'success': True,
+                'message':
+                    '회원탈퇴가 완료되었습니다.',
+                'redirect_url':
+                    '/login/'
+            }
+        )
+
+
+    except Exception as Error:
+
+        print(
+            '회원탈퇴 오류:',
+            Error
+        )
+
+
+        return JsonResponse(
+            {
+                'success': False,
+                'message':
+                    '회원탈퇴 처리 중 오류가 발생했습니다.'
+            },
+            status=500
+        )
+
+
+# ============================================================
 # Todo 목록
 # ============================================================
-
 @login_required(login_url='/login/')
 def todo_list(request):
 
@@ -953,7 +1195,6 @@ def todo_list(request):
 # ============================================================
 # Todo 생성
 # ============================================================
-
 @login_required(login_url='/login/')
 def todo_create(request):
 

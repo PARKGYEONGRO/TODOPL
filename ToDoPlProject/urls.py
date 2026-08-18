@@ -47,6 +47,12 @@ urlpatterns = [
         name='logout'
     ),
 
+    # 회원탈퇴
+    path(
+        'account/delete/',
+        views.account_delete,
+        name='account_delete'
+    ),
 
     #Todo 목록
     path(

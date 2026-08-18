@@ -25,14 +25,14 @@
       class="bg-white text-gray-900 min-h-screen flex flex-col">
 
     <!-- PC/모바일 통합 헤더 -->
-    <header class="border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+    <header class="fixed top-0 left-0 right-0 z-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center bg-white/80 backdrop-blur-md">
         <h1 class="text-xl font-extrabold tracking-widest">TODOPL</h1>
-        <div class="text-sm text-gray-500 font-medium"> {% now "Y.m.d l" %} <button type='button' onclick='openSettingsModal()'><i class='fa-solid fa-sliders'></i></button>
+        <div class="text-[16px] text-gray-500 font-medium"> {% now "Y.m.d l" %} <button type='button' onclick='openSettingsModal()'><i class='fa-solid fa-sliders'></i></button>
     </header>
 
 
     <!-- 모바일 하단 고정 탭바 (PC에서는 hidden) -->
-    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around py-2.5 z-50">
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-b border-gray-200 flex justify-around py-2.5 z-50">
         <a href="{% url 'todo_list' %}" class="flex flex-col items-center text-xs transition-colors duration-200
         {% if request.resolver_match.url_name == 'todo_list' %}
             text-red-500
@@ -66,7 +66,7 @@
 
 
     <!-- 메인 컨텐츠 영역 -->
-    <main class="flex-1 max-w-[1600px] w-full mx-auto pb-20">
+    <main class="flex-1 max-w-[1600px] w-full mx-auto pt-16 pb-20">
         {% block content %}{% endblock %}
     </main>
     

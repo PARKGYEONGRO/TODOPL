@@ -77,6 +77,9 @@ SUPABASE_ANON_KEY = os.getenv(
     'SUPABASE_ANON_KEY'
 )
 
+SUPABASE_SERVICE_ROLE_KEY = os.getenv(
+    'SUPABASE_SERVICE_ROLE_KEY'
+)
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
