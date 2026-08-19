@@ -105,7 +105,7 @@
 
             {% for tag in tag_stats %}
 
-            <div id="pc-tag-{{ tag.code }}">
+            <div id="pc-tag-{{ tag.id }}">
                 <div class="flex justify-between items-center mb-1.5">
                 
                     <span class="text-sm text-gray-600 font-medium">
@@ -113,7 +113,7 @@
                     </span>
                 
                     <span
-                        id="pc-tag-{{ tag.code }}-count"
+                        id="pc-tag-{{ tag.id }}-count"
                         class="text-xs font-bold text-gray-400">
                 
                         {{ tag.completed }}/{{ tag.total }}
@@ -126,7 +126,7 @@
                 <div class="w-full bg-gray-200 h-1 rounded-full overflow-hidden">
                 
                     <div
-                        id="pc-tag-{{ tag.code }}-bar"
+                        id="pc-tag-{{ tag.id }}-bar"
                         class="bg-black h-full rounded-full"
                         style="width: {{ tag.rate }}%;">
                     </div>

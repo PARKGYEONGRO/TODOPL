@@ -43,7 +43,8 @@
         <form
             method='POST'
             action='{% url "todo_someday_create" %}'
-            class='space-y-4'>
+            class='space-y-4'
+            onsubmit='event.preventDefault(); SubmitSomedayCreateForm(this);'>
 
             {% csrf_token %}
 

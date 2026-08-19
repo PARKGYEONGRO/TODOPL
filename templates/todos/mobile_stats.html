@@ -2,6 +2,7 @@
 
 {% block content %}
 
+<!-- Mobile 통계 대시보드-->
 <div class="min-h-screen bg-white pb-20">
 
     <!-- 통계 헤더 -->
@@ -41,7 +42,7 @@
     <!-- 통계 본문 -->
     <main class="px-5 pt-5">
 
-        {% include 'todos/partials/mobile_stats.html' %}
+        {% include 'todos/partials/mobile_stats_body.html' %}
 
     </main>
 
@@ -222,12 +223,6 @@
 
 </div>
 
-<!-- 설정 모달 -->
-{% include 'todos/partials/settings_modal.html' %}
-
-<!-- 프로필 설정 -->
-{% include 'todos/partials/profile_setting.html' %}
-
 <script>
 
     let pickerYear = {{ year }};
@@ -336,7 +331,7 @@
             `${pickerYear}-${monthString}-01`;
 
         window.location.href =
-            `/stats/?date=${date}`;
+            `/mobile_stats/?date=${date}`;
 
     }
 

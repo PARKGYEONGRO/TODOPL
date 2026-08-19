@@ -133,9 +133,9 @@ urlpatterns = [
 
     #통계
     path(
-        'stats/',
-        views.stats,
-        name='stats'
+        'mobile_stats/',
+        views.mobile_stats,
+        name='mobile_stats'
     ),
 
 
