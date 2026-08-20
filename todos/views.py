@@ -760,6 +760,7 @@ def account_delete(request): #회원 탈퇴
 
         )
 
+
 TAG_COLORS = [
 
     'gray',
@@ -1011,7 +1012,7 @@ def tag_delete(request, tag_id): #태그 삭제
 
     )
 
-
+    #기본 태그 삭제 방지
     if TagObject.is_default:
 
         return JsonResponse({
@@ -1061,24 +1062,18 @@ def tag_delete(request, tag_id): #태그 삭제
 
     )
 
-
+    #일반 태그 삭제
     TagObject.delete()
 
 
     return JsonResponse({
 
-        'success':
-            True,
-
-        'status':
-            'success',
-
-        'message':
-            '태그가 삭제되었습니다.',
-
-        'tag_id':
-            tag_id
-
+        'success': True,
+        'status': 'success',
+        'message': '태그가 삭제되었습니다.',
+        'tag_id': tag_id,
+        'default_tag_id': DefaultTag.id,
+        'default_tag_name': DefaultTag.name,
     })
 
 
@@ -2740,6 +2735,12 @@ def mobile_stats(request): #통계
         'selected_date_obj':
             selected_date_obj,
 
+        'tag_colors':
+            TAG_COLOR_CHOICES,
+
+        'tag_color_codes':
+            TAG_COLORS,
+
         'year':
             year,
 
@@ -3316,6 +3317,11 @@ def home(request): #Mobile Home
                 request.user
             ),
 
+        'tag_colors':
+            TAG_COLOR_CHOICES,
+
+        'tag_color_codes':
+            TAG_COLORS,
 
         'selected_tag':
             '',

@@ -1729,13 +1729,13 @@ function SubmitSomedayCreateForm(
         );
 
 
-        // // ====================================================
-        // // 모바일 목록에 추가
-        // // ====================================================
+        // ====================================================
+        // 모바일 목록에 추가
+        // ====================================================
 
-        // AddMobileSomedayTodo(
-        //     somedayTodo
-        // );
+        AddMobileSomedayTodo(
+            somedayTodo
+        );
 
 
         // ====================================================
@@ -1845,9 +1845,9 @@ function AddDesktopSomedayTodo(
 
     if (!list) {
 
-        console.warn(
-            'desktopSomedayTodoList 요소가 없습니다.'
-        );
+        // console.warn(
+        //     'desktopSomedayTodoList 요소가 없습니다.'
+        // );
 
         return;
 
@@ -2085,6 +2085,435 @@ function AddDesktopSomedayTodo(
 
 }
 
+
+// ============================================================
+// 모바일 언젠가 할 일 추가
+// ============================================================
+
+function AddMobileSomedayTodo(
+    somedayTodo
+) {
+
+    if (!somedayTodo) {
+
+        return;
+
+    }
+
+
+    // ========================================================
+    // 모바일 언젠가 할 일 목록 찾기
+    // ========================================================
+
+    const list =
+        document.getElementById(
+            'somedayTodoList'
+        );
+
+
+    if (!list) {
+
+        console.warn(
+            'somedayTodoList 요소를 찾을 수 없습니다.'
+        );
+
+        return;
+
+    }
+
+
+    console.log(
+        '모바일 언젠가 할 일 목록 발견:',
+        list
+    );
+
+    // ========================================================
+    // 데이터
+    // ========================================================
+
+    const TodoId =
+        somedayTodo.id;
+
+
+    const Title =
+        EscapeHtml(
+            somedayTodo.title || ''
+        );
+
+
+    const Priority =
+        somedayTodo.priority || 'M';
+
+
+    const IsCompleted =
+        Boolean(
+            somedayTodo.is_completed
+        );
+
+
+    const TagId =
+        somedayTodo.tag &&
+        somedayTodo.tag.id
+            ? somedayTodo.tag.id
+            : '';
+
+
+    const TagName =
+        somedayTodo.tag &&
+        somedayTodo.tag.name
+            ? EscapeHtml(
+                somedayTodo.tag.name
+            )
+            : '기타';
+
+
+    const CreatedAt =
+        somedayTodo.created_at || '';
+
+
+    // ========================================================
+    // 우선순위
+    // ========================================================
+
+    let PriorityBarClass =
+        'bg-green-500';
+
+
+    if (Priority === 'H') {
+
+        PriorityBarClass =
+            'bg-red-500';
+
+    }
+
+    else if (Priority === 'M') {
+
+        PriorityBarClass =
+            'bg-orange-400';
+
+    }
+
+
+    // ========================================================
+    // 완료 상태
+    // ========================================================
+
+    const CardClass =
+        IsCompleted
+            ? 'bg-gray-50'
+            : 'bg-white';
+
+
+    const TitleClass =
+        IsCompleted
+            ? 'text-gray-400 line-through'
+            : 'text-gray-900';
+
+
+    const ToggleButtonClass =
+        IsCompleted
+            ? 'bg-gray-950 text-white'
+            : 'border-2 border-gray-300 bg-white';
+
+
+    const CheckIcon =
+        IsCompleted
+            ? '<i class="fa-solid fa-check text-[10px]"></i>'
+            : '';
+
+
+    // ========================================================
+    // 우선순위 배지
+    // ========================================================
+
+    let PriorityBadgeClass =
+        'bg-green-100 text-green-500';
+
+
+    let PriorityText =
+        '낮음';
+
+
+    if (Priority === 'H') {
+
+        PriorityBadgeClass =
+            'bg-red-100 text-red-500';
+
+        PriorityText =
+            '높음';
+
+    }
+
+    else if (Priority === 'M') {
+
+        PriorityBadgeClass =
+            'bg-orange-100 text-orange-500';
+
+        PriorityText =
+            '보통';
+
+    }
+
+
+    // ========================================================
+    // 빈 목록 메시지 제거
+    // ========================================================
+
+    const EmptyMessage =
+        Array.from(
+            list.children
+        ).find(
+            Element =>
+                !Element.hasAttribute(
+                    'data-mobile-someday-sort-item'
+                )
+        );
+
+
+    if (
+        EmptyMessage &&
+        EmptyMessage.textContent.includes(
+            '아직 등록된 할 일이 없습니다.'
+        )
+    ) {
+
+        EmptyMessage.remove();
+
+    }
+
+
+    // ========================================================
+    // 카드 생성
+    // ========================================================
+
+    const Card =
+        document.createElement(
+            'div'
+        );
+
+
+    Card.id =
+        `someday-card-${TodoId}`;
+
+
+    Card.setAttribute(
+        'data-someday-id',
+        TodoId
+    );
+
+
+    Card.setAttribute(
+        'data-mobile-someday-sort-item',
+        ''
+    );
+
+
+    Card.setAttribute(
+        'data-mobile-someday-id',
+        TodoId
+    );
+
+
+    Card.setAttribute(
+        'data-completed',
+        IsCompleted
+            ? '1'
+            : '0'
+    );
+
+
+    Card.setAttribute(
+        'data-priority',
+        Priority
+    );
+
+
+    Card.setAttribute(
+        'data-created-at',
+        CreatedAt
+    );
+
+
+    Card.className =
+        `relative flex items-center gap-3 px-3 py-3
+        border border-gray-200 rounded-xl
+        ${CardClass}`;
+
+
+    Card.innerHTML = `
+
+        <!-- 우선순위 왼쪽 막대 -->
+
+        <div
+            class='w-1 h-7 rounded-full flex-shrink-0
+            ${PriorityBarClass}'>
+        </div>
+
+
+        <!-- 완료 체크 -->
+
+        <button
+            type='button'
+
+            data-someday-toggle
+
+            onclick='toggleSomedayTodo(${TodoId})'
+
+            class='w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0
+            ${ToggleButtonClass}'>
+
+            ${CheckIcon}
+
+        </button>
+
+
+        <!-- 내용 -->
+
+        <div
+            class='flex-1 min-w-0'>
+
+
+            <!-- 제목 -->
+
+            <p
+                id='someday-title-${TodoId}'
+
+                class='text-[13px] font-medium
+                ${TitleClass}'>
+
+                ${Title}
+
+            </p>
+
+
+            <!-- 태그 + 우선순위 -->
+
+            <div
+                class='flex items-center gap-2 mt-1'>
+
+
+                <!-- 태그 -->
+
+                <span
+                    class='px-2 py-0.5 rounded-md
+                        border border-gray-200
+                        text-[10px] text-gray-600'>
+
+                    ${TagName}
+
+                </span>
+
+
+                <!-- 우선순위 -->
+
+                <span
+                    class='px-2 py-0.5 rounded-full
+                        text-xs font-bold
+                        ${PriorityBadgeClass}'>
+
+                    ${PriorityText}
+
+                </span>
+
+
+            </div>
+
+
+        </div>
+
+
+        <!-- 오른쪽 버튼 -->
+
+        <div
+            class='flex items-center gap-1'>
+
+
+            <!-- 수정 -->
+
+            <button
+                type='button'
+
+                data-someday-edit
+
+                data-id='${TodoId}'
+
+                data-title='${Title}'
+
+                data-tag='${TagId}'
+
+                data-priority='${Priority}'
+
+                onclick='openSomedayEditModal(this)'
+
+                class='w-9 h-9 rounded-full
+                    hover:bg-gray-100
+                    flex items-center justify-center'>
+
+
+                <i
+                    class='fa-regular fa-pen-to-square
+                        text-[16px] text-gray-500'>
+                </i>
+
+
+            </button>
+
+
+            <!-- 삭제 -->
+
+            <button
+                type='button'
+
+                data-someday-delete
+
+                data-id='${TodoId}'
+
+                data-title='${Title}'
+
+                onclick='openSomedayDeleteModal(this)'
+
+                class='w-9 h-9 rounded-full
+                    hover:bg-red-50
+                    flex items-center justify-center'>
+
+
+                <i
+                    class='fa-regular fa-trash-can
+                        text-[16px] text-gray-400'>
+                </i>
+
+
+            </button>
+
+
+        </div>
+
+    `;
+
+
+    // ========================================================
+    // 목록에 추가
+    // ========================================================
+
+    list.appendChild(
+        Card
+    );
+
+
+    // ========================================================
+    // 정렬
+    // ========================================================
+
+    if (
+        typeof sortMobileSomedayTodoList ===
+        'function'
+    ) {
+
+        sortMobileSomedayTodoList();
+
+    }
+
+}
 
 // PC 통계 즉시 갱신
 function updatePcStats(

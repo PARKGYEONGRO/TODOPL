@@ -11,7 +11,6 @@
         <div class='flex items-center justify-between mb-2'>
 
             <!-- 왼쪽 : 오늘 / 할 일 / 추가 -->
-
             <div class='flex items-center gap-2'>
 
                 <span
@@ -37,7 +36,6 @@
 
 
             <!-- 오른쪽 : 완료 / 전체 -->
-
             <div id="mobile-progress"
                  class='w-10 h-10 rounded-full border-2 border-red-500
                        flex items-center justify-center
@@ -139,42 +137,61 @@
 </div>
 
 
-<!-- 프로필 설정 -->
-{% include 'todos/partials/profile_setting.html' %}
+<!-- =========================================================
+     Todo 관련 모달
+========================================================= -->
 
-<!-- 생성 모달 create_modal.html에서 관리 -->
 {% include 'todos/partials/create_modal.html' %}
-<!-- 수정 모달 edit_modal.html에서 관리 -->
+
 {% include 'todos/partials/edit_modal.html' %}
-<!-- 삭제 모달 delete_modal.html에서 관리 -->
+
 {% include 'todos/partials/delete_modal.html' %}
-<!-- 설정 모달 settings_modal.html에서 관리-->
+
 {% include 'todos/partials/settings_modal.html' %}
 
-<!-- 언젠가 할 일 생성 모달 someday_create_modal.html에서 관리 -->
+
+<!-- =========================================================
+     언젠가 할 일 모달
+========================================================= -->
+
 {% include 'todos/partials/someday_create_modal.html' %}
-<!-- 언젠가 할 일 수정 모달 someday_edit_modal.html에서 관리 -->
+
 {% include 'todos/partials/someday_edit_modal.html' %}
-<!-- 언젠가 할 일 삭제 모달 someday_delete_modal.html에서 관리 -->
+
 {% include 'todos/partials/someday_delete_modal.html' %}
 
-<!-- todo.js -->
+
+<!-- =========================================================
+     계정 관련 모달
+========================================================= -->
+
+{% include 'todos/partials/profile_setting.html' %}
+
+{% include 'todos/partials/account_delete_modal.html' %}
+
+{% include 'todos/partials/tag_manage_modal.html' %}
+
+
+<!-- =========================================================
+     Todo JavaScript
+========================================================= -->
 <script src="{% static 'todos/js/todo.js' %}"></script>
-<!-- home.js -->
+
 <script src="{% static 'todos/js/home.js' %}"></script>
 
-
-<!-- 수정 모달 JS 별도 파일 -->
 <script src="{% static 'todos/js/edit_modal.js' %}"></script>
-<!-- 삭제 모달 JS 별도 파일 -->
+
 <script src="{% static 'todos/js/delete_modal.js' %}"></script>
-<!-- 설정 모달 JS 별도 파일 -->
+
 <script src="{% static 'todos/js/settings_modal.js' %}"></script>
 
-<!-- 언젠가 할 일 수정 모달 JS 별도 파일 -->
 <script src="{% static 'todos/js/someday_edit_modal.js' %}"></script>
-<!-- 언젠가 할 일 삭제 모달 JS 별도 파일 -->
+
 <script src="{% static 'todos/js/someday_delete_modal.js' %}"></script>
+
+<script src="{% static 'todos/js/account_delete_modal.js' %}"></script>
+
+<script src="{% static 'todos/js/tag_manage_modal.js' %}"></script>
 
 
 {% endblock %}

@@ -319,10 +319,6 @@ document.addEventListener(
                     );
 
 
-                    // ==================================================
-                    // PC 카드 찾기
-                    // ==================================================
-
                     const DesktopItem =
                         document.querySelector(
                             `[data-desktop-someday-id="${SomedayId}"]`
@@ -554,6 +550,202 @@ document.addEventListener(
 
                     }
 
+                    const MobileItem =
+                        document.querySelector(
+                            `[data-mobile-someday-id="${SomedayId}"]`
+                        );
+
+
+                    if (MobileItem) {
+
+                        // 제목
+                        const TitleElement =
+                            MobileItem.querySelector(
+                                `#someday-title-${SomedayId}`
+                            );
+
+
+                        if (TitleElement) {
+
+                            TitleElement.textContent =
+                                SomedayTodo.title;
+
+                        }
+
+
+                        // 태그
+                        const TagElement =
+                            MobileItem.querySelector(
+                                '.text-\\[10px\\].text-gray-600'
+                            );
+
+
+                        if (TagElement) {
+
+                            TagElement.textContent =
+                                SomedayTodo.tag &&
+                                SomedayTodo.tag.name
+                                    ? SomedayTodo.tag.name
+                                    : '기타';
+
+                        }
+
+
+                        // 우선순위 데이터
+                        MobileItem.dataset.priority =
+                            SomedayTodo.priority;
+
+
+                        // 우선순위 막대
+                        const PriorityBar =
+                            MobileItem.querySelector(
+                                '.w-1.h-7.rounded-full'
+                            );
+
+
+                        if (PriorityBar) {
+
+                            PriorityBar.classList.remove(
+                                'bg-red-500',
+                                'bg-orange-400',
+                                'bg-green-500'
+                            );
+
+
+                            if (
+                                SomedayTodo.priority === 'H'
+                            ) {
+
+                                PriorityBar.classList.add(
+                                    'bg-red-500'
+                                );
+
+                            }
+
+                            else if (
+                                SomedayTodo.priority === 'M'
+                            ) {
+
+                                PriorityBar.classList.add(
+                                    'bg-orange-400'
+                                );
+
+                            }
+
+                            else {
+
+                                PriorityBar.classList.add(
+                                    'bg-green-500'
+                                );
+
+                            }
+
+                        }
+
+
+                        // 우선순위 배지
+                        const PriorityBadge =
+                            MobileItem.querySelector(
+                                '.rounded-full.text-xs.font-bold'
+                            );
+
+
+                        if (PriorityBadge) {
+
+                            PriorityBadge.classList.remove(
+                                'bg-red-100',
+                                'text-red-500',
+                                'bg-orange-100',
+                                'text-orange-500',
+                                'bg-green-100',
+                                'text-green-500'
+                            );
+
+
+                            if (
+                                SomedayTodo.priority === 'H'
+                            ) {
+
+                                PriorityBadge.textContent =
+                                    '높음';
+
+                                PriorityBadge.classList.add(
+                                    'bg-red-100',
+                                    'text-red-500'
+                                );
+
+                            }
+
+                            else if (
+                                SomedayTodo.priority === 'M'
+                            ) {
+
+                                PriorityBadge.textContent =
+                                    '보통';
+
+                                PriorityBadge.classList.add(
+                                    'bg-orange-100',
+                                    'text-orange-500'
+                                );
+
+                            }
+
+                            else {
+
+                                PriorityBadge.textContent =
+                                    '낮음';
+
+                                PriorityBadge.classList.add(
+                                    'bg-green-100',
+                                    'text-green-500'
+                                );
+
+                            }
+
+                        }
+
+
+                        // 수정 버튼의 최신 데이터
+                        const EditButton =
+                            MobileItem.querySelector(
+                                '[data-someday-edit]'
+                            );
+
+
+                        if (EditButton) {
+
+                            EditButton.dataset.title =
+                                SomedayTodo.title;
+
+                            EditButton.dataset.tag =
+                                SomedayTodo.tag &&
+                                SomedayTodo.tag.id
+                                    ? SomedayTodo.tag.id
+                                    : '';
+
+                            EditButton.dataset.priority =
+                                SomedayTodo.priority;
+
+                        }
+
+
+                        // 삭제 버튼의 최신 제목
+                        const DeleteButton =
+                            MobileItem.querySelector(
+                                '[data-someday-delete]'
+                            );
+
+
+                        if (DeleteButton) {
+
+                            DeleteButton.dataset.title =
+                                SomedayTodo.title;
+
+                        }
+
+                    }
+
+                    
                     // ==================================================
                     // 통계 갱신
                     // ==================================================

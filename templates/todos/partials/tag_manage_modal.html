@@ -1,4 +1,5 @@
 <!-- tag_manage_modal.html -->
+
 <div
     id='tagManagementModal'
     class='fixed inset-0 bg-black/40 hidden items-center justify-center z-[1000] p-4'>
@@ -102,6 +103,7 @@
 
 
                 <!-- 색상 -->
+
                 <div>
 
                     <label
@@ -245,6 +247,7 @@
                                 {% else %}
                                     bg-gray-400
                                 {% endif %}'>
+
                             </span>
 
 
@@ -258,7 +261,9 @@
                             </span>
 
 
-                            {% if tag.name == '기타' %}
+                            <!-- 기본 태그 표시 -->
+
+                            {% if tag.is_default %}
 
                                 <span
                                     class='text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-400'>
@@ -268,6 +273,7 @@
                                 </span>
 
                             {% endif %}
+
 
                         </div>
 
@@ -298,7 +304,7 @@
 
                             <!-- 삭제 -->
 
-                            {% if tag.name != '기타' %}
+                            {% if not tag.is_default %}
 
                                 <button
                                     type='button'
@@ -316,11 +322,15 @@
 
                             {% else %}
 
+                                <!-- 기본 태그는 삭제할 수 없음 -->
+
                                 <span
-                                    class='w-4'>
+                                    class='w-4'
+                                    title='기본 태그는 삭제할 수 없습니다.'>
                                 </span>
 
                             {% endif %}
+
 
                         </div>
 
@@ -469,6 +479,7 @@
                                 value='{{ color_code }}'
                                 class='sr-only peer tag-edit-color'>
 
+
                             <span
                                 class='block w-7 h-7 rounded-full
 
@@ -490,7 +501,10 @@
                                     bg-pink-500
                                 {% endif %}
 
-                                ring-2 ring-transparent peer-checked:ring-black peer-checked:ring-offset-2'>
+                                ring-2 ring-transparent
+                                peer-checked:ring-black
+                                peer-checked:ring-offset-2'>
+
                             </span>
 
                         </label>

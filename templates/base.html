@@ -66,6 +66,27 @@
     <main class="flex-1 max-w-[1600px] w-full mx-auto pt-16 pb-20">
         {% block content %}{% endblock %}
     </main>
-    
+    <!-- =========================================================
+        공통 모달
+    ========================================================= -->
+
+    {% include 'todos/partials/settings_modal.html' %}
+
+    {% include 'todos/partials/profile_setting.html' %}
+
+    {% include 'todos/partials/account_delete_modal.html' %}
+
+    {% include 'todos/partials/tag_manage_modal.html' %}
+
+
+    <!-- =========================================================
+        공통 JavaScript
+    ========================================================= -->
+
+    <script src="{% static 'todos/js/settings_modal.js' %}"></script>
+
+    <script src="{% static 'todos/js/account_delete_modal.js' %}"></script>
+
+    <script src="{% static 'todos/js/tag_manage_modal.js' %}"></script>
 </body>
 </html>

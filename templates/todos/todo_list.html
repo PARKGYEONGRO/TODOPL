@@ -259,17 +259,22 @@
 
 
         <!-- 태그 필터 -->
-        <div class="border-t border-gray-100 pt-4">
+        <div
+            data-tag-filter
+            class="border-t border-gray-100 pt-4">
 
             <p class="text-[13px] font-bold text-gray-400 mb-2">
                 태그 필터
             </p>
 
-            <div class="flex flex-wrap gap-1.5">
+            <div
+                data-tag-filter-list
+                class="flex flex-wrap gap-1.5">
 
                 <!-- 전체 -->
                 <a
                     href="?year={{ year }}&month={{ month }}&date={{ selected_date }}"
+                    data-tag-filter-all
                     class="px-2.5 py-1 rounded text-sm font-medium transition-colors
                     {% if not selected_tag %}
                         bg-black text-white
@@ -287,15 +292,17 @@
 
                     <a
                         href="?year={{ year }}&month={{ month }}&date={{ selected_date }}&tag={{ tag.id }}"
+                        data-tag-filter-item
+                        data-tag-filter-id="{{ tag.id }}"
                         class="px-2.5 py-1 rounded text-sm font-medium transition-colors
                         {% if selected_tag == tag.id|stringformat:'s' %}
                             bg-black text-white
                         {% else %}
                             bg-gray-100 text-gray-600 hover:bg-gray-200
                         {% endif %}">
-
-                        {{ tag.name }}
-
+                        <span data-tag-filter-name>
+                            {{ tag.name }}
+                        </span>
                     </a>
 
                 {% endfor %}
@@ -608,8 +615,6 @@
 
 {% include 'todos/partials/delete_modal.html' %}
 
-{% include 'todos/partials/settings_modal.html' %}
-
 
 <!-- =========================================================
      언젠가 할 일 모달
@@ -623,34 +628,18 @@
 
 
 <!-- =========================================================
-     계정 관련 모달
-========================================================= -->
-
-{% include 'todos/partials/profile_setting.html' %}
-
-{% include 'todos/partials/account_delete_modal.html' %}
-
-{% include 'todos/partials/tag_manage_modal.html' %}
-
-
-<!-- =========================================================
      Todo JavaScript
 ========================================================= -->
-
 <script src="{% static 'todos/js/todo.js' %}"></script>
+
+<script src="{% static 'todos/js/home.js' %}"></script>
 
 <script src="{% static 'todos/js/edit_modal.js' %}"></script>
 
 <script src="{% static 'todos/js/delete_modal.js' %}"></script>
 
-<script src="{% static 'todos/js/settings_modal.js' %}"></script>
-
 <script src="{% static 'todos/js/someday_edit_modal.js' %}"></script>
 
 <script src="{% static 'todos/js/someday_delete_modal.js' %}"></script>
-
-<script src="{% static 'todos/js/account_delete_modal.js' %}"></script>
-
-<script src="{% static 'todos/js/tag_manage_modal.js' %}"></script>
 
 {% endblock %}

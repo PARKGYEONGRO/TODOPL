@@ -105,16 +105,21 @@
 
             {% for tag in tag_stats %}
 
-            <div id="pc-tag-{{ tag.id }}">
+            <div
+                id="pc-tag-{{ tag.id }}"
+                data-tag-id="{{ todo.tag.id }}">
                 <div class="flex justify-between items-center mb-1.5">
                 
-                    <span class="text-sm text-gray-600 font-medium">
+                    <span
+                    data-tag-id="{{ todo.tag.id }}"
+                    class="text-sm text-gray-600 font-medium">
                         {{ tag.name }}
                     </span>
                 
                     <span
                         id="pc-tag-{{ tag.id }}-count"
-                        class="text-xs font-bold text-gray-400">
+                        class="text-xs font-bold text-gray-400"
+                        data-tag-id="{{ todo.tag.id }}">
                 
                         {{ tag.completed }}/{{ tag.total }}
                 

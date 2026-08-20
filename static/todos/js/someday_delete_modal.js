@@ -2,7 +2,6 @@ console.log('someday_delete_modal.js 로드됨');
 // ============================================================
 // 언젠가 할 일 삭제 모달
 // ============================================================
-
 function openSomedayDeleteModal(button){
 
 
@@ -60,7 +59,6 @@ function openSomedayDeleteModal(button){
 // ============================================================
 // 언젠가 할 일 삭제 모달 닫기
 // ============================================================
-
 function closeSomedayDeleteModal() {
 
     const Modal = document.getElementById(
@@ -89,7 +87,6 @@ function closeSomedayDeleteModal() {
 // ============================================================
 // 언젠가 할 일 삭제 비동기 처리
 // ============================================================
-
 document.addEventListener(
     'DOMContentLoaded',
     function () {
@@ -116,9 +113,7 @@ document.addEventListener(
         }
 
 
-        console.log(
-            'somedayDeleteForm 발견'
-        );
+        console.log('somedayDeleteForm 발견');
 
 
         Form.addEventListener(
@@ -226,9 +221,6 @@ document.addEventListener(
                     );
 
 
-                    // ==================================================
-                    // PC 목록에서 제거
-                    // ==================================================
 
                     const DesktopItem =
                         document.querySelector(
@@ -242,11 +234,20 @@ document.addEventListener(
 
                     }
 
+                    const MobileItem =
+                        document.querySelector(
+                            `[data-mobile-someday-id="${SomedayId}"]`
+                        );
 
-                    // ==================================================
+
+                    if (MobileItem) {
+
+                        MobileItem.remove();
+
+                    }
+
+
                     // 통계 갱신
-                    // ==================================================
-
                     if (
                         typeof updateSomedayStats ===
                         'function'
@@ -259,17 +260,12 @@ document.addEventListener(
                     }
 
 
-                    // ==================================================
                     // 모달 닫기
-                    // ==================================================
-
                     closeSomedayDeleteModal();
 
 
-                    // ==================================================
-                    // 목록이 비었을 경우
-                    // ==================================================
 
+                    // 목록이 비었을 경우
                     const DesktopList =
                         document.getElementById(
                             'desktopSomedayTodoList'
@@ -303,6 +299,40 @@ document.addEventListener(
 
                     }
 
+                    const MobileList =
+                        document.getElementById(
+                            'somedayTodoList'
+                        );
+
+
+                    if (
+                        MobileList &&
+                        !MobileList.querySelector(
+                            '[data-mobile-someday-sort-item]'
+                        )
+                    ) {
+
+                        MobileList.innerHTML =
+                            `
+                            <div
+                                class='py-6 text-center text-[11px] text-gray-400'>
+
+                                아직 등록된 할 일이 없습니다.
+
+                            </div>
+                            `;
+
+                    }
+
+
+                    if (
+                        typeof sortMobileSomedayTodoList ===
+                        'function'
+                    ) {
+
+                        sortMobileSomedayTodoList();
+
+                    }
 
                 }
 

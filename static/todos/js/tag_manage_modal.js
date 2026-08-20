@@ -120,7 +120,6 @@ function Hide_Tag_Modal(Modal) {
 /* ============================================================
    태그 관리 모달 열기
    ============================================================ */
-
 function openTagManagementModal() {
 
     const TagManagementModal =
@@ -155,7 +154,6 @@ function openTagManagementModal() {
 /* ============================================================
    태그 관리 모달 닫기
    ============================================================ */
-
 function closeTagManagementModal() {
 
     const TagManagementModal =
@@ -171,18 +169,10 @@ function closeTagManagementModal() {
     }
 
 
-    /*
-        하위 모달 먼저 닫기
-    */
-
     closeTagEditModal();
 
     closeTagDeleteModal();
 
-
-    /*
-        태그 관리 모달 닫기
-    */
 
     Hide_Tag_Modal(
         TagManagementModal
@@ -192,14 +182,6 @@ function closeTagManagementModal() {
     document.body.classList.remove(
         'overflow-hidden'
     );
-
-
-    /*
-        현재 페이지 상태를
-        서버 데이터와 동기화하기 위해 새로고침
-    */
-
-    window.location.reload();
 
 }
 
@@ -782,6 +764,22 @@ async function Submit_Tag_Create(Form) {
 
 
         /*
+            새로 생성된 태그를
+            태그 필터에도 즉시 반영
+        */
+        const CreatedTag =
+            Data.tag;
+
+        if (CreatedTag) {
+
+            Update_Tag_Filter_Dom(
+                CreatedTag
+            );
+
+        }
+
+
+        /*
             태그 목록 갱신
         */
 
@@ -805,10 +803,11 @@ async function Submit_Tag_Create(Form) {
 }
 
 
-/* ============================================================
-   태그 수정
-   ============================================================ */
-
+/*
+============================================================
+태그 수정
+============================================================
+*/
 async function Submit_Tag_Update(Form) {
 
     if (!Form) {
@@ -880,23 +879,15 @@ async function Submit_Tag_Update(Form) {
 
 
         if (
-
             !Response.ok
-
             ||
-
             !Data.success
-
         ) {
 
             alert(
-
                 Data.message
-
                 ||
-
                 '태그 수정에 실패했습니다.'
-
             );
 
             return;
@@ -905,15 +896,24 @@ async function Submit_Tag_Update(Form) {
 
 
         /*
-            수정 모달 닫기
+            태그 수정 성공
+
+            현재 페이지의
+            Todo / Someday / 태그 필터를
+            전부 즉시 갱신
         */
+
+        if (Data.tag) {
+
+            Update_Tag_Usage_Dom(
+                Data.tag
+            );
+
+        }
+
 
         closeTagEditModal();
 
-
-        /*
-            태그 관리 모달은 유지
-        */
 
         await Refresh_Tag_List();
 
@@ -924,7 +924,6 @@ async function Submit_Tag_Update(Form) {
             '태그 수정 오류:',
             Error
         );
-
 
         alert(
             '태그 수정 중 오류가 발생했습니다.'
@@ -937,8 +936,7 @@ async function Submit_Tag_Update(Form) {
 
 /* ============================================================
    태그 삭제
-   ============================================================ */
-
+============================================================ */
 async function Submit_Tag_Delete(Form) {
 
     if (!Form) {
@@ -1010,23 +1008,15 @@ async function Submit_Tag_Delete(Form) {
 
 
         if (
-
             !Response.ok
-
             ||
-
             !Data.success
-
         ) {
 
             alert(
-
                 Data.message
-
                 ||
-
                 '태그 삭제에 실패했습니다.'
-
             );
 
             return;
@@ -1034,16 +1024,43 @@ async function Submit_Tag_Delete(Form) {
         }
 
 
+        const DeletedTagId =
+            String(
+                Data.tag_id
+                ||
+                ''
+            );
+
+
         /*
-            삭제 모달 닫기
+            Todo / Someday Todo
+            삭제된 태그 → 기타
         */
+
+        if (DeletedTagId) {
+
+            Update_Tag_Usage_After_Delete(
+                DeletedTagId
+            );
+
+        }
+
+
+        /*
+            태그 필터에서 삭제된 태그 제거
+        */
+
+        if (DeletedTagId) {
+
+            Remove_Tag_Filter_Dom(
+                DeletedTagId
+            );
+
+        }
+
 
         closeTagDeleteModal();
 
-
-        /*
-            태그 목록 갱신
-        */
 
         await Refresh_Tag_List();
 
@@ -1055,12 +1072,344 @@ async function Submit_Tag_Delete(Form) {
             Error
         );
 
-
         alert(
             '태그 삭제 중 오류가 발생했습니다.'
         );
 
     }
+
+}
+
+
+/*
+============================================================
+태그 변경 후 Todo / Someday / 태그 필터 즉시 갱신
+============================================================
+*/
+function Update_Tag_Usage_Dom(TagData) {
+
+    if (!TagData) {
+
+        return;
+
+    }
+
+
+    const TagId =
+        String(
+            TagData.id
+        );
+
+
+    const TagName =
+        TagData.name
+        ||
+        '기본';
+
+
+    /*
+    ========================================================
+    Todo / Someday Todo 태그 이름 갱신
+    ========================================================
+    */
+
+    document
+        .querySelectorAll(
+            '[data-todo-tag], [data-someday-tag]'
+        )
+        .forEach(
+            function(TagElement) {
+
+                const ElementTagId =
+                    String(
+                        TagElement.dataset.tagId
+                        ||
+                        ''
+                    );
+
+
+                if (
+                    ElementTagId !==
+                    TagId
+                ) {
+
+                    return;
+
+                }
+
+
+                TagElement.textContent =
+                    TagName;
+
+            }
+        );
+
+
+    /*
+    ========================================================
+    태그 필터 이름 갱신
+    ========================================================
+    */
+
+    document
+        .querySelectorAll(
+            '[data-tag-filter-item]'
+        )
+        .forEach(
+            function(FilterElement) {
+
+                const FilterTagId =
+                    String(
+                        FilterElement.dataset.tagFilterId
+                        ||
+                        ''
+                    );
+
+
+                if (
+                    FilterTagId !==
+                    TagId
+                ) {
+
+                    return;
+
+                }
+
+
+                const FilterNameElement =
+                    FilterElement.querySelector(
+                        '[data-tag-filter-name]'
+                    );
+
+
+                if (!FilterNameElement) {
+
+                    return;
+
+                }
+
+
+                FilterNameElement.textContent =
+                    TagName;
+
+            }
+        );
+
+}
+
+/*
+============================================================
+태그 삭제 후 Todo / Someday Todo 갱신
+============================================================
+*/
+function Update_Tag_Usage_After_Delete(
+    DeletedTagId
+) {
+
+    if (!DeletedTagId) {
+
+        return;
+
+    }
+
+
+    const TagId =
+        String(
+            DeletedTagId
+        );
+
+
+    document
+        .querySelectorAll(
+            '[data-todo-tag], [data-someday-tag]'
+        )
+        .forEach(
+            function(TagElement) {
+
+                const ElementTagId =
+                    String(
+                        TagElement.dataset.tagId
+                        ||
+                        ''
+                    );
+
+
+                if (
+                    ElementTagId !==
+                    TagId
+                ) {
+
+                    return;
+
+                }
+
+
+                /*
+                    삭제된 태그를
+                    기본 태그 '기타'로 표시
+                */
+
+                TagElement.textContent =
+                    '기타';
+
+
+                /*
+                    이제 이 요소는
+                    삭제된 태그 ID를 더 이상
+                    가지고 있지 않도록 초기화
+                */
+
+                TagElement.dataset.tagId =
+                    '';
+
+            }
+        );
+
+}
+
+
+// ============================================================
+// 태그 필터 DOM 즉시 갱신
+// ============================================================
+function Update_Tag_Filter_Dom(TagData) {
+
+    if (!TagData) {
+
+        return;
+
+    }
+
+
+    const TagId =
+        String(
+            TagData.id
+        );
+
+
+    const TagName =
+        TagData.name
+        ||
+        '기타';
+
+
+    const FilterList =
+        document.querySelector(
+            '[data-tag-filter-list]'
+        );
+
+
+    if (!FilterList) {
+
+        return;
+
+    }
+
+
+    /*
+        이미 존재하는 태그인지 확인
+    */
+
+    const ExistingTag =
+        FilterList.querySelector(
+            `[data-tag-filter-item][data-tag-filter-id="${TagId}"]`
+        );
+
+
+    if (ExistingTag) {
+
+        ExistingTag.textContent =
+            TagName;
+
+        return;
+
+    }
+
+
+    /*
+        현재 URL을 기준으로
+        새 태그 필터 링크 생성
+    */
+
+    const Url =
+        new URL(
+            window.location.href
+        );
+
+
+    Url.searchParams.set(
+        'tag',
+        TagId
+    );
+
+
+    /*
+        새 태그 필터 생성
+    */
+
+    const TagElement =
+        document.createElement(
+            'a'
+        );
+
+
+    TagElement.href =
+        Url.toString();
+
+
+    TagElement.setAttribute(
+        'data-tag-filter-item',
+        ''
+    );
+
+
+    TagElement.setAttribute(
+        'data-tag-filter-id',
+        TagId
+    );
+
+
+    TagElement.className =
+        'px-2.5 py-1 rounded text-sm font-medium transition-colors ' +
+        'bg-gray-100 text-gray-600 hover:bg-gray-200';
+
+
+    TagElement.textContent =
+        TagName;
+
+
+    FilterList.appendChild(
+        TagElement
+    );
+
+}
+
+
+// ============================================================
+// 태그 필터에서 태그 제거
+// ============================================================
+function Remove_Tag_Filter_Dom(TagId) {
+
+    if (!TagId) {
+
+        return;
+
+    }
+
+
+    const FilterElement =
+        document.querySelector(
+            `[data-tag-filter-item][data-tag-filter-id="${TagId}"]`
+        );
+
+
+    if (!FilterElement) {
+
+        return;
+
+    }
+
+
+    FilterElement.remove();
 
 }
 

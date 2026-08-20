@@ -1,29 +1,28 @@
+<!-- mobile_somedaytodo_card.html -->
+
 {% for someday_todo in someday_todos %}
 
 <div
     id="someday-card-{{ someday_todo.id }}"
 
     data-someday-id="{{ someday_todo.id }}"
-
     data-mobile-someday-sort-item
-
     data-mobile-someday-id="{{ someday_todo.id }}"
-
     data-completed="{% if someday_todo.is_completed %}1{% else %}0{% endif %}"
-
     data-priority="{{ someday_todo.priority }}"
+    data-created-at="{{ someday_todo.created_at|date:'U.u' }}"
 
-    data-created-at="{{ someday_todo.created_at|date:'U' }}"
+    class="relative flex items-center gap-3 px-3 py-3
+           border border-gray-200 rounded-xl
+           {% if someday_todo.is_completed %}
+               bg-gray-50
+           {% else %}
+               bg-white
+           {% endif %}">
 
-    class="relative flex items-center gap-3 px-3 py-3 border border-gray-200 rounded-xl
-    {% if someday_todo.is_completed %}
-        bg-gray-50
-    {% else %}
-        bg-white
-    {% endif %}">
 
+    <!-- 우선순위 왼쪽 막대 -->
 
-    <!-- 우선순위 -->
     <div
         class="w-1 h-7 rounded-full flex-shrink-0
 
@@ -39,6 +38,7 @@
 
 
     <!-- 완료 -->
+
     <button
         type="button"
 
@@ -61,11 +61,16 @@
 
         {% endif %}
 
+
     </button>
 
 
-    <!-- 제목 / 태그 -->
+    <!-- 내용 -->
+
     <div class="flex-1 min-w-0">
+
+
+        <!-- 제목 -->
 
         <p
             id="someday-title-{{ someday_todo.id }}"
@@ -83,11 +88,71 @@
         </p>
 
 
-        <p class="text-[10px] text-gray-400 mt-0.5">
+        <!-- 태그 + 우선순위 -->
 
-            {{ someday_todo.get_tag_display }}
+        <div class="flex items-center gap-2 mt-1">
 
-        </p>
+
+            <!-- 태그 -->
+
+            <span
+                data-someday-tag
+                data-tag-id="{{ todo.tag.id }}"
+                class="px-2 py-0.5 rounded-md
+                       border border-gray-200
+                       text-[10px] text-gray-600">
+
+                {% if someday_todo.tag %}
+                    {{ someday_todo.tag.name }}
+                {% else %}
+                    기타
+                {% endif %}
+
+            </span>
+
+
+            <!-- 우선순위 -->
+
+            <span
+                data-someday-priority
+                class="px-2 py-0.5 rounded-full
+                       text-xs font-bold
+
+                {% if someday_todo.priority == 'H' %}
+
+                    bg-red-100 text-red-500
+
+                {% elif someday_todo.priority == 'M' %}
+
+                    bg-orange-100 text-orange-500
+
+                {% else %}
+
+                    bg-green-100 text-green-500
+
+                {% endif %}">
+
+
+                {% if someday_todo.priority == 'H' %}
+
+                    높음
+
+                {% elif someday_todo.priority == 'M' %}
+
+                    보통
+
+                {% else %}
+
+                    낮음
+
+                {% endif %}
+
+
+            </span>
+
+
+        </div>
+
 
     </div>
 
@@ -102,18 +167,25 @@
         <button
             type="button"
 
+            data-someday-edit
+
             data-id="{{ someday_todo.id }}"
             data-title="{{ someday_todo.title|escapejs }}"
-            data-tag="{{ someday_todo.tag }}"
+
+            data-tag="{% if someday_todo.tag %}{{ someday_todo.tag.id }}{% endif %}"
+
             data-priority="{{ someday_todo.priority }}"
 
             onclick="openSomedayEditModal(this)"
 
             class="w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center">
 
+
             <i
-                class="fa-regular fa-pen-to-square text-[16px] text-gray-500">
+                class="fa-regular fa-pen-to-square
+                       text-[16px] text-gray-500">
             </i>
+
 
         </button>
 
@@ -123,16 +195,23 @@
         <button
             type="button"
 
+            data-someday-delete
+
             data-id="{{ someday_todo.id }}"
             data-title="{{ someday_todo.title|escapejs }}"
 
             onclick="openSomedayDeleteModal(this)"
 
-            class="w-9 h-9 rounded-full hover:bg-red-50 flex items-center justify-center">
+            class="w-9 h-9 rounded-full
+                   hover:bg-red-50
+                   flex items-center justify-center">
+
 
             <i
-                class="fa-regular fa-trash-can text-[16px] text-gray-400">
+                class="fa-regular fa-trash-can
+                       text-[16px] text-gray-400">
             </i>
+
 
         </button>
 
