@@ -3,91 +3,77 @@
 
 {% block content %}
 
-<style>
-    /*
-        Todo 목록 전용 스크롤
-    */
+<!-- =========================================================
+     Todo 목록 페이지
+========================================================= -->
 
-    .todo-scroll {
-        scrollbar-width: thin;
-        scrollbar-color: #d1d5db transparent;
-    }
-
-    .todo-scroll::-webkit-scrollbar {
-        width: 5px;
-    }
-
-    .todo-scroll::-webkit-scrollbar-track {
-        background: transparent;
-    }
-
-    .todo-scroll::-webkit-scrollbar-thumb {
-        background: #d1d5db;
-        border-radius: 9999px;
-    }
-
-    .todo-scroll::-webkit-scrollbar-thumb:hover {
-        background: #9ca3af;
-    }
-
-
-    /*
-        모바일 화면에서 중앙 Todo 영역이
-        하단 고정 탭바와 겹치지 않도록 처리
-    */
-
-    @media (max-width: 767px) {
-
-        .todo-main-section {
-            min-height: 0;
-            padding-bottom: 80px;
-        }
-
-        .todo-scroll {
-            min-height: 0;
-        }
-
-    }
-</style>
-
-
-<!-- 전체 레이아웃 -->
 <div class="flex flex-col md:flex-row h-full min-h-0">
 
 
-    <!-- =========================================================
-         [좌측] 미니 캘린더 및 태그 필터
-    ========================================================== -->
+    <!-- =====================================================
+         좌측 영역
+         - 월간 캘린더
+         - 태그 필터
+    ====================================================== -->
 
-    <aside class="w-full md:w-80 border-r border-gray-200 p-6 flex flex-col justify-between flex-shrink-0">
+    <aside
+        class="w-full md:w-80
+               border-r border-gray-200
+               p-6
+               flex flex-col
+               justify-between
+               flex-shrink-0">
+
+
+        <!-- =================================================
+             월간 캘린더
+        ================================================== -->
 
         <div>
 
-            <!-- 월간 네비게이션 -->
-            <div class="flex justify-between items-center mb-6">
+            <!-- 월 네비게이션 -->
+
+            <div
+                class="flex
+                       justify-between
+                       items-center
+                       mb-6">
+
+
+                <!-- 이전 달 -->
 
                 <a
                     href="?year={{ prev_year }}&month={{ prev_month|stringformat:'02d' }}&date={{ prev_year }}-{{ prev_month|stringformat:'02d' }}-01"
-                    class="text-gray-400 hover:text-black">
+                    class="text-gray-400 hover:text-black"
+                    aria-label="이전 달">
 
                     <i class="fa-solid fa-chevron-left"></i>
 
                 </a>
 
 
+                <!-- 현재 년월 -->
+
                 <button
                     type="button"
                     onclick="openPcMonthPicker()"
-                    class="text-xl font-extrabold text-gray-900 hover:opacity-70 transition">
+                    class="text-xl
+                           font-extrabold
+                           text-gray-900
+                           hover:opacity-70
+                           transition">
 
                     {{ year }}.{{ month }}
 
                 </button>
 
 
+                <!-- 다음 달 -->
+
                 <a
                     href="?year={{ next_year }}&month={{ next_month|stringformat:'02d' }}&date={{ next_year }}-{{ next_month|stringformat:'02d' }}-01"
-                    class="text-gray-400 hover:text-black">
+                    class="text-gray-400 hover:text-black"
+                    aria-label="다음 달">
 
                     <i class="fa-solid fa-chevron-right"></i>
 
@@ -96,11 +82,23 @@
             </div>
 
 
-            <!-- 미니 달력 -->
+            <!-- =================================================
+                 미니 캘린더
+            ================================================== -->
+
             <div>
 
+
                 <!-- 요일 -->
-                <div class="grid grid-cols-7 text-center text-base font-bold mb-3 text-gray-400">
+
+                <div
+                    class="grid
+                           grid-cols-7
+                           text-center
+                           text-base
+                           font-bold
+                           mb-3
+                           text-gray-400">
 
                     <span class="text-red-500">일</span>
                     <span>월</span>
@@ -114,50 +112,93 @@
 
 
                 <!-- 날짜 -->
-                <div class="grid grid-cols-7 text-center text-sm gap-y-2">
+
+                <div
+                    class="grid
+                           grid-cols-7
+                           text-center
+                           text-sm
+                           gap-y-2">
+
 
                     {% for week in calendar_data %}
 
                         {% for calendar_day in week %}
 
+
+                            <!-- 빈 날짜 -->
+
                             {% if calendar_day.day == 0 %}
 
                                 <span></span>
 
+
                             {% else %}
+
+
+                                <!-- 실제 날짜 -->
 
                                 <a
                                     href="?year={{ year }}&month={{ month }}&date={{ calendar_day.date }}"
-                                    class="flex flex-col items-center justify-start mx-auto w-full">
+                                    class="flex
+                                           flex-col
+                                           items-center
+                                           justify-start
+                                           mx-auto
+                                           w-full">
+
 
                                     <!-- 날짜 원 -->
+
                                     <span
-                                        class="w-7 h-7 flex items-center justify-center rounded-full transition-all
-                                        {% if selected_date == calendar_day.date %}
-                                            bg-black text-white font-bold
-                                        {% else %}
-                                            hover:bg-gray-100 text-gray-700
-                                        {% endif %}">
+                                        class="w-7
+                                               h-7
+                                               flex
+                                               items-center
+                                               justify-center
+                                               rounded-full
+                                               transition-all
+
+                                               {% if selected_date == calendar_day.date %}
+                                                   bg-black
+                                                   text-white
+                                                   font-bold
+                                               {% else %}
+                                                   hover:bg-gray-100
+                                                   text-gray-700
+                                               {% endif %}">
 
                                         {{ calendar_day.day }}
 
                                     </span>
 
 
-                                    <!-- 기간 Todo 막대 -->
-                                    <div class="w-full flex flex-col items-center justify-center mb-1">
+                                    <!-- =================================================
+                                         기간 Todo 표시
+                                    ================================================== -->
+
+                                    <div
+                                        class="w-full
+                                               flex
+                                               flex-col
+                                               items-center
+                                               justify-center
+                                               mb-1">
+
 
                                         {% for todo in calendar_day.period_todos %}
 
                                             <div
-                                                class="w-full h-1.5
-                                                {% if todo.priority == 'H' %}
-                                                    bg-red-500
-                                                {% elif todo.priority == 'M' %}
-                                                    bg-yellow-400
-                                                {% elif todo.priority == 'L' %}
-                                                    bg-green-500
-                                                {% endif %}">
+                                                class="w-full
+                                                       h-1.5
+
+                                                       {% if todo.priority == 'H' %}
+                                                           bg-red-500
+                                                       {% elif todo.priority == 'M' %}
+                                                           bg-yellow-400
+                                                       {% elif todo.priority == 'L' %}
+                                                           bg-green-500
+                                                       {% endif %}">
                                             </div>
 
                                         {% endfor %}
@@ -165,23 +206,35 @@
                                     </div>
 
 
-                                    <!-- 하루 Todo 점 -->
+                                    <!-- =================================================
+                                         하루 Todo 표시
+                                    ================================================== -->
+
                                     <span
-                                        class="flex items-center justify-center gap-0.5 mt-0.5 h-1.5">
+                                        class="flex
+                                               items-center
+                                               justify-center
+                                               gap-0.5
+                                               mt-0.5
+                                               h-1.5">
+
 
                                         {% for todo in calendar_day.todos %}
 
                                             {% if not todo.end_date %}
 
                                                 <span
-                                                    class="w-1 h-1 rounded-full
-                                                    {% if todo.priority == 'H' %}
-                                                        bg-red-500
-                                                    {% elif todo.priority == 'M' %}
-                                                        bg-yellow-400
-                                                    {% elif todo.priority == 'L' %}
-                                                        bg-green-500
-                                                    {% endif %}">
+                                                    class="w-1
+                                                           h-1
+                                                           rounded-full
+
+                                                           {% if todo.priority == 'H' %}
+                                                               bg-red-500
+                                                           {% elif todo.priority == 'M' %}
+                                                               bg-yellow-400
+                                                           {% elif todo.priority == 'L' %}
+                                                               bg-green-500
+                                                           {% endif %}">
                                                 </span>
 
                                             {% endif %}
@@ -206,18 +259,22 @@
 
 
         <!-- 태그 필터 -->
-        <div class="border-t border-gray-100 pt-4">
+        <div
+            data-tag-filter
+            class="border-t border-gray-100 pt-4">
 
             <p class="text-[13px] font-bold text-gray-400 mb-2">
                 태그 필터
             </p>
 
-
-            <div class="flex flex-wrap gap-1.5">
+            <div
+                data-tag-filter-list
+                class="flex flex-wrap gap-1.5">
 
                 <!-- 전체 -->
                 <a
                     href="?year={{ year }}&month={{ month }}&date={{ selected_date }}"
+                    data-tag-filter-all
                     class="px-2.5 py-1 rounded text-sm font-medium transition-colors
                     {% if not selected_tag %}
                         bg-black text-white
@@ -230,79 +287,25 @@
                 </a>
 
 
-                <!-- 업무 -->
-                <a
-                    href="?year={{ year }}&month={{ month }}&date={{ selected_date }}&tag=WORK"
-                    class="px-2.5 py-1 rounded text-sm font-medium transition-colors
-                    {% if selected_tag == 'WORK' %}
-                        bg-black text-white
-                    {% else %}
-                        bg-gray-100 text-gray-600 hover:bg-gray-200
-                    {% endif %}">
+                <!-- 사용자 태그 -->
+                {% for tag in user_tags %}
 
-                    업무
+                    <a
+                        href="?year={{ year }}&month={{ month }}&date={{ selected_date }}&tag={{ tag.id }}"
+                        data-tag-filter-item
+                        data-tag-filter-id="{{ tag.id }}"
+                        class="px-2.5 py-1 rounded text-sm font-medium transition-colors
+                        {% if selected_tag == tag.id|stringformat:'s' %}
+                            bg-black text-white
+                        {% else %}
+                            bg-gray-100 text-gray-600 hover:bg-gray-200
+                        {% endif %}">
+                        <span data-tag-filter-name>
+                            {{ tag.name }}
+                        </span>
+                    </a>
 
-                </a>
-
-
-                <!-- 개인 -->
-                <a
-                    href="?year={{ year }}&month={{ month }}&date={{ selected_date }}&tag=PERSONAL"
-                    class="px-2.5 py-1 rounded text-sm font-medium transition-colors
-                    {% if selected_tag == 'PERSONAL' %}
-                        bg-black text-white
-                    {% else %}
-                        bg-gray-100 text-gray-600 hover:bg-gray-200
-                    {% endif %}">
-
-                    개인
-
-                </a>
-
-
-                <!-- 건강 -->
-                <a
-                    href="?year={{ year }}&month={{ month }}&date={{ selected_date }}&tag=HEALTH"
-                    class="px-2.5 py-1 rounded text-sm font-medium transition-colors
-                    {% if selected_tag == 'HEALTH' %}
-                        bg-black text-white
-                    {% else %}
-                        bg-gray-100 text-gray-600 hover:bg-gray-200
-                    {% endif %}">
-
-                    건강
-
-                </a>
-
-
-                <!-- 공부 -->
-                <a
-                    href="?year={{ year }}&month={{ month }}&date={{ selected_date }}&tag=STUDY"
-                    class="px-2.5 py-1 rounded text-sm font-medium transition-colors
-                    {% if selected_tag == 'STUDY' %}
-                        bg-black text-white
-                    {% else %}
-                        bg-gray-100 text-gray-600 hover:bg-gray-200
-                    {% endif %}">
-
-                    공부
-
-                </a>
-
-
-                <!-- 기타 -->
-                <a
-                    href="?year={{ year }}&month={{ month }}&date={{ selected_date }}&tag=ETC"
-                    class="px-2.5 py-1 rounded text-sm font-medium transition-colors
-                    {% if selected_tag == 'ETC' %}
-                        bg-black text-white
-                    {% else %}
-                        bg-gray-100 text-gray-600 hover:bg-gray-200
-                    {% endif %}">
-
-                    기타
-
-                </a>
+                {% endfor %}
 
             </div>
 
@@ -311,69 +314,113 @@
     </aside>
 
 
-    <!-- [중앙] Todo 영역 -->
+    <!-- =====================================================
+         중앙 Todo 영역
+    ====================================================== -->
+
     <main
-        class="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden">
+        class="flex-1
+               min-w-0
+               min-h-0
+               flex
+               flex-col
+               overflow-hidden">
 
 
-        <!-- 중앙 내용 -->
-        <div class="flex-1 min-h-0 overflow-y-auto">
+        <div
+            class="flex-1
+                   min-h-0
+                   overflow-y-auto
+                   todo-scroll">
 
 
             <!-- 오늘 할 일 -->
+
             {% include 'todos/partials/desktop_todaytodo_list.html' %}
 
 
             <!-- 언젠가 할 일 -->
-            {% include 'todos/partials/desktop_somedaytodo_list.html' %}
 
+            {% include 'todos/partials/desktop_somedaytodo_list.html' %}
 
         </div>
 
-
     </main>
 
-    <!-- [우측] 통계 -->
+
+    <!-- =====================================================
+         우측 통계
+    ====================================================== -->
+
     {% include 'todos/partials/desktop_stats.html' %}
+
 
 </div>
 
 
 <!-- =========================================================
      PC 월 선택 모달
-========================================================== -->
+========================================================= -->
+
 <div
     id="pcMonthPicker"
     class="hidden fixed inset-0 z-50">
 
 
     <!-- 배경 -->
+
     <div
-        class="absolute inset-0 bg-black/40"
+        class="absolute
+               inset-0
+               bg-black/40"
         onclick="closePcMonthPicker()">
     </div>
 
 
     <!-- 모달 -->
+
     <div
-        class="absolute top-1/2 left-1/2
-               -translate-x-1/2 -translate-y-1/2
-               w-80 bg-white rounded-2xl
-               p-5 shadow-xl">
+        class="absolute
+               top-1/2
+               left-1/2
+               -translate-x-1/2
+               -translate-y-1/2
+               w-80
+               bg-white
+               rounded-2xl
+               p-5
+               shadow-xl">
 
 
         <!-- 헤더 -->
-        <div class="flex items-center justify-between mb-5">
 
-            <h3 class="text-base font-bold text-gray-900">
+        <div
+            class="flex
+                   items-center
+                   justify-between
+                   mb-5">
+
+
+            <h3
+                class="text-base
+                       font-bold
+                       text-gray-900">
+
                 월 선택
+
             </h3>
 
 
             <button
                 type="button"
                 onclick="closePcMonthPicker()"
-                class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700">
+                class="w-8
+                       h-8
+                       flex
+                       items-center
+                       justify-center
+                       text-gray-400
+                       hover:text-gray-700">
 
                 <i class="fa-solid fa-xmark"></i>
 
@@ -383,12 +430,24 @@
 
 
         <!-- 연도 선택 -->
-        <div class="flex items-center justify-between mb-5">
+
+        <div
+            class="flex
+                   items-center
+                   justify-between
+                   mb-5">
+
 
             <button
                 type="button"
                 onclick="changePcPickerYear(-1)"
-                class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-900">
+                class="w-8
+                       h-8
+                       flex
+                       items-center
+                       justify-center
+                       text-gray-400
+                       hover:text-gray-900">
 
                 <i class="fa-solid fa-chevron-left"></i>
 
@@ -397,7 +456,9 @@
 
             <span
                 id="pcPickerYear"
-                class="text-sm font-bold text-gray-900">
+                class="text-sm
+                       font-bold
+                       text-gray-900">
 
                 {{ year }}년
 
@@ -407,7 +468,13 @@
             <button
                 type="button"
                 onclick="changePcPickerYear(1)"
-                class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-900">
+                class="w-8
+                       h-8
+                       flex
+                       items-center
+                       justify-center
+                       text-gray-400
+                       hover:text-gray-900">
 
                 <i class="fa-solid fa-chevron-right"></i>
 
@@ -417,7 +484,11 @@
 
 
         <!-- 월 목록 -->
-        <div class="grid grid-cols-4 gap-2">
+
+        <div
+            class="grid
+                   grid-cols-4
+                   gap-2">
 
             <button
                 type="button"
@@ -521,51 +592,50 @@
 
 </div>
 
+
+<!-- =========================================================
+     JS에서 사용하는 현재 년/월
+========================================================= -->
+
 <script>
+
     const YEAR = {{ year }};
     const MONTH = {{ month }};
+
 </script>
 
 
-<!-- 생성 모달 create_modal.html에서 관리 -->
+<!-- =========================================================
+     Todo 관련 모달
+========================================================= -->
+
 {% include 'todos/partials/create_modal.html' %}
 
-<!-- 수정 모달 edit_modal.html에서 관리 -->
 {% include 'todos/partials/edit_modal.html' %}
-<!-- 삭제 모달 delete_modal.html에서 관리 -->
-{% include 'todos/partials/delete_modal.html' %}
-<!-- 설정 모달 settings_modal.html에서 관리-->
-{% include 'todos/partials/settings_modal.html' %}
 
-<!-- 언젠가 할 일 생성 모달 someday_create_modal.html에서 관리 -->
+{% include 'todos/partials/delete_modal.html' %}
+
+
+<!-- =========================================================
+     언젠가 할 일 모달
+========================================================= -->
+
 {% include 'todos/partials/someday_create_modal.html' %}
-<!-- 언젠가 할 일 수정 모달 someday_edit_modal.html에서 관리-->
+
 {% include 'todos/partials/someday_edit_modal.html' %}
-<!-- 언젠가 할 일 삭제 모달 someday_delete_modal.html에서 관리-->
+
 {% include 'todos/partials/someday_delete_modal.html' %}
 
-<!-- 프로필 설정 모달 profile_setting.html에서 관리-->
-{% include 'todos/partials/profile_setting.html' %}
-<!-- 회원탈퇴 모달 account_delete_modal.html에서 관리-->
-{% include 'todos/partials/account_delete_modal.html' %}
 
-
-<!-- todo JS 별도 파일 -->
-<script src="{% static 'todos/js/todo.js' %}"></script>
-
-<!-- 수정 모달 JS 별도 파일 -->
+<!-- =========================================================
+     Todo JavaScript
+========================================================= -->
 <script src="{% static 'todos/js/edit_modal.js' %}"></script>
-<!-- 삭제 모달 JS 별도 파일 -->
+
 <script src="{% static 'todos/js/delete_modal.js' %}"></script>
-<!-- 설정 모달 JS 별도 파일 -->
-<script src="{% static 'todos/js/settings_modal.js' %}"></script>
 
-<!-- 언젠가 할 일 수정 모달 JS 별도 파일 -->
 <script src="{% static 'todos/js/someday_edit_modal.js' %}"></script>
-<!-- 언젠가 할 일 삭제 모달 JS 별도 파일 -->
-<script src="{% static 'todos/js/someday_delete_modal.js' %}"></script>
 
-<!-- 회원 탈퇴 모달 JS 별도 파일-->
-<script src="{% static 'todos/js/account_delete_modal.js' %}"></script>
+<script src="{% static 'todos/js/someday_delete_modal.js' %}"></script>
 
 {% endblock %}

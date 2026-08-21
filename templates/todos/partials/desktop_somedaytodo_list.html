@@ -1,9 +1,12 @@
 <!-- desktop_somedaytodo_list.html -->
+
 <section
     class="flex-shrink-0 mt-24 px-6 md:px-8 pt-6 border-t border-gray-200">
 
 
-    <!-- 헤더 -->
+    <!-- ============================================================
+         헤더
+         ============================================================ -->
 
     <div
         class="flex items-center justify-between mb-4">
@@ -11,7 +14,8 @@
 
         <!-- 왼쪽 : 제목 -->
 
-        <div class="flex items-center gap-3">
+        <div
+            class="flex items-center gap-3">
 
             <h2
                 class="text-2xl font-extrabold text-gray-900">
@@ -60,7 +64,10 @@
     </div>
 
 
-    <!-- 언젠가 할 일 목록 -->
+
+    <!-- ============================================================
+         언젠가 할 일 목록
+         ============================================================ -->
 
     <div
         id="desktopSomedayTodoList"
@@ -70,40 +77,58 @@
         {% for someday_todo in someday_todos %}
 
 
-            <!-- 언젠가 할 일 한 줄 -->
+            <!-- ====================================================
+                 언젠가 할 일 한 줄
+                 ==================================================== -->
 
             <div
                 data-desktop-someday-id="{{ someday_todo.id }}"
+
                 data-completed="{{ someday_todo.is_completed|yesno:'1,0' }}"
+
                 data-priority="{{ someday_todo.priority }}"
+
                 data-created-at="{{ someday_todo.created_at|date:'U' }}"
-                class="flex items-center justify-between p-3 border-b border-gray-100 rounded group
-                bg-white hover:bg-gray-50 transition-colors">
+
+                class="flex items-center justify-between p-3 border-b border-gray-100 rounded group bg-white hover:bg-gray-50 transition-colors">
 
 
-                <!-- 왼쪽 -->
+                <!-- ====================================================
+                     왼쪽
+                     ==================================================== -->
 
                 <div
                     class="flex items-center gap-3 min-w-0">
 
 
-                    <!-- 우선순위 색상 -->
+                    <!-- ====================================================
+                         우선순위 색상
+                         ==================================================== -->
 
                     <div
                         class="w-1 h-5 rounded-full flex-shrink-0
 
                         {% if someday_todo.priority == 'H' %}
+
                             bg-red-500
+
                         {% elif someday_todo.priority == 'M' %}
+
                             bg-amber-500
+
                         {% else %}
+
                             bg-green-500
+
                         {% endif %}">
 
                     </div>
 
 
-                    <!-- 체크박스 -->
+
+                    <!-- ====================================================
+                         체크박스
+                         ==================================================== -->
 
                     <input
                         type="checkbox"
@@ -111,7 +136,9 @@
                         id="someday-check-{{ someday_todo.id }}"
 
                         {% if someday_todo.is_completed %}
+
                             checked
+
                         {% endif %}
 
                         onchange="toggleSomedayTodo(
@@ -119,15 +146,26 @@
                         )"
 
                         class="w-5 h-5 accent-black rounded cursor-pointer flex-shrink-0">
-                    
-                    <!-- 제목 -->
+
+
+
+                    <!-- ====================================================
+                         제목
+                         ==================================================== -->
+
                     <span
                         id="desktop-someday-title-{{ someday_todo.id }}"
+
                         class="font-medium truncate
+
                         {% if someday_todo.is_completed %}
+
                             line-through text-gray-400
+
                         {% else %}
+
                             text-gray-800
+
                         {% endif %}">
 
                         {{ someday_todo.title }}
@@ -137,23 +175,41 @@
                 </div>
 
 
-                <!-- 오른쪽 -->
+
+                <!-- ====================================================
+                     오른쪽
+                     ==================================================== -->
 
                 <div
                     class="flex items-center gap-3 flex-shrink-0">
 
 
-                    <!-- 태그 -->
+                    <!-- ====================================================
+                         태그
+                         ==================================================== -->
 
                     <span
+                        data-someday-tag
+                        data-tag-id="{{ todo.tag.id }}"
                         class="border border-gray-200 text-gray-500 text-xs px-2 py-0.5 rounded">
 
-                        {{ someday_todo.get_tag_display }}
+                        {% if someday_todo.tag %}
+
+                            {{ someday_todo.tag.name }}
+
+                        {% else %}
+
+                            기타
+
+                        {% endif %}
 
                     </span>
 
 
-                    <!-- 우선순위 -->
+
+                    <!-- ====================================================
+                         우선순위
+                         ==================================================== -->
 
                     {% if someday_todo.priority == 'H' %}
 
@@ -164,6 +220,7 @@
 
                         </span>
 
+
                     {% elif someday_todo.priority == 'M' %}
 
                         <span
@@ -172,6 +229,7 @@
                             보통
 
                         </span>
+
 
                     {% else %}
 
@@ -185,36 +243,63 @@
                     {% endif %}
 
 
-                    <!-- 수정 -->
+
+                    <!-- ====================================================
+                         수정
+                         ==================================================== -->
 
                     <button
                         type="button"
+
                         data-someday-edit
+
                         data-id="{{ someday_todo.id }}"
+
                         data-title="{{ someday_todo.title|escapejs }}"
-                        data-tag="{{ someday_todo.tag }}"
+
+                        data-tag="{% if someday_todo.tag %}{{ someday_todo.tag.id }}{% endif %}"
+
                         data-priority="{{ someday_todo.priority }}"
+
                         onclick="openSomedayEditModal(this)"
+
                         class="text-gray-400 hover:text-black transition-colors mr-1">
 
-                        <i class="fa-regular fa-pen-to-square"></i>
+
+                        <i
+                            class="fa-regular fa-pen-to-square">
+                        </i>
+
 
                     </button>
 
 
-                    <!-- 삭제 -->
+
+                    <!-- ====================================================
+                         삭제
+                         ==================================================== -->
 
                     <button
                         type="button"
+
                         data-someday-delete
+
                         data-id="{{ someday_todo.id }}"
+
                         data-title="{{ someday_todo.title|escapejs }}"
+
                         onclick="openSomedayDeleteModal(this)"
+
                         class="text-gray-300 hover:text-red-500 transition-colors">
 
-                        <i class="fa-regular fa-trash-can"></i>
+
+                        <i
+                            class="fa-regular fa-trash-can">
+                        </i>
+
 
                     </button>
+
 
                 </div>
 
@@ -224,7 +309,9 @@
         {% empty %}
 
 
-            <!-- 언젠가 할 일 없음 -->
+            <!-- ====================================================
+                 언젠가 할 일 없음
+                 ==================================================== -->
 
             <div
                 class="text-center py-8 text-gray-400">
@@ -232,9 +319,13 @@
                 등록된 언젠가 할 일이 없습니다.
 
                 오른쪽 위
+
                 <b class="text-black">
+
                     + 할 일 추가
+
                 </b>
+
                 버튼을 눌러보세요! 🚀
 
             </div>

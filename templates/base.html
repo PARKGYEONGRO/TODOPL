@@ -15,9 +15,6 @@
     </style>
 </head>
 
-{% include 'todos/partials/settings_modal.html' %}
-
-<script src="{% static 'todos/js/settings_modal.js' %}"></script>
 
 <body data-csrf="{{ csrf_token }}"
       data-year="{{ year }}"
@@ -53,8 +50,8 @@
             <!-- <span>Home</span> -->
         </a>
 
-        <a href="{% url 'stats' %}" class="flex flex-col items-center text-xs transition-colors duration-200
-        {% if request.resolver_match.url_name == 'stats' %}
+        <a href="{% url 'mobile_stats' %}" class="flex flex-col items-center text-xs transition-colors duration-200
+        {% if request.resolver_match.url_name == 'mobile_stats' %}
         text-red-500
         {% else %}
             text-gray-400
@@ -69,6 +66,32 @@
     <main class="flex-1 max-w-[1600px] w-full mx-auto pt-16 pb-20">
         {% block content %}{% endblock %}
     </main>
-    
+
+
+    <!-- =========================================================
+        공통 모달
+    ========================================================= -->
+
+    {% include 'todos/partials/settings_modal.html' %}
+
+    {% include 'todos/partials/profile_setting.html' %}
+
+    {% include 'todos/partials/account_delete_modal.html' %}
+
+    {% include 'todos/partials/tag_manage_modal.html' %}
+
+
+    <!-- =========================================================
+        공통 JavaScript
+    ========================================================= -->
+    <script src="{% static 'todos/js/todo.js' %}"></script>
+
+    <script src="{% static 'todos/js/home.js' %}"></script>
+
+    <script src="{% static 'todos/js/settings_modal.js' %}"></script>
+
+    <script src="{% static 'todos/js/account_delete_modal.js' %}"></script>
+
+    <script src="{% static 'todos/js/tag_manage_modal.js' %}"></script>
 </body>
 </html>

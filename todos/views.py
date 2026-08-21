@@ -1,20 +1,25 @@
-# todos/views.py
-
 import json
 import os
 import calendar
 
 from datetime import date, datetime, timedelta
 
-from django.contrib.auth import get_user_model
-from django.contrib.auth import login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth import (
+    get_user_model,
+    login,
+    logout
+)
 
-from django.http import JsonResponse
+from django.contrib.auth.decorators import (
+    login_required
+)
+
+from django.http import (
+    JsonResponse
+)
 
 from django.shortcuts import (
     render,
-    redirect,
     get_object_or_404
 )
 
@@ -23,12 +28,17 @@ from django.db.models import (
     When,
     Value,
     IntegerField,
-    Q
+    Q,
+    Prefetch,
+    Count
 )
 
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import (
+    require_POST
+)
 
 from .models import (
+    Tag,
     Todo,
     TodoCompletion,
     TodoSomeday
@@ -37,122 +47,236 @@ from .models import (
 from supabase import create_client
 
 
-# ============================================================
-# 로그인 화면
-# ============================================================
-def login_view(request):
+def Get_User_Default_Tag(user): #사용자 기본 태그 가져오기
+
+    DefaultTag, Created = Tag.objects.get_or_create(
+
+        user=user,
+
+        is_default=True,
+
+        defaults={
+
+            'name':
+                '기본',
+
+            'color':
+                'gray'
+
+        }
+
+    )
+
+
+    return DefaultTag
+
+def Get_User_Tags(user): #사용자 태그 목록
+
+    return (
+
+        Tag.objects
+
+        .filter(
+
+            user=user
+
+        )
+
+        .order_by(
+
+            '-is_default',
+
+            'created_at'
+
+        )
+
+    )
+
+def login_view(request): #로그인 화면
 
     if request.method == 'GET':
 
         return render(
+
             request,
+
             'todos/login.html'
+
         )
 
+
     return JsonResponse(
+
         {
-            'success': False,
-            'message': '잘못된 요청입니다.'
+
+            'success':
+                False,
+
+            'message':
+                '잘못된 요청입니다.'
+
         },
+
         status=400
+
     )
 
 
-# ============================================================
-# Supabase 로그인
-# ============================================================
 @require_POST
-def supabase_login(request):
+def supabase_login(request): #Supabase 로그인
 
     email = request.POST.get(
+
         'email',
+
         ''
+
     ).strip().lower()
 
+
     password = request.POST.get(
+
         'password',
+
         ''
+
     )
 
 
     if not email or not password:
 
         return JsonResponse(
+
             {
-                'success': False,
+
+                'success':
+                    False,
+
                 'message':
                     '이메일과 비밀번호를 입력해주세요.'
+
             },
+
             status=400
+
         )
 
 
     supabase_url = os.getenv(
+
         'SUPABASE_URL'
+
     )
+
 
     supabase_anon_key = os.getenv(
+
         'SUPABASE_ANON_KEY'
+
     )
 
 
-    if not supabase_url or not supabase_anon_key:
+    if (
+
+        not supabase_url
+
+        or
+
+        not supabase_anon_key
+
+    ):
 
         return JsonResponse(
+
             {
-                'success': False,
+
+                'success':
+                    False,
+
                 'message':
                     'Supabase 설정을 확인해주세요.'
+
             },
+
             status=500
+
         )
 
 
     try:
 
-        supabase = create_client(
+        Supabase = create_client(
+
             supabase_url,
+
             supabase_anon_key
+
         )
 
 
-        response = (
-            supabase
+        Response = (
+
+            Supabase
+
             .auth
+
             .sign_in_with_password(
+
                 {
-                    'email': email,
-                    'password': password,
+
+                    'email':
+                        email,
+
+                    'password':
+                        password,
+
                 }
+
             )
+
         )
 
 
-        if not response.user:
+        if not Response.user:
 
             return JsonResponse(
+
                 {
-                    'success': False,
+
+                    'success':
+                        False,
+
                     'message':
                         '로그인에 실패했습니다.'
+
                 },
+
                 status=401
+
             )
 
 
-        SupabaseUser = response.user
+        SupabaseUser = Response.user
 
 
         User = get_user_model()
 
 
         DjangoUser, Created = (
+
             User.objects.get_or_create(
+
                 username=email,
+
                 defaults={
-                    'email': email,
+
+                    'email':
+                        email,
+
                 }
+
             )
+
         )
 
 
@@ -161,312 +285,806 @@ def supabase_login(request):
             DjangoUser.email = email
 
             DjangoUser.save(
+
                 update_fields=[
+
                     'email'
+
                 ]
+
             )
 
 
-        # Django 로그인 세션 생성
+        # Django 로그인 세션
+
         login(
+
             request,
+
             DjangoUser
+
         )
 
-        # Supabase User ID 세션 저장
-        request.session['supabase_user_id'] = (
-            SupabaseUser.id
-        )
+
+        # Supabase User ID 세션
+
+        request.session[
+
+            'supabase_user_id'
+
+        ] = SupabaseUser.id
+
 
         print(
+
             '로그인 성공:',
+
             DjangoUser
+
+        )
+
+
+        Get_User_Default_Tag(
+
+            DjangoUser
+
         )
 
 
         return JsonResponse(
+
             {
-                'success': True,
+
+                'success':
+                    True,
+
                 'message':
                     '로그인되었습니다.',
+
                 'user': {
-                    'email': email,
+
+                    'email':
+                        email,
+
                 }
+
             }
+
         )
 
 
     except Exception as Error:
 
         print(
+
             'Supabase 로그인 오류:',
+
             Error
+
         )
 
 
         return JsonResponse(
+
             {
-                'success': False,
+
+                'success':
+                    False,
+
                 'message':
                     '이메일 또는 비밀번호를 확인해주세요.'
+
             },
+
             status=401
+
         )
 
 
-# ============================================================
-# 회원탈퇴
-# ============================================================
 @require_POST
-def account_delete(request):
+def account_delete(request): #회원 탈퇴
 
     withdrawal_reason = request.POST.get(
+
         'withdrawal_reason',
+
         ''
+
     ).strip()
+
 
     withdrawal_detail = request.POST.get(
+
         'withdrawal_detail',
+
         ''
+
     ).strip()
+
 
     withdrawal_confirm = request.POST.get(
+
         'withdrawal_confirm'
+
     )
 
+
     withdrawal_identity = request.POST.get(
+
         'withdrawal_identity',
+
         ''
+
     ).strip()
 
 
-    # ========================================================
     # 로그인 확인
-    # ========================================================
 
     if not request.user.is_authenticated:
 
         return JsonResponse(
+
             {
-                'success': False,
+
+                'success':
+                    False,
+
                 'message':
                     '로그인이 필요합니다.'
+
             },
+
             status=401
+
         )
 
 
-    # ========================================================
     # 필수값 확인
-    # ========================================================
 
     if not withdrawal_reason:
 
         return JsonResponse(
+
             {
-                'success': False,
+
+                'success':
+                    False,
+
                 'message':
                     '탈퇴 사유를 선택해주세요.'
+
             },
+
             status=400
+
         )
 
 
     if len(withdrawal_detail) < 10:
 
         return JsonResponse(
+
             {
-                'success': False,
+
+                'success':
+                    False,
+
                 'message':
                     '상세 사유를 10자 이상 입력해주세요.'
+
             },
+
             status=400
+
         )
 
 
     if len(withdrawal_detail) > 500:
 
         return JsonResponse(
+
             {
-                'success': False,
+
+                'success':
+                    False,
+
                 'message':
                     '상세 사유는 500자 이하로 입력해주세요.'
+
             },
+
             status=400
+
         )
 
 
     if withdrawal_confirm != 'on':
 
         return JsonResponse(
+
             {
-                'success': False,
+
+                'success':
+                    False,
+
                 'message':
                     '계정 및 데이터 복구 불가에 동의해주세요.'
+
             },
+
             status=400
+
         )
 
 
-    # ========================================================
     # 이메일 / 아이디 확인
-    # ========================================================
 
     UserEmail = (
-        request.user.email or
+
+        request.user.email
+
+        or
+
         request.user.username
+
     )
 
 
     if withdrawal_identity != UserEmail:
 
         return JsonResponse(
+
             {
-                'success': False,
+
+                'success':
+                    False,
+
                 'message':
                     '확인 문구가 일치하지 않습니다.'
+
             },
+
             status=400
+
         )
 
 
-    # ========================================================
     # Supabase 설정
-    # ========================================================
 
     supabase_url = os.getenv(
+
         'SUPABASE_URL'
+
     )
 
+
     supabase_service_role_key = os.getenv(
+
         'SUPABASE_SERVICE_ROLE_KEY'
+
     )
 
 
     if (
-        not supabase_url or
+
+        not supabase_url
+
+        or
+
         not supabase_service_role_key
+
     ):
 
         return JsonResponse(
+
             {
-                'success': False,
+
+                'success':
+                    False,
+
                 'message':
                     'Supabase 설정을 확인해주세요.'
+
             },
+
             status=500
+
         )
 
 
-    # ========================================================
     # Supabase User ID
-    # ========================================================
 
     SupabaseUserId = request.session.get(
+
         'supabase_user_id'
+
     )
 
-    print('탈퇴 SupabaseUserID:', SupabaseUserId)
+
+    print(
+
+        '탈퇴 SupabaseUserID:',
+
+        SupabaseUserId
+
+    )
+
 
     if not SupabaseUserId:
 
         return JsonResponse(
+
             {
-                'success': False,
+
+                'success':
+                    False,
+
                 'message':
                     '사용자 인증 정보를 찾을 수 없습니다.'
+
             },
+
             status=400
+
         )
 
 
     try:
 
-        # ====================================================
         # Supabase 관리자 클라이언트
-        # ====================================================
 
         Supabase = create_client(
+
             supabase_url,
+
             supabase_service_role_key
+
         )
 
 
-        # ====================================================
         # 1. 탈퇴 사유 저장
-        # ====================================================
 
-        ReasonResponse = Supabase.table(
-            'account_deletion_reasons'
-        ).insert(
-            {
-                'reason': withdrawal_reason,
-                'detail': withdrawal_detail,
-            }
-        ).execute()
+        ReasonResponse = (
 
-        print('탈퇴사유 저장 결과: ',ReasonResponse)
+            Supabase
 
-        # ====================================================
+            .table(
+
+                'account_deletion_reasons'
+
+            )
+
+            .insert(
+
+                {
+
+                    'reason':
+                        withdrawal_reason,
+
+                    'detail':
+                        withdrawal_detail,
+
+                }
+
+            )
+
+            .execute()
+
+        )
+
+
+        print(
+
+            '탈퇴사유 저장 결과:',
+
+            ReasonResponse
+
+        )
+
+
         # 2. Supabase Auth 사용자 삭제
-        # ====================================================
 
-        DeleteResponse = Supabase.auth.admin.delete_user(
-            SupabaseUserId
+        DeleteResponse = (
+
+            Supabase
+
+            .auth
+
+            .admin
+
+            .delete_user(
+
+                SupabaseUserId
+
+            )
+
         )
 
-        print('Supabase 사용자 삭제 결과:', DeleteResponse)
 
-        # ====================================================
+        print(
+
+            'Supabase 사용자 삭제 결과:',
+
+            DeleteResponse
+
+        )
+
+
         # 3. Django 세션 로그아웃
-        # ====================================================
 
-        logout(
-            request
-        )
-
+        logout(request)
+        request.session.flush()
 
         return JsonResponse(
+
             {
-                'success': True,
+
+                'success':
+                    True,
+
                 'message':
                     '회원탈퇴가 완료되었습니다.',
+
                 'redirect_url':
                     '/login/'
+
             }
+
         )
 
 
     except Exception as Error:
 
         print(
+
             '회원탈퇴 오류:',
+
             Error
+
         )
 
 
         return JsonResponse(
+
             {
-                'success': False,
+
+                'success':
+                    False,
+
                 'message':
                     '회원탈퇴 처리 중 오류가 발생했습니다.'
+
             },
+
             status=500
+
         )
 
 
-# ============================================================
-# Todo 목록
-# ============================================================
+TAG_COLORS = [
+
+    'gray',
+    'red',
+    'orange',
+    'yellow',
+    'green',
+    'blue',
+    'purple',
+    'pink',
+
+]
+
+TAG_COLOR_CHOICES = [
+
+    ('gray', '회색'),
+    ('red', '빨강'),
+    ('orange', '주황'),
+    ('yellow', '노랑'),
+    ('green', '초록'),
+    ('blue', '파랑'),
+    ('purple', '보라'),
+    ('pink', '분홍'),
+
+]
+
+
+def Get_Tag_Data(TagObject):
+
+    return {
+        'id': TagObject.id,
+        'name': TagObject.name,
+        'color': TagObject.color,
+    }
+
+
+def Get_Todo_Data(todo):
+
+    DueDate = todo.due_date
+    EndDate = todo.end_date
+
+
+    # 혹시 문자열로 들어온 경우
+    if isinstance(DueDate, str):
+
+        DueDate = datetime.strptime(
+            DueDate,
+            '%Y-%m-%d'
+        ).date()
+
+
+    if isinstance(EndDate, str):
+
+        EndDate = datetime.strptime(
+            EndDate,
+            '%Y-%m-%d'
+        ).date()
+
+
+    return {
+
+        'id':
+            todo.id,
+
+        'title':
+            todo.title,
+
+        'due_date':
+            DueDate.strftime(
+                '%Y-%m-%d'
+            ),
+
+        'end_date':
+            (
+                EndDate.strftime(
+                    '%Y-%m-%d'
+                )
+                if EndDate
+                else None
+            ),
+
+        'priority':
+            todo.priority,
+
+        'is_completed':
+            todo.is_completed,
+
+        'tag':
+            Get_Tag_Data(
+                todo.tag
+            ),
+
+    }
+
+
+def Get_Todo_Someday_Data(todo_someday):
+
+    return {
+        'id': todo_someday.id,
+        'title': todo_someday.title,
+        'priority': todo_someday.priority,
+        'is_completed': todo_someday.is_completed,
+        'created_at': todo_someday.created_at.timestamp(),
+        'tag': Get_Tag_Data(todo_someday.tag),
+    }
+
+
+def Get_Todo_Someday_Counts(user):
+
+    someday_total_count = TodoSomeday.objects.filter(
+        user=user
+    ).count()
+
+    someday_completed_count = TodoSomeday.objects.filter(
+        user=user,
+        is_completed=True
+    ).count()
+
+    return {
+        'someday_total_count': someday_total_count,
+        'someday_completed_count': someday_completed_count,
+    }
+
+
 @login_required(login_url='/login/')
-def todo_list(request):
+@require_POST
+def tag_create(request): #태그 생성
+
+    name = request.POST.get(
+        'name',
+        ''
+    ).strip()
+
+    color = request.POST.get(
+        'color',
+        'gray'
+    ).strip()
+
+
+    if not name:
+
+        return JsonResponse({
+
+            'success': False,
+
+            'status': 'error',
+
+            'message': '태그 이름을 입력해주세요.'
+
+        }, status=400)
+
+
+    if color not in TAG_COLORS:
+
+        color = 'gray'
+
+
+    if Tag.objects.filter(
+        user=request.user,
+        name=name
+    ).exists():
+
+        return JsonResponse({
+
+            'success': False,
+
+            'status': 'error',
+
+            'message': '이미 존재하는 태그입니다.'
+
+        }, status=400)
+
+
+    tag = Tag.objects.create(
+
+        user=request.user,
+
+        name=name,
+
+        color=color
+
+    )
+
+
+    return JsonResponse({
+
+        'success': True,
+
+        'status': 'success',
+
+        'message': '태그가 생성되었습니다.',
+
+        'tag': Get_Tag_Data(tag)
+
+    })
+
+
+@login_required(login_url='/login/')
+@require_POST
+def tag_update(request, tag_id):  #태그 수정
+    TagObject = get_object_or_404(Tag, id=tag_id, user=request.user)
+    Name = request.POST.get('name', '').strip()
+    Color = request.POST.get('color', 'gray').strip()
+
+    if not Name:
+        return JsonResponse({
+            'success': False,
+            'status': 'error',
+            'message': '태그 이름을 입력해주세요.',
+        }, status=400)
+
+    if Color not in TAG_COLORS:
+        Color = 'gray'
+
+    if Tag.objects.filter(
+        user=request.user,
+        name=Name
+    ).exclude(id=TagObject.id).exists():
+        return JsonResponse({
+            'success': False,
+            'status': 'error',
+            'message': '이미 존재하는 태그입니다.',
+        }, status=400)
+
+    TagObject.name = Name
+    TagObject.color = Color
+    TagObject.save(update_fields=['name', 'color'])
+
+    return JsonResponse({
+        'success': True,
+        'status': 'success',
+        'message': '태그가 수정되었습니다.',
+        'tag': Get_Tag_Data(TagObject),
+    })
+
+
+@login_required(login_url='/login/')
+@require_POST
+def tag_delete(request, tag_id): #태그 삭제
+
+
+    TagObject = get_object_or_404(
+
+        Tag,
+
+        id=tag_id,
+
+        user=request.user
+
+    )
+
+    #기본 태그 삭제 방지
+    if TagObject.is_default:
+
+        return JsonResponse({
+
+            'success':
+                False,
+
+            'status':
+                'error',
+
+            'message':
+                '기본 태그는 삭제할 수 없습니다.'
+
+        }, status=400)
+
+
+
+    DefaultTag = Get_User_Default_Tag(
+
+        request.user
+
+    )
+
+
+    # 연결된 Todo 이동
+
+    Todo.objects.filter(
+
+        tag=TagObject
+
+    ).update(
+
+        tag=DefaultTag
+
+    )
+
+
+    # 연결된 Someday Todo 이동
+
+    TodoSomeday.objects.filter(
+
+        tag=TagObject
+
+    ).update(
+
+        tag=DefaultTag
+
+    )
+
+    #일반 태그 삭제
+    TagObject.delete()
+
+
+    return JsonResponse({
+
+        'success': True,
+        'status': 'success',
+        'message': '태그가 삭제되었습니다.',
+        'tag_id': tag_id,
+        'default_tag_id': DefaultTag.id,
+        'default_tag_name': DefaultTag.name,
+    })
+
+
+@login_required(login_url='/login/')
+def todo_list(request):  # Todo 목록
 
     today = date.today()
 
-
-    # =========================
+    # ==========================
     # 기본 요청값
-    # =========================
+    # ==========================
 
     year = int(
         request.GET.get(
@@ -492,58 +1110,77 @@ def todo_list(request):
         ''
     ).strip()
 
+    # ==========================
+    # 선택 날짜
+    # ==========================
 
-    # =========================
-    # 선택 날짜 객체
-    # =========================
+    try:
 
-    selected_date_obj = datetime.strptime(
-        selected_date_str,
-        '%Y-%m-%d'
-    ).date()
+        selected_date_obj = datetime.strptime(
+            selected_date_str,
+            '%Y-%m-%d'
+        ).date()
 
+    except ValueError:
 
-    # =========================
-    # 현재 로그인 사용자
-    # =========================
+        selected_date_obj = today
 
-    print(
-        '현재 사용자:',
+        selected_date_str = today.strftime(
+            '%Y-%m-%d'
+        )
+
+    # ==========================
+    # 사용자 태그
+    # ==========================
+
+    user_tags = Get_User_Tags(
         request.user
     )
 
-    print(
-        '로그인 여부:',
-        request.user.is_authenticated
+    default_tag = Get_User_Default_Tag(
+        request.user
     )
 
+    selected_tag_object = None
 
-    # =========================
-    # 선택 날짜에 완료된
-    # 기간 Todo ID 조회
-    # =========================
+    if selected_tag:
+
+        try:
+
+            selected_tag_object = user_tags.get(
+                id=int(selected_tag)
+            )
+
+        except (
+            Tag.DoesNotExist,
+            ValueError
+        ):
+
+            selected_tag = ''
+
+    # ==========================
+    # 선택 날짜 기간 Todo 완료 기록
+    # ==========================
 
     selected_completed_todo_ids = set(
 
-        TodoCompletion.objects.filter(
+        TodoCompletion.objects
 
-            todo__user=request.user,
-
+        .filter(
+            user=request.user,
             completed_date=selected_date_obj
+        )
 
-        ).values_list(
-
+        .values_list(
             'todo_id',
             flat=True
-
         )
 
     )
 
-
-    # =========================
+    # ==========================
     # 월간 통계
-    # =========================
+    # ==========================
 
     monthly_stats = Get_Monthly_Stats(
         request.user,
@@ -551,21 +1188,15 @@ def todo_list(request):
         month
     )
 
-
-    # =========================
+    # ==========================
     # 통계 제목
-    # =========================
+    # ==========================
 
     is_current_month = (
-
         year == today.year
-
         and
-
         month == today.month
-
     )
-
 
     if is_current_month:
 
@@ -577,48 +1208,35 @@ def todo_list(request):
             f'{year}년 {month}월 통계'
         )
 
-
-    # =========================
+    # ==========================
     # 선택 날짜 Todo 조회
-    # =========================
+    # ==========================
 
     todo_query = (
 
         Q(
-
             due_date=selected_date_obj,
-
             end_date__isnull=True
-
         )
 
         |
 
         Q(
-
             due_date__lte=selected_date_obj,
-
             end_date__gte=selected_date_obj
-
         )
 
     )
 
-
-    # =========================
     # 태그 필터
-    # =========================
 
-    if selected_tag:
+    if selected_tag_object:
 
         todo_query &= Q(
-            tag=selected_tag
+            tag=selected_tag_object
         )
 
-
-    # =========================
     # Todo 조회
-    # =========================
 
     todos = (
 
@@ -632,6 +1250,10 @@ def todo_list(request):
             todo_query
         )
 
+        .select_related(
+            'tag'
+        )
+
         .annotate(
 
             priority_order=Case(
@@ -653,7 +1275,7 @@ def todo_list(request):
 
                 default=Value(4),
 
-                output_field=IntegerField(),
+                output_field=IntegerField()
 
             )
 
@@ -666,10 +1288,9 @@ def todo_list(request):
 
     )
 
-
-    # =========================
+    # ==========================
     # 선택 날짜 기준 완료 상태
-    # =========================
+    # ==========================
 
     for todo in todos:
 
@@ -683,16 +1304,15 @@ def todo_list(request):
 
             todo.display_completed = (
                 todo.id
-                in selected_completed_todo_ids
+                in
+                selected_completed_todo_ids
             )
 
-
-    # =========================
-    # 기본 통계
-    # =========================
+    # ==========================
+    # 선택 날짜 기본 통계
+    # ==========================
 
     total_todos = todos.count()
-
 
     completed_todos = sum(
 
@@ -704,10 +1324,9 @@ def todo_list(request):
 
     )
 
-
-    # ============================================================
+    # ==========================
     # 언젠가 할 일
-    # ============================================================
+    # ==========================
 
     someday_todos = (
 
@@ -715,6 +1334,10 @@ def todo_list(request):
 
         .filter(
             user=request.user
+        )
+
+        .select_related(
+            'tag'
         )
 
         .annotate(
@@ -738,7 +1361,7 @@ def todo_list(request):
 
                 default=Value(4),
 
-                output_field=IntegerField(),
+                output_field=IntegerField()
 
             )
 
@@ -756,11 +1379,9 @@ def todo_list(request):
 
     )
 
-
     someday_total_count = (
         someday_todos.count()
     )
-
 
     someday_completed_count = (
 
@@ -774,10 +1395,9 @@ def todo_list(request):
 
     )
 
-
-    # =========================
-    # 현재 달 시작 / 종료
-    # =========================
+    # ==========================
+    # 월 시작 / 종료
+    # ==========================
 
     month_start = date(
         year,
@@ -785,24 +1405,18 @@ def todo_list(request):
         1
     )
 
-
     month_end = date(
-
         year,
-
         month,
-
         calendar.monthrange(
             year,
             month
         )[1]
-
     )
 
-
-    # =========================
+    # ==========================
     # 현재 달과 겹치는 Todo
-    # =========================
+    # ==========================
 
     calendar_todos = (
 
@@ -830,45 +1444,26 @@ def todo_list(request):
 
         )
 
+        .select_related(
+            'tag'
+        )
+
         .order_by(
-
             'due_date',
-
             'created_at'
-
         )
 
     )
 
-
-    # =========================
-    # 날짜별 일반 Todo
-    # =========================
+    # ==========================
+    # 일반 Todo / 기간 Todo 분리
+    # ==========================
 
     calendar_todos_by_date = {}
 
-
-    # =========================
-    # 기간 Todo
-    # =========================
-
     period_todos = []
 
-
     for todo in calendar_todos:
-
-        todo_start = todo.due_date
-
-        todo_end = (
-
-            todo.end_date
-
-            or
-
-            todo.due_date
-
-        )
-
 
         if todo.end_date:
 
@@ -878,74 +1473,113 @@ def todo_list(request):
 
             continue
 
+        todo_date = todo.due_date
 
         if (
-
             month_start
-
-            <=
-
-            todo_start
-
-            <=
-
-            month_end
-
+            <= todo_date
+            <= month_end
         ):
 
-            date_key = (
-                todo_start.strftime(
-                    '%Y-%m-%d'
-                )
+            date_key = todo_date.strftime(
+                '%Y-%m-%d'
             )
 
-
-            if date_key not in calendar_todos_by_date:
-
-                calendar_todos_by_date[
-                    date_key
-                ] = []
-
+            calendar_todos_by_date.setdefault(
+                date_key,
+                []
+            )
 
             if len(
-
-                calendar_todos_by_date[
-                    date_key
-                ]
-
+                calendar_todos_by_date[date_key]
             ) < 5:
 
                 calendar_todos_by_date[
                     date_key
-                ].append(todo)
+                ].append(
+                    todo
+                )
 
+    # ==========================
+    # 기간 Todo 날짜별 캐싱
+    # ==========================
 
-    # =========================
+    period_todos_by_date = {}
+
+    priority_order = {
+        'H': 1,
+        'M': 2,
+        'L': 3
+    }
+
+    for todo in period_todos:
+
+        current = max(
+            todo.due_date,
+            month_start
+        )
+
+        end = min(
+            todo.end_date,
+            month_end
+        )
+
+        while current <= end:
+
+            date_key = current.strftime(
+                '%Y-%m-%d'
+            )
+
+            period_todos_by_date.setdefault(
+                date_key,
+                []
+            )
+
+            period_todos_by_date[
+                date_key
+            ].append(
+                todo
+            )
+
+            current += timedelta(
+                days=1
+            )
+
+    # ==========================
+    # 기간 Todo 우선순위 정렬
+    # ==========================
+
+    for todo_list in period_todos_by_date.values():
+
+        todo_list.sort(
+
+            key=lambda todo:
+
+                priority_order.get(
+                    todo.priority,
+                    4
+                )
+
+        )
+
+    # ==========================
     # 캘린더 생성
-    # =========================
+    # ==========================
 
     cal = calendar.Calendar(
         firstweekday=6
     )
-
 
     month_days = cal.monthdayscalendar(
         year,
         month
     )
 
-
-    # =========================
-    # 캘린더 데이터
-    # =========================
-
     calendar_data = []
-
 
     for week in month_days:
 
         week_data = []
-
 
         for day in week:
 
@@ -959,12 +1593,11 @@ def todo_list(request):
 
                     'todos': [],
 
-                    'period_todos': [],
+                    'period_todos': []
 
                 })
 
                 continue
-
 
             current_date = date(
                 year,
@@ -972,69 +1605,9 @@ def todo_list(request):
                 day
             )
 
-
-            date_key = (
-                current_date.strftime(
-                    '%Y-%m-%d'
-                )
+            date_key = current_date.strftime(
+                '%Y-%m-%d'
             )
-
-
-            current_period_todos = []
-
-
-            for todo in period_todos:
-
-                if (
-
-                    todo.due_date
-
-                    <=
-
-                    current_date
-
-                    <=
-
-                    todo.end_date
-
-                ):
-
-                    current_period_todos.append(
-                        todo
-                    )
-
-
-            # =========================
-            # 기간 Todo 우선순위
-            # =========================
-
-            current_period_todos.sort(
-
-                key=lambda todo:
-                    {
-                        'H': 1,
-                        'M': 2,
-                        'L': 3,
-                    }.get(
-                        todo.priority,
-                        4
-                    )
-
-            )
-
-
-            current_todos = (
-
-                calendar_todos_by_date.get(
-
-                    date_key,
-
-                    []
-
-                )
-
-            )
-
 
             week_data.append({
 
@@ -1045,56 +1618,54 @@ def todo_list(request):
                     date_key,
 
                 'todos':
-                    current_todos,
+                    calendar_todos_by_date.get(
+                        date_key,
+                        []
+                    ),
 
                 'period_todos':
-                    current_period_todos,
+                    period_todos_by_date.get(
+                        date_key,
+                        []
+                    )
 
             })
-
 
         calendar_data.append(
             week_data
         )
 
-
-    # =========================
+    # ==========================
     # 이전 달
-    # =========================
+    # ==========================
 
     if month == 1:
 
         prev_year = year - 1
-
         prev_month = 12
 
     else:
 
         prev_year = year
-
         prev_month = month - 1
 
-
-    # =========================
+    # ==========================
     # 다음 달
-    # =========================
+    # ==========================
 
     if month == 12:
 
         next_year = year + 1
-
         next_month = 1
 
     else:
 
         next_year = year
-
         next_month = month + 1
 
-
-    # =========================================================
+    # ==========================
     # Context
-    # =========================================================
+    # ==========================
 
     context = {
 
@@ -1110,7 +1681,6 @@ def todo_list(request):
         'selected_completed_todo_ids':
             selected_completed_todo_ids,
 
-
         'someday_todos':
             someday_todos,
 
@@ -1120,12 +1690,23 @@ def todo_list(request):
         'someday_completed_count':
             someday_completed_count,
 
-
         'calendar_data':
             calendar_data,
 
         'calendar_todos_by_date':
             calendar_todos_by_date,
+
+        'user_tags':
+            user_tags,
+
+        'default_tag':
+            default_tag,
+
+        'tag_colors':
+            TAG_COLOR_CHOICES,
+
+        'tag_color_codes':
+            TAG_COLORS,
 
         'year':
             year,
@@ -1136,29 +1717,22 @@ def todo_list(request):
         'month_days':
             month_days,
 
-
         'selected_date':
             selected_date_str,
 
         'selected_date_obj':
             datetime.combine(
-
                 selected_date_obj,
-
                 datetime.min.time()
-
             ),
-
 
         'selected_tag':
             selected_tag,
-
 
         'today_str':
             today.strftime(
                 '%Y-%m-%d'
             ),
-
 
         'prev_year':
             prev_year,
@@ -1172,129 +1746,188 @@ def todo_list(request):
         'next_month':
             next_month,
 
-
         'stats_title':
             stats_title,
 
-        **monthly_stats,
+        **monthly_stats
 
     }
 
-
     return render(
-
         request,
-
         'todos/todo_list.html',
-
         context
-
     )
 
 
-# ============================================================
-# Todo 생성
-# ============================================================
 @login_required(login_url='/login/')
-def todo_create(request):
+@require_POST
+def todo_create(request):  # Todo 생성
 
-    if request.method == 'POST':
+    title = request.POST.get(
+        'title',
+        ''
+    ).strip()
 
-        title = request.POST.get(
-            'title'
-        )
+    due_date_str = request.POST.get(
+        'due_date'
+    )
 
-        due_date = request.POST.get(
-            'due_date'
-        )
+    end_date_str = request.POST.get(
+        'end_date'
+    )
 
-        end_date = request.POST.get(
-            'end_date'
-        )
+    tag_id = request.POST.get(
+        'tag'
+    )
 
-        tag = request.POST.get(
-            'tag'
-        )
-
-        priority = request.POST.get(
-            'priority'
-        )
-
-
-        if not end_date:
-
-            end_date = None
-
-
-        Todo.objects.create(
-
-            user=request.user,
-
-            title=title,
-
-            due_date=due_date,
-
-            end_date=end_date,
-
-            tag=tag,
-
-            priority=priority
-
-        )
-
-
-        current_tag = request.POST.get(
-            'current_tag',
-            ''
-        )
-
-
-        redirect_url = request.POST.get(
-            'return_url',
-            '/'
-        )
-
-
-        if current_tag:
-
-            separator = (
-                '&'
-                if '?' in redirect_url
-                else '?'
-            )
-
-            redirect_url += (
-                f'{separator}tag={current_tag}'
-            )
-
-
-        return redirect(
-            redirect_url
-        )
-
-
-    return redirect(
-        '/'
+    priority = request.POST.get(
+        'priority',
+        'M'
     )
 
 
-# ============================================================
-# Todo 완료 / 미완료
-# ============================================================
+    # ==========================
+    # 제목 확인
+    # ==========================
 
-@login_required(login_url='/login/')
-def todo_toggle(request, todo_id):
-
-    if request.method != 'POST':
+    if not title:
 
         return JsonResponse({
-
+            'success': False,
             'status': 'error',
-
-            'message':
-                '잘못된 요청입니다.'
-
+            'message': '할 일을 입력해주세요.'
         }, status=400)
+
+
+    # ==========================
+    # 시작일 확인
+    # ==========================
+
+    if not due_date_str:
+
+        return JsonResponse({
+            'success': False,
+            'status': 'error',
+            'message': '시작 날짜를 입력해주세요.'
+        }, status=400)
+
+
+    try:
+
+        due_date = datetime.strptime(
+            due_date_str,
+            '%Y-%m-%d'
+        ).date()
+
+    except (TypeError, ValueError):
+
+        return JsonResponse({
+            'success': False,
+            'status': 'error',
+            'message': '시작 날짜가 올바르지 않습니다.'
+        }, status=400)
+
+
+    # ==========================
+    # 종료일 변환
+    # ==========================
+
+    if end_date_str:
+
+        try:
+
+            end_date = datetime.strptime(
+                end_date_str,
+                '%Y-%m-%d'
+            ).date()
+
+        except (TypeError, ValueError):
+
+            return JsonResponse({
+                'success': False,
+                'status': 'error',
+                'message': '종료 날짜가 올바르지 않습니다.'
+            }, status=400)
+
+    else:
+
+        end_date = None
+
+
+    # ==========================
+    # 시작일 / 종료일 관계 확인
+    # ==========================
+
+    if end_date is not None:
+
+        if end_date < due_date:
+
+            return JsonResponse({
+                'success': False,
+                'status': 'error',
+                'message': '종료 날짜는 시작 날짜보다 빠를 수 없습니다.'
+            }, status=400)
+
+
+    # ==========================
+    # 사용자 본인의 태그만 허용
+    # ==========================
+
+    tag = get_object_or_404(
+        Tag,
+        id=tag_id,
+        user=request.user
+    )
+
+
+    # ==========================
+    # Todo 생성
+    # ==========================
+
+    todo = Todo.objects.create(
+
+        user=request.user,
+
+        title=title,
+
+        due_date=due_date,
+
+        end_date=end_date,
+
+        tag=tag,
+
+        priority=priority
+
+    )
+
+
+    # ==========================
+    # 응답
+    # ==========================
+
+    return JsonResponse({
+
+        'success':
+            True,
+
+        'status':
+            'success',
+
+        'message':
+            '할 일이 생성되었습니다.',
+
+        'todo':
+            Get_Todo_Data(
+                todo
+            ),
+
+    })
+
+
+@login_required(login_url='/login/')
+@require_POST
+def todo_toggle(request, todo_id): #Toggle 완료 / 미완료
 
 
     todo = get_object_or_404(
@@ -1308,33 +1941,38 @@ def todo_toggle(request, todo_id):
     )
 
 
-    # =========================
     # 요청 데이터
-    # =========================
 
     try:
 
         data = json.loads(
+
             request.body
+
         )
+
 
         selected_date_str = data.get(
+
             'date'
+
         )
 
+
     except (
+
         json.JSONDecodeError,
+
         AttributeError
+
     ):
 
         selected_date_str = None
 
 
-    # =========================
-    # 선택 날짜
-    # =========================
 
     if selected_date_str:
+
 
         try:
 
@@ -1346,50 +1984,52 @@ def todo_toggle(request, todo_id):
 
             ).date()
 
+
         except ValueError:
+
 
             return JsonResponse({
 
-                'status': 'error',
+                'success':
+                    False,
+
+                'status':
+                    'error',
 
                 'message':
                     '날짜 형식이 올바르지 않습니다.'
 
             }, status=400)
 
+
+
     else:
+
 
         selected_date = todo.due_date
 
 
-    # =========================
-    # 기간 Todo인지 확인
-    # =========================
 
-    is_period_todo = (
-        todo.end_date is not None
-    )
-
-
-    # =========================
+    # ==========================
     # 기간 Todo
-    # =========================
-
-    if is_period_todo:
+    # ==========================
+    if todo.end_date:
 
         if not (
-
             todo.due_date
             <=
             selected_date
             <=
             todo.end_date
-
         ):
 
             return JsonResponse({
 
-                'status': 'error',
+                'success':
+                    False,
+
+                'status':
+                    'error',
 
                 'message':
                     '기간에 포함되지 않은 날짜입니다.'
@@ -1397,47 +2037,46 @@ def todo_toggle(request, todo_id):
             }, status=400)
 
 
-        completion = (
-            TodoCompletion.objects.filter(
+        completion, created = TodoCompletion.objects.get_or_create(
 
-                todo=todo,
+            todo=todo,
 
-                completed_date=selected_date
+            user=request.user,
 
-            ).first()
+            completed_date=selected_date
+
         )
 
 
-        if completion:
+        if created:
+
+            is_completed = True
+
+        else:
 
             completion.delete()
 
             is_completed = False
 
-        else:
 
-            TodoCompletion.objects.create(
-
-                todo=todo,
-
-                completed_date=selected_date
-
-            )
-
-            is_completed = True
-
-
-    # =========================
+    # ==========================
     # 하루 Todo
-    # =========================
+    # ==========================
+
 
     else:
 
+
         if selected_date != todo.due_date:
+
 
             return JsonResponse({
 
-                'status': 'error',
+                'success':
+                    False,
+
+                'status':
+                    'error',
 
                 'message':
                     '잘못된 날짜입니다.'
@@ -1445,30 +2084,31 @@ def todo_toggle(request, todo_id):
             }, status=400)
 
 
-        todo.is_completed = (
-            not todo.is_completed
-        )
+
+        todo.is_completed = not todo.is_completed
 
 
         todo.save(
 
             update_fields=[
+
                 'is_completed'
+
             ]
 
         )
 
 
-        is_completed = (
-            todo.is_completed
-        )
+        is_completed = todo.is_completed
 
 
-    # ==================================================
-    # 선택 날짜 기준 중앙 통계
-    # ==================================================
 
-    selected_date_query = (
+    # ==========================
+    # 선택 날짜 통계
+    # ==========================
+
+
+    selected_query = (
 
         Q(
 
@@ -1491,90 +2131,137 @@ def todo_toggle(request, todo_id):
     )
 
 
-    selected_todos = (
+
+    selected_todos = list(
 
         Todo.objects
 
         .filter(
+
             user=request.user
+
         )
 
         .filter(
-            selected_date_query
+
+            selected_query
+
+        )
+
+        .prefetch_related(
+
+            Prefetch(
+
+                'completions',
+
+                queryset=(
+
+                    TodoCompletion.objects
+
+                    .filter(
+
+                        completed_date=selected_date
+
+                    )
+
+                )
+
+            )
+
         )
 
     )
 
 
-    selected_total_count = (
-        selected_todos.count()
+
+    selected_total_count = len(
+
+        selected_todos
+
     )
 
 
     selected_completed_count = 0
 
 
+
     for current_todo in selected_todos:
+
 
         if current_todo.end_date:
 
-            if TodoCompletion.objects.filter(
 
-                todo=current_todo,
-
-                completed_date=selected_date
-
-            ).exists():
+            if current_todo.completions.exists():
 
                 selected_completed_count += 1
 
-        elif current_todo.is_completed:
 
-            selected_completed_count += 1
+        else:
+
+
+            if current_todo.is_completed:
+
+                selected_completed_count += 1
+
 
 
     selected_incomplete_count = (
 
         selected_total_count
+
         -
+
         selected_completed_count
 
     )
 
 
-    if selected_total_count > 0:
 
-        selected_completion_rate = round(
+    selected_completion_rate = (
+
+        round(
 
             selected_completed_count
+
             /
+
             selected_total_count
+
             *
+
             100
 
         )
 
-    else:
+        if selected_total_count
 
-        selected_completion_rate = 0
+        else 0
 
-
-    # ==================================================
-    # 이번달 통계
-    # ==================================================
-
-    monthly_stats = Get_Monthly_Stats(
-        request.user,
-        selected_date.year,
-        selected_date.month
     )
 
 
-    # =========================
-    # 응답
-    # =========================
+
+    # ==========================
+    # 월 통계
+    # ==========================
+
+
+    monthly_stats = Get_Monthly_Stats(
+
+        request.user,
+
+        selected_date.year,
+
+        selected_date.month
+
+    )
+
+
 
     return JsonResponse({
+
+        'success':
+            True,
 
         'status':
             'success',
@@ -1582,45 +2269,76 @@ def todo_toggle(request, todo_id):
         'is_completed':
             is_completed,
 
+
         'selected_total_count':
             selected_total_count,
+
 
         'selected_completed_count':
             selected_completed_count,
 
+
         'selected_incomplete_count':
             selected_incomplete_count,
+
 
         'selected_completion_rate':
             selected_completion_rate,
 
+
         'monthly_total_count':
-            monthly_stats['total_count'],
+            monthly_stats[
+
+                'total_count'
+
+            ],
+
 
         'monthly_completed_count':
-            monthly_stats['completed_count'],
+            monthly_stats[
+
+                'completed_count'
+
+            ],
+
 
         'monthly_incomplete_count':
-            monthly_stats['incomplete_count'],
+            monthly_stats[
+
+                'incomplete_count'
+
+            ],
+
 
         'monthly_completion_rate':
-            monthly_stats['completion_rate'],
+            monthly_stats[
+
+                'completion_rate'
+
+            ],
+
 
         'monthly_tag_stats':
-            monthly_stats['tag_stats'],
+            monthly_stats[
+
+                'tag_stats'
+
+            ],
+
 
         'monthly_priority_stats':
-            monthly_stats['priority_stats'],
+            monthly_stats[
+
+                'priority_stats'
+
+            ]
 
     })
 
 
-# ============================================================
-# Todo 삭제
-# ============================================================
-
 @login_required(login_url='/login/')
-def todo_delete(request, todo_id):
+@require_POST
+def todo_delete(request, todo_id): #Todo 삭제
 
     todo = get_object_or_404(
 
@@ -1633,154 +2351,320 @@ def todo_delete(request, todo_id):
     )
 
 
-    if request.method == 'POST':
+    todo.delete()
 
-        todo.delete()
+    return JsonResponse({
+        'success': True,
+        'status': 'success',
+        'message': '할 일이 삭제되었습니다.',
+        'todo_id': todo_id,
+    })
 
-
-        return_url = request.POST.get(
-            'return_url'
-        )
-
-
-        if return_url:
-
-            return redirect(
-                return_url
-            )
-
-
-        return redirect(
-
-            request.META.get(
-
-                'HTTP_REFERER',
-
-                '/'
-
-            )
-
-        )
-
-
-    return redirect(
-
-        request.META.get(
-
-            'HTTP_REFERER',
-
-            '/'
-
-        )
-
-    )
-
-
-# ============================================================
-# Todo 수정
-# ============================================================
 
 @login_required(login_url='/login/')
-def todo_edit(request, todo_id):
+@require_POST
+def todo_edit(request, todo_id): # Todo 수정
 
     todo = get_object_or_404(
-
         Todo,
-
         pk=todo_id,
-
         user=request.user
+    )
 
+    title = request.POST.get(
+        'title',
+        ''
+    ).strip()
+
+    tag_id = request.POST.get(
+        'tag'
+    )
+
+    priority = request.POST.get(
+        'priority',
+        'M'
+    )
+
+    schedule_type = request.POST.get(
+        'schedule_type',
+        'single'
+    )
+
+    due_date_string = request.POST.get(
+        'due_date'
+    )
+
+    end_date_string = request.POST.get(
+        'end_date'
     )
 
 
-    if request.method == 'POST':
+    # ============================================================
+    # 기본 검증
+    # ============================================================
 
-        todo.title = request.POST.get(
-            'title'
-        )
+    if not title:
 
-        todo.tag = request.POST.get(
-            'tag'
-        )
-
-        todo.priority = request.POST.get(
-            'priority'
-        )
-
-
-        schedule_type = request.POST.get(
-            'schedule_type',
-            'single'
+        return JsonResponse(
+            {
+                'success': False,
+                'status': 'error',
+                'message': '할 일을 입력해주세요.'
+            },
+            status=400
         )
 
 
-        due_date = request.POST.get(
-            'due_date'
+    # ============================================================
+    # 우선순위 검증
+    # ============================================================
+
+    if priority not in [
+        'H',
+        'M',
+        'L'
+    ]:
+
+        priority = 'M'
+
+
+    # ============================================================
+    # 태그 처리
+    # ============================================================
+
+    if tag_id:
+
+        tag = get_object_or_404(
+            Tag,
+            id=tag_id,
+            user=request.user
+        )
+
+    else:
+
+        tag = Get_User_Default_Tag(
+            request.user
         )
 
 
-        todo.due_date = due_date
+    # ============================================================
+    # 시작일 검증
+    # ============================================================
+
+    if not due_date_string:
+
+        return JsonResponse(
+            {
+                'success': False,
+                'status': 'error',
+                'message': '시작 날짜가 필요합니다.'
+            },
+            status=400
+        )
 
 
-        if schedule_type == 'range':
+    # ============================================================
+    # 날짜 변환
+    # 문자열 상태로 비교하지 않고 Date 객체로 처리
+    # ============================================================
 
-            todo.end_date = request.POST.get(
-                'end_date'
+    try:
+
+        new_due_date = datetime.strptime(
+            due_date_string,
+            '%Y-%m-%d'
+        ).date()
+
+    except ValueError:
+
+        return JsonResponse(
+            {
+                'success': False,
+                'status': 'error',
+                'message': '시작 날짜 형식이 올바르지 않습니다.'
+            },
+            status=400
+        )
+
+
+    new_end_date = None
+
+
+    if schedule_type == 'range':
+
+        if not end_date_string:
+
+            return JsonResponse(
+                {
+                    'success': False,
+                    'status': 'error',
+                    'message': '종료 날짜를 입력해주세요.'
+                },
+                status=400
             )
 
-        else:
 
-            todo.end_date = None
+        try:
 
+            new_end_date = datetime.strptime(
+                end_date_string,
+                '%Y-%m-%d'
+            ).date()
 
-        todo.save()
+        except ValueError:
 
-
-        return_url = request.POST.get(
-            'return_url'
-        )
-
-
-        if return_url:
-
-            return redirect(
-                return_url
+            return JsonResponse(
+                {
+                    'success': False,
+                    'status': 'error',
+                    'message': '종료 날짜 형식이 올바르지 않습니다.'
+                },
+                status=400
             )
 
 
-        return redirect(
+        if new_end_date < new_due_date:
 
-            request.META.get(
-
-                'HTTP_REFERER',
-
-                '/'
-
+            return JsonResponse(
+                {
+                    'success': False,
+                    'status': 'error',
+                    'message': '종료 날짜는 시작 날짜 이후여야 합니다.'
+                },
+                status=400
             )
 
-        )
 
+    # ============================================================
+    # 기존 일정 형태
+    # ============================================================
 
-    return redirect(
-
-        request.META.get(
-
-            'HTTP_REFERER',
-
-            '/'
-
-        )
-
+    before_period = (
+        todo.end_date is not None
     )
 
 
-# ============================================================
-# 통계
-# ============================================================
+    after_period = (
+        new_end_date is not None
+    )
+
+
+    # ============================================================
+    # 기간 → 일반 Todo
+    #
+    # 기존 기간 완료 기록은 더 이상 의미가 없으므로 삭제
+    # ============================================================
+
+    if (
+        before_period
+        and
+        not after_period
+    ):
+
+        TodoCompletion.objects.filter(
+            todo=todo,
+            user=request.user
+        ).delete()
+
+
+    # ============================================================
+    # 일반 Todo → 기간 Todo
+    #
+    # 기존 Todo.is_completed 값은 기간 완료 기록으로
+    # 자동 변환하지 않음.
+    #
+    # 기간 Todo의 완료 상태는 TodoCompletion으로 관리.
+    # ============================================================
+
+    if (
+        not before_period
+        and
+        after_period
+    ):
+
+        todo.is_completed = False
+
+
+    # ============================================================
+    # 기간 Todo → 기간 Todo
+    #
+    # 핵심:
+    #
+    # 기존 완료 기록을 전부 삭제하지 않는다.
+    #
+    # 새 기간에 포함되는 기록:
+    #     유지
+    #
+    # 새 기간 밖으로 밀려난 기록:
+    #     삭제
+    #
+    # 예:
+    #
+    # 기존 26~28
+    # 26 ✓
+    # 27 ✓
+    #
+    # 수정 26~29
+    #
+    # 26 ✓
+    # 27 ✓
+    # 28 -
+    # 29 -
+    #
+    # 기존 완료 기록이 그대로 유지된다.
+    # ============================================================
+
+    if (
+        before_period
+        and
+        after_period
+    ):
+
+        TodoCompletion.objects.filter(
+            todo=todo,
+            user=request.user
+        ).exclude(
+            completed_date__range=[
+                new_due_date,
+                new_end_date
+            ]
+        ).delete()
+
+
+    # ============================================================
+    # Todo 기본 정보 저장
+    # ============================================================
+
+    todo.title = title
+
+    todo.tag = tag
+
+    todo.priority = priority
+
+    todo.due_date = new_due_date
+
+    todo.end_date = new_end_date
+
+
+    todo.save()
+
+
+    # ============================================================
+    # 수정 결과 반환
+    # ============================================================
+
+    return JsonResponse(
+        {
+            'success': True,
+            'status': 'success',
+            'message': '할 일이 수정되었습니다.',
+            'todo': Get_Todo_Data(todo)
+        }
+    )
+
 
 @login_required(login_url='/login/')
-def stats(request):
+def mobile_stats(request): #통계
 
     today = date.today()
 
@@ -1809,9 +2693,13 @@ def stats(request):
 
 
     monthly_stats = Get_Monthly_Stats(
+
         request.user,
+
         year,
+
         month
+
     )
 
 
@@ -1833,7 +2721,9 @@ def stats(request):
     else:
 
         stats_title = (
+
             f'{year}년 {month}월 통계'
+
         )
 
 
@@ -1845,6 +2735,12 @@ def stats(request):
         'selected_date_obj':
             selected_date_obj,
 
+        'tag_colors':
+            TAG_COLOR_CHOICES,
+
+        'tag_color_codes':
+            TAG_COLORS,
+
         'year':
             year,
 
@@ -1853,6 +2749,11 @@ def stats(request):
 
         'stats_title':
             stats_title,
+
+        'user_tags':
+            Get_User_Tags(
+                request.user
+            ),
 
         **monthly_stats,
 
@@ -1863,432 +2764,229 @@ def stats(request):
 
         request,
 
-        'todos/stats.html',
+        'todos/mobile_stats.html',
 
         context
 
     )
 
 
-# ============================================================
-# 월간 통계
-# ============================================================
+def Is_Todo_Completed_For_Period(todo, period_start, period_end): #통계 처리
+    # 일반 Todo
+    if todo.end_date is None:
+        return todo.is_completed
 
-def Get_Monthly_Stats(user, year, month):
-
-    month_start = date(
-
-        year,
-
-        month,
-
-        1
-
+    # 해당 통계 기간과 실제 Todo 기간의 교집합
+    todo_start = max(
+        todo.due_date,
+        period_start
     )
 
+    todo_end = min(
+        todo.end_date,
+        period_end
+    )
+
+    # 겹치는 기간이 없으면 미완료
+    if todo_start > todo_end:
+        return False
+
+    required_days = (
+        todo_end - todo_start
+    ).days + 1
+
+    completed_days = sum(
+        1
+        for completion in todo.completions.all()
+        if (
+            todo_start
+            <= completion.completed_date
+            <= todo_end
+        )
+    )
+
+    return completed_days >= required_days
+
+def Get_Monthly_Stats(user, year, month): #월간 통계
+    month_start = date(
+        year,
+        month,
+        1
+    )
 
     month_end = date(
-
         year,
-
         month,
-
         calendar.monthrange(
-
             year,
-
             month
-
         )[1]
-
     )
 
+    # ==========================
+    # 월간 Todo 조회
+    # ==========================
 
-    # =========================
-    # 해당 사용자 + 해당 월 Todo
-    # =========================
-
-    monthly_todos = (
-
+    monthly_todos = list(
         Todo.objects
-
         .filter(
             user=user
         )
-
         .filter(
-
             due_date__lte=month_end
-
         )
-
         .filter(
-
             Q(
                 end_date__isnull=True
             )
-
             |
-
             Q(
                 end_date__gte=month_start
             )
-
         )
-
+        .select_related(
+            'tag'
+        )
+        .prefetch_related(
+            'completions'
+        )
+        .order_by(
+            'created_at'
+        )
     )
 
-
-    # ==================================================
-    # 기본 통계
-    # ==================================================
-
-    total_count = (
-        monthly_todos.count()
-    )
-
-
-    completed_count = 0
-
+    # ==========================
+    # Todo 완료 상태 계산
+    # ==========================
 
     for todo in monthly_todos:
 
-        if todo.end_date:
-
-            period_start = max(
-
-                todo.due_date,
-
-                month_start
-
-            )
-
-
-            period_end = min(
-
-                todo.end_date,
-
+        todo.period_completed = (
+            Is_Todo_Completed_For_Period(
+                todo,
+                month_start,
                 month_end
-
             )
-
-
-            total_days = (
-
-                period_end
-                -
-                period_start
-
-            ).days + 1
-
-
-            completed_days = (
-
-                TodoCompletion.objects.filter(
-
-                    todo=todo,
-
-                    completed_date__gte=period_start,
-
-                    completed_date__lte=period_end
-
-                ).count()
-
-            )
-
-
-            if (
-
-                total_days > 0
-
-                and
-
-                completed_days >= total_days
-
-            ):
-
-                completed_count += 1
-
-
-        elif todo.is_completed:
-
-            completed_count += 1
-
-
-    incomplete_count = max(
-
-        total_count
-        -
-        completed_count,
-
-        0
-
-    )
-
-
-    if total_count > 0:
-
-        completion_rate = round(
-
-            completed_count
-            /
-            total_count
-            *
-            100
-
         )
 
-    else:
+    # ==========================
+    # 기본 통계
+    # ==========================
 
-        completion_rate = 0
+    total_count = len(
+        monthly_todos
+    )
 
+    completed_count = sum(
+        1
+        for todo in monthly_todos
+        if todo.period_completed
+    )
 
-    # ==================================================
-    # 태그별 통계
-    # ==================================================
+    incomplete_count = (
+        total_count
+        - completed_count
+    )
+
+    completion_rate = (
+        round(
+            completed_count
+            / total_count
+            * 100
+        )
+        if total_count
+        else 0
+    )
+
+    # ==========================
+    # 태그 통계
+    # ==========================
+
+    tag_result = {}
+
+    for todo in monthly_todos:
+
+        tag = todo.tag
+
+        if tag.id not in tag_result:
+
+            tag_result[tag.id] = {
+                'id':
+                    tag.id,
+
+                'name':
+                    tag.name,
+
+                'color':
+                    tag.color,
+
+                'total':
+                    0,
+
+                'completed':
+                    0
+            }
+
+        tag_result[tag.id]['total'] += 1
+
+        if todo.period_completed:
+
+            tag_result[tag.id]['completed'] += 1
 
     tag_stats = []
 
+    for item in tag_result.values():
 
-    tag_list = [
-
-        ('WORK', '업무'),
-
-        ('PERSONAL', '개인'),
-
-        ('HEALTH', '건강'),
-
-        ('STUDY', '공부'),
-
-        ('ETC', '기타'),
-
-    ]
-
-
-    for tag_code, tag_name in tag_list:
-
-        tag_todos = monthly_todos.filter(
-
-            tag=tag_code
-
-        )
-
-
-        tag_total = (
-            tag_todos.count()
-        )
-
-
-        tag_completed = 0
-
-
-        for todo in tag_todos:
-
-            if todo.end_date:
-
-                period_start = max(
-
-                    todo.due_date,
-
-                    month_start
-
-                )
-
-
-                period_end = min(
-
-                    todo.end_date,
-
-                    month_end
-
-                )
-
-
-                total_days = (
-
-                    period_end
-                    -
-                    period_start
-
-                ).days + 1
-
-
-                completed_days = (
-
-                    TodoCompletion.objects.filter(
-
-                        todo=todo,
-
-                        completed_date__gte=period_start,
-
-                        completed_date__lte=period_end
-
-                    ).count()
-
-                )
-
-
-                if (
-
-                    total_days > 0
-
-                    and
-
-                    completed_days >= total_days
-
-                ):
-
-                    tag_completed += 1
-
-
-            elif todo.is_completed:
-
-                tag_completed += 1
-
-
-        if tag_total > 0:
-
-            tag_completion_rate = round(
-
-                tag_completed
-                /
-                tag_total
-                *
-                100
-
+        item['rate'] = (
+            round(
+                item['completed']
+                / item['total']
+                * 100
             )
+            if item['total']
+            else 0
+        )
 
-        else:
+        tag_stats.append(
+            item
+        )
 
-            tag_completion_rate = 0
+    # ==========================
+    # 우선순위 통계
+    # ==========================
 
-
-        tag_stats.append({
-
-            'code':
-                tag_code,
-
-            'name':
-                tag_name,
-
-            'total':
-                tag_total,
-
-            'completed':
-                tag_completed,
-
-            'rate':
-                tag_completion_rate,
-
-        })
-
-
-    # ==================================================
-    # 우선순위별 통계
-    # ==================================================
+    priority_map = {
+        'H': '높음',
+        'M': '보통',
+        'L': '낮음'
+    }
 
     priority_stats = []
 
+    for code, name in priority_map.items():
 
-    priority_list = [
+        priority_todos = [
+            todo
+            for todo in monthly_todos
+            if todo.priority == code
+        ]
 
-        ('H', '높음'),
-
-        ('M', '보통'),
-
-        ('L', '낮음'),
-
-    ]
-
-
-    for priority_code, priority_name in priority_list:
-
-        priority_todos = monthly_todos.filter(
-
-            priority=priority_code
-
+        priority_total = len(
+            priority_todos
         )
 
-
-        priority_total = (
-            priority_todos.count()
+        priority_completed = sum(
+            1
+            for todo in priority_todos
+            if todo.period_completed
         )
-
-
-        priority_completed = 0
-
-
-        for todo in priority_todos:
-
-            if todo.end_date:
-
-                period_start = max(
-
-                    todo.due_date,
-
-                    month_start
-
-                )
-
-
-                period_end = min(
-
-                    todo.end_date,
-
-                    month_end
-
-                )
-
-
-                total_days = (
-
-                    period_end
-                    -
-                    period_start
-
-                ).days + 1
-
-
-                completed_days = (
-
-                    TodoCompletion.objects.filter(
-
-                        todo=todo,
-
-                        completed_date__gte=period_start,
-
-                        completed_date__lte=period_end
-
-                    ).count()
-
-                )
-
-
-                if (
-
-                    total_days > 0
-
-                    and
-
-                    completed_days >= total_days
-
-                ):
-
-                    priority_completed += 1
-
-
-            elif todo.is_completed:
-
-                priority_completed += 1
-
 
         priority_stats.append({
-
             'code':
-                priority_code,
+                code,
 
             'name':
-                priority_name,
+                name,
 
             'total':
                 priority_total,
@@ -2296,11 +2994,23 @@ def Get_Monthly_Stats(user, year, month):
             'completed':
                 priority_completed,
 
+            'rate':
+                (
+                    round(
+                        priority_completed
+                        / priority_total
+                        * 100
+                    )
+                    if priority_total
+                    else 0
+                )
         })
 
+    # ==========================
+    # 결과
+    # ==========================
 
     return {
-
         'total_count':
             total_count,
 
@@ -2317,20 +3027,17 @@ def Get_Monthly_Stats(user, year, month):
             tag_stats,
 
         'priority_stats':
-            priority_stats,
-
+            priority_stats
     }
 
 
-# ============================================================
-# 홈
-# ============================================================
-
 @login_required(login_url='/login/')
-def home(request):
+def home(request): #Mobile Home
 
     today = date.today()
 
+
+    # 오늘 Todo
 
     today_query = (
 
@@ -2360,11 +3067,21 @@ def home(request):
         Todo.objects
 
         .filter(
+
             user=request.user
+
         )
 
         .filter(
+
             today_query
+
+        )
+
+        .select_related(
+
+            'tag'
+
         )
 
         .annotate(
@@ -2372,18 +3089,27 @@ def home(request):
             priority_order=Case(
 
                 When(
+
                     priority='H',
+
                     then=Value(1)
+
                 ),
 
                 When(
+
                     priority='M',
+
                     then=Value(2)
+
                 ),
 
                 When(
+
                     priority='L',
+
                     then=Value(3)
+
                 ),
 
                 default=Value(4),
@@ -2407,15 +3133,21 @@ def home(request):
     )
 
 
+    # 기간 Todo 완료 ID
+
     completed_period_ids = set(
 
-        TodoCompletion.objects.filter(
+        TodoCompletion.objects
+
+        .filter(
 
             todo__user=request.user,
 
             completed_date=today
 
-        ).values_list(
+        )
+
+        .values_list(
 
             'todo_id',
 
@@ -2433,7 +3165,9 @@ def home(request):
             todo.display_completed = (
 
                 todo.id
+
                 in
+
                 completed_period_ids
 
             )
@@ -2441,12 +3175,16 @@ def home(request):
         else:
 
             todo.display_completed = (
+
                 todo.is_completed
+
             )
 
 
     today_total_count = (
+
         today_todos.count()
+
     )
 
 
@@ -2461,16 +3199,22 @@ def home(request):
     )
 
 
-    # ============================================================
     # 언젠가 할 일
-    # ============================================================
 
     someday_todos = (
 
         TodoSomeday.objects
 
         .filter(
+
             user=request.user
+
+        )
+
+        .select_related(
+
+            'tag'
+
         )
 
         .annotate(
@@ -2478,18 +3222,27 @@ def home(request):
             priority_order=Case(
 
                 When(
+
                     priority='H',
+
                     then=Value(1)
+
                 ),
 
                 When(
+
                     priority='M',
+
                     then=Value(2)
+
                 ),
 
                 When(
+
                     priority='L',
+
                     then=Value(3)
+
                 ),
 
                 default=Value(4),
@@ -2514,7 +3267,9 @@ def home(request):
 
 
     someday_total_count = (
+
         someday_todos.count()
+
     )
 
 
@@ -2523,13 +3278,17 @@ def home(request):
         someday_todos
 
         .filter(
+
             is_completed=True
+
         )
 
         .count()
 
     )
 
+
+    # Context
 
     context = {
 
@@ -2553,11 +3312,24 @@ def home(request):
             someday_completed_count,
 
 
+        'user_tags':
+            Get_User_Tags(
+                request.user
+            ),
+
+        'tag_colors':
+            TAG_COLOR_CHOICES,
+
+        'tag_color_codes':
+            TAG_COLORS,
+
         'selected_tag':
             '',
 
         'selected_date':
-            today.strftime('%Y-%m-%d'),
+            today.strftime(
+                '%Y-%m-%d'
+            ),
 
         'selected_date_obj':
             datetime.combine(
@@ -2569,7 +3341,11 @@ def home(request):
             ),
 
         'today_str':
-            today.strftime('%Y-%m-%d'),
+            today.strftime(
+
+                '%Y-%m-%d'
+
+            ),
 
         'year':
             today.year,
@@ -2594,94 +3370,197 @@ def home(request):
     )
 
 
-# ============================================================
-# 언젠가 할 일 목록
-# ============================================================
 @login_required(login_url='/login/')
-def todo_someday_list(request):
+def todo_someday_list(request): #언젠가 할 일 목록
 
     someday_todos = (
+
         TodoSomeday.objects
+
         .filter(
+
             user=request.user
+
         )
+
+        .select_related(
+
+            'tag'
+
+        )
+
         .order_by(
+
             'is_completed',
+
             'priority',
+
             'created_at'
+
         )
+
     )
+
 
     context = {
-        'someday_todos': someday_todos,
+
+        'someday_todos':
+            someday_todos,
+
+        'user_tags':
+            Get_User_Tags(
+                request.user
+            ),
+
     }
 
+
     return render(
+
         request,
+
         'todos/someday.html',
+
         context
+
     )
 
-
-# ============================================================
-# 언젠가 할 일 생성
-# ============================================================
-@login_required(login_url='/login/')
-def todo_someday_create(request):
-
-    if request.method != 'POST':
-
-        return redirect('/')
-
-    title = request.POST.get(
-        'title',
-        ''
-    ).strip()
-
-    tag = request.POST.get(
-        'tag',
-        'WORK'
-    )
-
-    priority = request.POST.get(
-        'priority',
-        'M'
-    )
-
-    if not title:
-
-        return redirect(
-            request.POST.get(
-                'return_url',
-                '/'
-            )
-        )
-
-    TodoSomeday.objects.create(
-        user=request.user,
-        title=title,
-        tag=tag,
-        priority=priority
-    )
-
-    return redirect(
-        request.POST.get(
-            'return_url',
-            '/'
-        )
-    )
-
-
-# ============================================================
-# 언젠가 할 일 완료 / 미완료
-# ============================================================
 
 @login_required(login_url='/login/')
 @require_POST
-def todo_someday_toggle(
-    request,
-    someday_id
-):
+def todo_someday_create(request): #언젠가 할 일 생성
+
+
+    title = request.POST.get(
+
+        'title',
+
+        ''
+
+    ).strip()
+
+
+    tag_id = request.POST.get(
+
+        'tag'
+
+    )
+
+
+    priority = request.POST.get(
+
+        'priority',
+
+        'M'
+
+    )
+
+
+
+    if not title:
+
+
+        return JsonResponse({
+
+            'success':
+                False,
+
+            'status':
+                'error',
+
+            'message':
+                '할 일을 입력해주세요.'
+
+        }, status=400)
+
+
+
+    if priority not in [
+
+        'H',
+
+        'M',
+
+        'L'
+
+    ]:
+
+        priority = 'M'
+
+
+
+    # 태그 처리
+
+    if tag_id:
+
+
+        tag = get_object_or_404(
+
+            Tag,
+
+            id=tag_id,
+
+            user=request.user
+
+        )
+
+
+    else:
+
+
+        tag = Get_User_Default_Tag(
+
+            request.user
+
+        )
+
+
+
+    todo_someday = TodoSomeday.objects.create(
+
+        user=request.user,
+
+        title=title,
+
+        tag=tag,
+
+        priority=priority
+
+    )
+
+
+
+    return JsonResponse({
+
+        'success':
+            True,
+
+        'status':
+            'success',
+
+        'message':
+            '언젠가 할 일이 생성되었습니다.',
+
+        'todo_someday':
+            Get_Todo_Someday_Data(
+
+                todo_someday
+
+            ),
+
+        **Get_Todo_Someday_Counts(
+
+            request.user
+
+        )
+
+    })
+
+
+@login_required(login_url='/login/')
+@require_POST
+def todo_someday_toggle(request, someday_id): #언젠가 할 일 완료 / 미완료
+
 
     todo_someday = get_object_or_404(
 
@@ -2694,49 +3573,38 @@ def todo_someday_toggle(
     )
 
 
+
     todo_someday.is_completed = (
+
         not todo_someday.is_completed
+
     )
 
 
     todo_someday.save(
 
         update_fields=[
+
             'is_completed'
+
         ]
 
     )
 
 
-    someday_total_count = (
-        TodoSomeday.objects
 
-        .filter(
-            user=request.user
-        )
+    counts = Get_Todo_Someday_Counts(
 
-        .count()
-    )
-
-
-    someday_completed_count = (
-
-        TodoSomeday.objects
-
-        .filter(
-
-            user=request.user,
-
-            is_completed=True
-
-        )
-
-        .count()
+        request.user
 
     )
+
 
 
     return JsonResponse({
+
+        'success':
+            True,
 
         'status':
             'success',
@@ -2744,86 +3612,200 @@ def todo_someday_toggle(
         'is_completed':
             todo_someday.is_completed,
 
-        'someday_total_count':
-            someday_total_count,
-
-        'someday_completed_count':
-            someday_completed_count,
+        **counts
 
     })
 
-# ============================================================
-# 언젠가 할 일 삭제
-# ============================================================
 
 @login_required(login_url='/login/')
-def todo_someday_delete(
-    request,
-    someday_id
-):
+@require_POST
+def todo_someday_delete(request, someday_id): #언젠가 할 일 삭제
+
 
     someday_todo = get_object_or_404(
+
         TodoSomeday,
+
         pk=someday_id,
+
         user=request.user
+
     )
 
-    if request.method == 'POST':
 
-        someday_todo.delete()
+    someday_todo.delete()
 
-    return redirect(
-        request.POST.get(
-            'return_url',
-            '/'
+
+
+    return JsonResponse({
+
+        'success':
+            True,
+
+        'status':
+            'success',
+
+        'message':
+            '언젠가 할 일이 삭제되었습니다.',
+
+        'someday_id':
+            someday_id,
+
+        **Get_Todo_Someday_Counts(
+
+            request.user
+
         )
-    )
 
+    })
 
-# ============================================================
-# 언젠가 할 일 수정
-# ============================================================
 
 @login_required(login_url='/login/')
-def todo_someday_edit(
-    request,
-    someday_id
-):
+@require_POST
+def todo_someday_edit(request, someday_id): #언젠가 할 일 수정
+
 
     someday_todo = get_object_or_404(
+
         TodoSomeday,
+
         pk=someday_id,
+
         user=request.user
+
     )
 
-    if request.method == 'POST':
 
-        title = request.POST.get(
+
+    title = request.POST.get(
+
+        'title',
+
+        ''
+
+    ).strip()
+
+
+    tag_id = request.POST.get(
+
+        'tag'
+
+    )
+
+
+    priority = request.POST.get(
+
+        'priority',
+
+        'M'
+
+    )
+
+
+
+    if not title:
+
+
+        return JsonResponse({
+
+            'success':
+                False,
+
+            'status':
+                'error',
+
+            'message':
+                '할 일을 입력해주세요.'
+
+        }, status=400)
+
+
+
+    if priority not in [
+
+        'H',
+
+        'M',
+
+        'L'
+
+    ]:
+
+        priority = 'M'
+
+
+
+    if tag_id:
+
+
+        tag = get_object_or_404(
+
+            Tag,
+
+            id=tag_id,
+
+            user=request.user
+
+        )
+
+
+    else:
+
+
+        tag = Get_User_Default_Tag(
+
+            request.user
+
+        )
+
+
+
+    someday_todo.title = title
+
+    someday_todo.tag = tag
+
+    someday_todo.priority = priority
+
+
+    someday_todo.save(
+
+        update_fields=[
+
             'title',
-            ''
-        ).strip()
 
-        tag = request.POST.get(
             'tag',
-            'WORK'
-        )
 
-        priority = request.POST.get(
-            'priority',
-            'M'
-        )
+            'priority'
 
-        if title:
+        ]
 
-            someday_todo.title = title
-            someday_todo.tag = tag
-            someday_todo.priority = priority
-
-            someday_todo.save()
-
-    return redirect(
-        request.POST.get(
-            'return_url',
-            '/'
-        )
     )
+
+
+
+    return JsonResponse({
+
+        'success':
+            True,
+
+        'status':
+            'success',
+
+        'message':
+            '언젠가 할 일이 수정되었습니다.',
+
+        'todo_someday':
+            Get_Todo_Someday_Data(
+
+                someday_todo
+
+            ),
+
+        **Get_Todo_Someday_Counts(
+
+            request.user
+
+        )
+
+    })
+

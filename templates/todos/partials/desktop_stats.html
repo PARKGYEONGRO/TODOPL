@@ -1,4 +1,4 @@
-<!-- PC 통계 대시보드 -->
+<!-- desktop_stats.html -->
 <aside class="hidden lg:block w-80 h-full border-l border-gray-200 p-6 bg-gray-50/50 overflow-y-auto">
 
     <!-- 통계 제목 -->
@@ -105,15 +105,18 @@
 
             {% for tag in tag_stats %}
 
-            <div id="pc-tag-{{ tag.code }}">
+            <div
+                id="pc-tag-{{ tag.id }}">
                 <div class="flex justify-between items-center mb-1.5">
                 
-                    <span class="text-sm text-gray-600 font-medium">
+                    <span
+                        data-tag-id="{{ tag.id }}"
+                        class="text-sm text-gray-600 font-medium">
                         {{ tag.name }}
                     </span>
                 
                     <span
-                        id="pc-tag-{{ tag.code }}-count"
+                        id="pc-tag-{{ tag.id }}-count"
                         class="text-xs font-bold text-gray-400">
                 
                         {{ tag.completed }}/{{ tag.total }}
@@ -126,7 +129,7 @@
                 <div class="w-full bg-gray-200 h-1 rounded-full overflow-hidden">
                 
                     <div
-                        id="pc-tag-{{ tag.code }}-bar"
+                        id="pc-tag-{{ tag.id }}-bar"
                         class="bg-black h-full rounded-full"
                         style="width: {{ tag.rate }}%;">
                     </div>

@@ -1,4 +1,4 @@
-<!-- 설정 모달 모바일 퍼스트 -->
+<!-- settings_modal.html -->
 <div
     id='settingsModal'
     class='fixed inset-0 z-[60] hidden bg-white/30'
@@ -198,14 +198,15 @@
 
                 <button
                     type='button'
+                    onclick='openTagManagementModal()'
                     class='w-full flex items-center gap-3 px-4 py-4 border border-gray-200 rounded-xl bg-white active:bg-gray-50 transition'>
 
 
                     <div
-                        class='w-8 h-8 rounded-lg bg-green-50 text-green-500 flex items-center justify-center flex-shrink-0'>
+                        class='w-8 h-8 rounded-lg text-[20px] text-green-500 flex items-center justify-center flex-shrink-0'>
 
                         <i
-                            class='fa-regular fa-tag'>
+                            class='fa-solid fa-tags'>
                         </i>
 
                     </div>
@@ -218,7 +219,7 @@
                         <p
                             class='text-sm font-bold text-gray-900'>
 
-                            카테고리 편집
+                            태그 관리
 
                         </p>
 
@@ -226,7 +227,7 @@
                         <p
                             class='text-[11px] text-gray-400 mt-0.5'>
 
-                            태그 추가 · 수정 · 삭제 · 순서 변경
+                            태그 추가 · 수정 · 삭제
 
                         </p>
 
@@ -594,7 +595,6 @@
 
 
                     <!-- 앱 리뷰 -->
-
                     <button
                         type='button'
                         class='w-full flex items-center gap-3 px-4 py-4 text-left active:bg-gray-50 transition'>
@@ -632,7 +632,6 @@
 
 
                     <!-- 문의 -->
-
                     <button
                         type='button'
                         class='w-full flex items-center gap-3 px-4 py-4 text-left border-t border-gray-100 active:bg-gray-50 transition'>
@@ -685,7 +684,7 @@
 
 
                         <div
-                            class='w-8 h-8 rounded-lg text-[20px] text-gray-500 flex items-center justify-center flex-shrink-0'>
+                            class='w-8 h-8 rounded-lg text-xl text-gray-500 flex items-center justify-center flex-shrink-0'>
 
                             <i
                                 class='fa-solid fa-arrow-right-from-bracket'>
@@ -717,7 +716,7 @@
 
 
                         <div
-                            class='w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center flex-shrink-0'>
+                            class='w-8 h-8 rounded-lg text-xl text-red-500 flex items-center justify-center flex-shrink-0'>
 
                             <i
                                 class='fa-regular fa-circle-xmark'>

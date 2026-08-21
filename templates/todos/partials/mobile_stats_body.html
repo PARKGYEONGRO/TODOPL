@@ -137,25 +137,37 @@
 
         {% for tag in tag_stats %}
 
-        <div>
+        <div
+            id="pc-tag-{{ tag.id }}"
+            data-pc-tag-id="{{ tag.id }}">
 
             <div class="flex justify-between items-center mb-1.5">
 
-                <span class="text-xs text-gray-500">
+                <span
+                    data-tag-id="{{ todo.tag.id }}"
+                    class="text-xs text-gray-500">
                     {{ tag.name }}
                 </span>
 
-                <span class="text-xs text-gray-400">
+                <span
+                    id="pc-tag-{{ tag.id }}-count"
+                    class="text-xs text-gray-400">
+
                     {{ tag.completed }}/{{ tag.total }}
+
                 </span>
 
             </div>
 
-            <div class="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
+
+            <div
+                class="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
 
                 <div
+                    id="pc-tag-{{ tag.id }}-bar"
                     class="h-full bg-black rounded-full"
                     style="width: {{ tag.rate }}%;">
+
                 </div>
 
             </div>

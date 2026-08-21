@@ -5,29 +5,33 @@
 -->
 
 <div
-    id="editModal"
-    class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50 p-4">
+    id='editModal'
+    class='fixed inset-0 bg-black/40 hidden items-center justify-center z-50 p-4'>
 
 
     <div
-        class="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl">
+        class='bg-white rounded-2xl w-full max-w-md p-6 shadow-xl'>
 
 
         <!-- 헤더 -->
 
-        <div class="flex justify-between items-center mb-5">
+        <div
+            class='flex justify-between items-center mb-5'>
 
-            <h3 class="text-lg font-bold text-gray-900">
+            <h3
+                class='text-lg font-bold text-gray-900'>
+
                 할 일 수정
+
             </h3>
 
 
             <button
-                type="button"
-                onclick="closeEditModal()"
-                class="text-gray-400 hover:text-gray-600">
+                type='button'
+                onclick='closeEditModal()'
+                class='text-gray-400 hover:text-gray-600'>
 
-                <i class="fa-solid fa-xmark text-xl"></i>
+                <i class='fa-solid fa-xmark text-xl'></i>
 
             </button>
 
@@ -37,9 +41,10 @@
         <!-- 수정 Form -->
 
         <form
-            id="editForm"
-            method="POST"
-            action="">
+            id='editForm'
+            method='POST'
+            action=''
+            data-todo-edit-form>
 
 
             {% csrf_token %}
@@ -48,34 +53,37 @@
             <!-- 현재 화면 상태 유지 -->
 
             <input
-                type="hidden"
-                name="year"
-                value="{{ year }}">
+                type='hidden'
+                name='year'
+                value='{{ year }}'>
 
 
             <input
-                type="hidden"
-                name="month"
-                value="{{ month }}">
+                type='hidden'
+                name='month'
+                value='{{ month }}'>
 
 
             <input
-                type="hidden"
-                name="current_tag"
-                value="{{ selected_tag }}">
+                type='hidden'
+                name='current_tag'
+                value='{{ selected_tag }}'>
+
 
             <input
-                type="hidden"
-                name="date"
-                value="{{ selected_date }}">
+                type='hidden'
+                name='date'
+                value='{{ selected_date }}'>
+
 
             <input
-                type="hidden"
-                name="return_url"
-                value="{{ request.get_full_path }}">
+                type='hidden'
+                name='return_url'
+                value='{{ request.get_full_path }}'>
 
 
-            <div class="space-y-4">
+            <div
+                class='space-y-4'>
 
 
                 <!-- 제목 -->
@@ -83,7 +91,7 @@
                 <div>
 
                     <label
-                        class="block text-xs font-semibold text-gray-500 mb-1">
+                        class='block text-xs font-semibold text-gray-500 mb-1'>
 
                         제목
 
@@ -91,26 +99,26 @@
 
 
                     <input
-                        type="text"
-                        id="edit-title"
-                        name="title"
+                        type='text'
+                        id='edit-title'
+                        name='title'
                         required
-                        class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black">
+                        class='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black'>
 
                 </div>
 
 
                 <!-- 태그 / 우선순위 -->
 
-                <div class="grid grid-cols-2 gap-3">
+                <div
+                    class='grid grid-cols-2 gap-3'>
 
 
                     <!-- 태그 -->
-
                     <div>
 
                         <label
-                            class="block text-xs font-semibold text-gray-500 mb-1">
+                            class='block text-xs font-semibold text-gray-500 mb-1'>
 
                             태그
 
@@ -118,29 +126,38 @@
 
 
                         <select
-                            id="edit-tag"
-                            name="tag"
-                            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black">
+                            id='edit-tag'
+                            name='tag'
+                            required
+                            class='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black'>
 
-                            <option value="PERSONAL">
-                                개인
-                            </option>
 
-                            <option value="WORK">
-                                업무
-                            </option>
+                            {% if user_tags %}
 
-                            <option value="HEALTH">
-                                건강
-                            </option>
+                                {% for tag in user_tags %}
 
-                            <option value="STUDY">
-                                공부
-                            </option>
+                                    <option
+                                        value='{{ tag.id }}'
+                                        data-tag-id="{{ tag.id }}">
 
-                            <option value="ETC">
-                                기타
-                            </option>
+                                        {{ tag.name }}
+
+                                    </option>
+
+                                {% endfor %}
+
+
+                            {% else %}
+
+                                <option
+                                    value='{{ default_etc_tag.id }}'>
+
+                                    기타
+
+                                </option>
+
+                            {% endif %}
+
 
                         </select>
 
@@ -152,7 +169,7 @@
                     <div>
 
                         <label
-                            class="block text-xs font-semibold text-gray-500 mb-1">
+                            class='block text-xs font-semibold text-gray-500 mb-1'>
 
                             우선순위
 
@@ -160,21 +177,25 @@
 
 
                         <select
-                            id="edit-priority"
-                            name="priority"
-                            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black">
+                            id='edit-priority'
+                            name='priority'
+                            class='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black'>
 
-                            <option value="H">
+
+                            <option value='H'>
                                 높음
                             </option>
 
-                            <option value="M">
+
+                            <option value='M'>
                                 보통
                             </option>
 
-                            <option value="L">
+
+                            <option value='L'>
                                 낮음
                             </option>
+
 
                         </select>
 
@@ -188,28 +209,30 @@
                 <div>
 
                     <label
-                        class="block text-xs font-semibold text-gray-500 mb-2">
+                        class='block text-xs font-semibold text-gray-500 mb-2'>
 
                         일정
 
                     </label>
 
 
-                    <div class="flex gap-5 text-sm">
+                    <div
+                        class='flex gap-5 text-sm'>
 
 
                         <!-- 하루 -->
 
                         <label
-                            class="flex items-center gap-1.5 cursor-pointer">
+                            class='flex items-center gap-1.5 cursor-pointer'>
 
                             <input
-                                type="radio"
-                                name="schedule_type"
-                                value="single"
-                                id="edit-schedule-single"
-                                onchange="toggleEditEndDate()"
-                                class="accent-black">
+                                type='radio'
+                                name='schedule_type'
+                                value='single'
+                                id='edit-schedule-single'
+                                onchange='toggleEditEndDate()'
+                                class='accent-black'>
+
 
                             <span>
                                 하루
@@ -221,15 +244,16 @@
                         <!-- 기간 -->
 
                         <label
-                            class="flex items-center gap-1.5 cursor-pointer">
+                            class='flex items-center gap-1.5 cursor-pointer'>
 
                             <input
-                                type="radio"
-                                name="schedule_type"
-                                value="range"
-                                id="edit-schedule-range"
-                                onchange="toggleEditEndDate()"
-                                class="accent-black">
+                                type='radio'
+                                name='schedule_type'
+                                value='range'
+                                id='edit-schedule-range'
+                                onchange='toggleEditEndDate()'
+                                class='accent-black'>
+
 
                             <span>
                                 기간
@@ -244,7 +268,8 @@
 
                 <!-- 날짜 -->
 
-                <div class="grid grid-cols-2 gap-3">
+                <div
+                    class='grid grid-cols-2 gap-3'>
 
 
                     <!-- 시작일 -->
@@ -252,7 +277,7 @@
                     <div>
 
                         <label
-                            class="block text-xs font-semibold text-gray-500 mb-1">
+                            class='block text-xs font-semibold text-gray-500 mb-1'>
 
                             시작일
 
@@ -260,16 +285,18 @@
 
 
                         <div
-                            class="relative cursor-pointer"
+                            class='relative cursor-pointer'
                             onclick="openDatePicker('edit-due_date')">
 
+
                             <input
-                                type="date"
-                                id="edit-due_date"
-                                name="due_date"
+                                type='date'
+                                id='edit-due_date'
+                                name='due_date'
                                 required
                                 onclick="openDatePicker('edit-due_date'); event.stopPropagation();"
-                                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black cursor-pointer">
+                                class='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black cursor-pointer'>
+
 
                         </div>
 
@@ -279,11 +306,12 @@
                     <!-- 종료일 -->
 
                     <div
-                        id="edit-endDateWrapper"
-                        class="hidden">
+                        id='edit-endDateWrapper'
+                        class='hidden'>
+
 
                         <label
-                            class="block text-xs font-semibold text-gray-500 mb-1">
+                            class='block text-xs font-semibold text-gray-500 mb-1'>
 
                             종료일
 
@@ -291,16 +319,20 @@
 
 
                         <div
-                            class="relative cursor-pointer"
+                            class='relative cursor-pointer'
                             onclick="openDatePicker('edit-end_date')">
 
+
                             <input
-                                type="date"
-                                id="edit-end_date"
-                                name="end_date"
+                                type='date'
+                                id='edit-end_date'
+                                name='end_date'
                                 onclick="openDatePicker('edit-end_date'); event.stopPropagation();"
-                                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black cursor-pointer">
+                                class='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black cursor-pointer'>
+
+
                         </div>
+
                     </div>
 
                 </div>
@@ -310,13 +342,14 @@
 
             <!-- 버튼 -->
 
-            <div class="flex gap-2 mt-6">
+            <div
+                class='flex gap-2 mt-6'>
 
 
                 <button
-                    type="button"
-                    onclick="closeEditModal()"
-                    class="flex-1 py-2 text-sm font-medium text-gray-500 bg-gray-100 rounded-lg">
+                    type='button'
+                    onclick='closeEditModal()'
+                    class='flex-1 py-2 text-sm font-medium text-gray-500 bg-gray-100 rounded-lg'>
 
                     취소
 
@@ -324,12 +357,13 @@
 
 
                 <button
-                    type="submit"
-                    class="flex-1 py-2 text-sm font-medium text-white bg-black rounded-lg">
+                    type='submit'
+                    class='flex-1 py-2 text-sm font-medium text-white bg-black rounded-lg'>
 
                     저장
 
                 </button>
+
 
             </div>
 

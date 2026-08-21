@@ -765,8 +765,7 @@
 
                 <button
                     type='submit'
-                    class='login-button'
-                >
+                    class='login-button'>
                     로그인
                 </button>
 
@@ -872,20 +871,21 @@
             .getElementById('loginForm')
             .addEventListener(
                 'submit',
-                function(event) {
+                async function(Event) {
 
-                    event.preventDefault();
+                    Event.preventDefault();
 
 
-                    const email =
+                    const Email =
                         document
                             .getElementById(
                                 'email'
                             )
-                            .value;
+                            .value
+                            .trim();
 
 
-                    const password =
+                    const Password =
                         document
                             .getElementById(
                                 'password'
@@ -893,125 +893,87 @@
                             .value;
 
 
-                    const LoginForm =
-                        document.getElementById(
-                            'loginForm'
+                    try {
+
+                        const FormDataValue =
+                            new FormData();
+
+
+                        FormDataValue.append(
+                            'email',
+                            Email
                         );
 
 
-                    LoginForm.addEventListener(
-                        'submit',
-                        async function(event) {
-
-                            event.preventDefault();
-
-
-                            const Email =
-                                document
-                                    .getElementById(
-                                        'email'
-                                    )
-                                    .value
-                                    .trim();
+                        FormDataValue.append(
+                            'password',
+                            Password
+                        );
 
 
-                            const Password =
-                                document
-                                    .getElementById(
-                                        'password'
-                                    )
-                                    .value;
+                        const Response =
+                            await fetch(
+                                '/login/auth/',
+                                {
+                                    method: 'POST',
 
+                                    headers: {
 
-                            try {
+                                        'X-CSRFToken':
+                                            getCookie(
+                                                'csrftoken'
+                                            )
 
-                                const FormDataValue =
-                                    new FormData();
+                                    },
 
-
-                                FormDataValue.append(
-                                    'email',
-                                    Email
-                                );
-
-
-                                FormDataValue.append(
-                                    'password',
-                                    Password
-                                );
-
-
-                                const Response =
-                                    await fetch(
-                                        '/login/auth/',
-                                        {
-                                            method: 'POST',
-
-                                            headers: {
-                                                'X-CSRFToken':
-                                                    getCookie(
-                                                        'csrftoken'
-                                                    )
-                                            },
-
-                                            body:
-                                                FormDataValue
-                                        }
-                                    );
-
-
-                                const Data =
-                                    await Response.json();
-
-
-                                if (!Data.success) {
-
-                                    alert(
-                                        Data.message
-                                    );
-
-                                    return;
+                                    body:
+                                        FormDataValue
 
                                 }
+                            );
 
 
-                                console.log(
-                                    'Supabase 로그인 성공'
-                                );
-                                window.location.href = '/';
-
-                                /*
-                                    다음 단계:
-                                    Django 세션 연결
-                                */
+                        const Data =
+                            await Response.json();
 
 
-                            }
-                            catch (Error) {
+                        if (!Data.success) {
 
-                                console.error(
-                                    '로그인 오류:',
-                                    Error
-                                );
+                            alert(
+                                Data.message
+                            );
 
-
-                                alert(
-                                    '로그인 중 오류가 발생했습니다.'
-                                );
-
-                            }
+                            return;
 
                         }
-                    );
 
 
-                    /*
-                        추후 Django 로그인 기능 연결
-                    */
+                        console.log(
+                            'Supabase 로그인 성공'
+                        );
+
+
+                        window.location.href =
+                            '/';
+
+
+                    }
+                    catch (Error) {
+
+                        console.error(
+                            '로그인 오류:',
+                            Error
+                        );
+
+
+                        alert(
+                            '로그인 중 오류가 발생했습니다.'
+                        );
+
+                    }
 
                 }
             );
-
 
         /*
             ============================================================

@@ -43,16 +43,18 @@
         <form
             method='POST'
             action='{% url "todo_someday_create" %}'
-            class='space-y-4'>
+            class='space-y-4'
+            onsubmit='event.preventDefault(); SubmitSomedayCreateForm(this);'>
 
             {% csrf_token %}
 
+
+            <!-- 현재 화면 상태 유지 -->
 
             <input
                 type='hidden'
                 name='return_url'
                 value='{{ request.get_full_path }}'>
-
 
 
             <!-- 제목 -->
@@ -92,27 +94,40 @@
 
                 <select
                     name='tag'
+                    required
                     class='w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-black'>
 
-                    <option value='WORK'>
-                        업무
-                    </option>
 
-                    <option value='PERSONAL'>
-                        개인
-                    </option>
+                    {% if user_tags %}
 
-                    <option value='HEALTH'>
-                        건강
-                    </option>
+                        {% for tag in user_tags %}
 
-                    <option value='STUDY'>
-                        공부
-                    </option>
+                            <option
+                                value='{{ tag.id }}'
+                                data-tag-id="{{ tag.id }}"
+                                {% if not selected_tag and forloop.first %}
+                                    selected
+                                {% endif %}>
 
-                    <option value='ETC'>
-                        기타
-                    </option>
+                                {{ tag.name }}
+
+                            </option>
+
+                        {% endfor %}
+
+
+                    {% else %}
+
+                        <option
+                            value='{{ default_etc_tag.id }}'
+                            selected>
+
+                            기타
+
+                        </option>
+
+                    {% endif %}
+
 
                 </select>
 

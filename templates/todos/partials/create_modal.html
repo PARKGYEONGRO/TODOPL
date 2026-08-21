@@ -1,18 +1,16 @@
 <!-- 할 일 추가 모달 -->
+
 <div
     id="createModal"
     class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
 
-
     <div class="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl">
-
 
         <div class="flex justify-between items-center mb-4">
 
             <h3 class="text-lg font-extrabold">
                 새 할 일 추가
             </h3>
-
 
             <button
                 type="button"
@@ -27,6 +25,7 @@
 
 
         <form
+            id="createTodoForm"
             action="{% url 'todo_create' %}"
             method="POST"
             class="space-y-4">
@@ -35,6 +34,7 @@
 
 
             <!-- 현재 화면 상태 유지 -->
+
             <input
                 type="hidden"
                 name="year"
@@ -57,10 +57,14 @@
 
 
             <!-- 제목 -->
+
             <div>
 
-                <label class="block text-xs font-bold text-gray-500 mb-1">
+                <label
+                    class="block text-xs font-bold text-gray-500 mb-1">
+
                     제목
+
                 </label>
 
                 <input
@@ -74,16 +78,20 @@
 
 
             <!-- 일정 유형 -->
+
             <div>
 
-                <label class="block text-xs font-bold text-gray-500 mb-2">
-                    일정
-                </label>
+                <label
+                    class="block text-xs font-bold text-gray-500 mb-2">
 
+                    일정
+
+                </label>
 
                 <div class="flex gap-5 text-sm">
 
-                    <label class="flex items-center gap-1.5 cursor-pointer">
+                    <label
+                        class="flex items-center gap-1.5 cursor-pointer">
 
                         <input
                             type="radio"
@@ -100,7 +108,8 @@
                     </label>
 
 
-                    <label class="flex items-center gap-1.5 cursor-pointer">
+                    <label
+                        class="flex items-center gap-1.5 cursor-pointer">
 
                         <input
                             type="radio"
@@ -121,20 +130,25 @@
 
 
             <!-- 날짜 -->
+
             <div class="grid grid-cols-2 gap-3">
 
 
                 <!-- 시작일 -->
+
                 <div>
 
-                    <label class="block text-xs font-bold text-gray-500 mb-1">
+                    <label
+                        class="block text-xs font-bold text-gray-500 mb-1">
+
                         시작일
+
                     </label>
 
                     <div
                         class="relative cursor-pointer"
                         onclick="openDatePicker('dueDateInput')">
-                                    
+
                         <input
                             type="date"
                             id="dueDateInput"
@@ -143,34 +157,38 @@
                             value="{{ selected_date }}"
                             onclick="openDatePicker('dueDateInput'); event.stopPropagation();"
                             class="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-black cursor-pointer">
-                                    
+
                     </div>
 
                 </div>
 
 
                 <!-- 종료일 -->
+
                 <div
                     id="endDateWrapper"
                     class="hidden">
 
-                    <label class="block text-xs font-bold text-gray-500 mb-1">
+                    <label
+                        class="block text-xs font-bold text-gray-500 mb-1">
+
                         종료일
+
                     </label>
-                
+
                     <div
                         class="relative cursor-pointer"
                         onclick="openDatePicker('endDateInput')">
-                
+
                         <input
                             type="date"
                             id="endDateInput"
                             name="end_date"
                             onclick="openDatePicker('endDateInput'); event.stopPropagation();"
                             class="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-black cursor-pointer">
-                
+
                     </div>
-                
+
                 </div>
 
             </div>
@@ -179,19 +197,45 @@
             <!-- 태그 -->
             <div>
 
-                <label class="block text-xs font-bold text-gray-500 mb-1">
+                <label
+                    class="block text-xs font-bold text-gray-500 mb-1">
+
                     태그
+
                 </label>
+
 
                 <select
                     name="tag"
+                    required
                     class="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-black">
 
-                    <option value="WORK">업무</option>
-                    <option value="PERSONAL">개인</option>
-                    <option value="HEALTH">건강</option>
-                    <option value="STUDY">공부</option>
-                    <option value="ETC">기타</option>
+                    {% if user_tags %}
+
+                        {% for tag in user_tags %}
+
+                            <option
+                                value="{{ tag.id }}"
+                                data-tag-id="{{ tag.id }}"
+                                {% if selected_tag == tag.id|stringformat:'s' %}
+                                    selected
+                                {% elif not selected_tag and forloop.first %}
+                                    selected
+                                {% endif %}>
+
+                                {{ tag.name }}
+
+                            </option>
+
+                        {% endfor %}
+
+                    {% else %}
+
+                        <option value="{{ default_etc_tag.id }}" selected>
+                            기타
+                        </option>
+
+                    {% endif %}
 
                 </select>
 
@@ -199,16 +243,20 @@
 
 
             <!-- 우선순위 -->
+
             <div>
 
-                <label class="block text-xs font-bold text-gray-500 mb-1">
-                    우선순위
-                </label>
+                <label
+                    class="block text-xs font-bold text-gray-500 mb-1">
 
+                    우선순위
+
+                </label>
 
                 <div class="flex gap-4 text-sm mt-1">
 
-                    <label class="flex items-center gap-1 cursor-pointer">
+                    <label
+                        class="flex items-center gap-1 cursor-pointer">
 
                         <input
                             type="radio"
@@ -223,7 +271,8 @@
                     </label>
 
 
-                    <label class="flex items-center gap-1 cursor-pointer">
+                    <label
+                        class="flex items-center gap-1 cursor-pointer">
 
                         <input
                             type="radio"
@@ -239,15 +288,16 @@
                     </label>
 
 
-                    <label class="flex items-center gap-1 cursor-pointer">
+                    <label
+                        class="flex items-center gap-1 cursor-pointer">
 
                         <input
                             type="radio"
                             name="priority"
                             value="L"
-                            class="accent-gray-400">
+                            class="accent-green-400">
 
-                        <span class="text-gray-400 font-bold">
+                        <span class="text-green-400 font-bold">
                             낮음(L)
                         </span>
 
@@ -259,6 +309,7 @@
 
 
             <!-- 버튼 -->
+
             <div class="flex justify-end gap-2 pt-3">
 
                 <button
