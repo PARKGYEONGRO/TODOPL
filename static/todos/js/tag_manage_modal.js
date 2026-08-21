@@ -22,32 +22,22 @@ function Get_Tag_Element(ElementId) {
 
 function Get_Csrf_Token(Form = null) {
 
-    /*
-        전달받은 Form 안에서 먼저 찾음
-    */
-
     if (Form) {
 
-        const CsrfInput =
+        const FormCsrfInput =
             Form.querySelector(
                 'input[name="csrfmiddlewaretoken"]'
             );
 
 
-        if (CsrfInput) {
+        if (FormCsrfInput) {
 
-            return CsrfInput.value;
+            return FormCsrfInput.value;
 
         }
 
     }
 
-
-    /*
-        Form이 없거나
-        Form 안에서 찾지 못한 경우
-        전체 문서에서 검색
-    */
 
     const CsrfInput =
         document.querySelector(
@@ -68,7 +58,7 @@ function Get_Csrf_Token(Form = null) {
 
 
 /* ============================================================
-   모달 표시
+   모달 표시 / 숨김 공통 함수
    ============================================================ */
 
 function Show_Tag_Modal(Modal) {
@@ -84,17 +74,12 @@ function Show_Tag_Modal(Modal) {
         'hidden'
     );
 
-
     Modal.classList.add(
         'flex'
     );
 
 }
 
-
-/* ============================================================
-   모달 숨김
-   ============================================================ */
 
 function Hide_Tag_Modal(Modal) {
 
@@ -109,7 +94,6 @@ function Hide_Tag_Modal(Modal) {
         'hidden'
     );
 
-
     Modal.classList.remove(
         'flex'
     );
@@ -120,6 +104,7 @@ function Hide_Tag_Modal(Modal) {
 /* ============================================================
    태그 관리 모달 열기
    ============================================================ */
+
 function openTagManagementModal() {
 
     const TagManagementModal =
@@ -154,6 +139,7 @@ function openTagManagementModal() {
 /* ============================================================
    태그 관리 모달 닫기
    ============================================================ */
+
 function closeTagManagementModal() {
 
     const TagManagementModal =
@@ -182,6 +168,8 @@ function closeTagManagementModal() {
     document.body.classList.remove(
         'overflow-hidden'
     );
+
+    window.location.reload();
 
 }
 
@@ -237,10 +225,6 @@ function openTagEditModal(
     }
 
 
-    /*
-        수정 URL
-    */
-
     Form.action =
         '/tag/update/'
         +
@@ -249,17 +233,9 @@ function openTagEditModal(
         '/';
 
 
-    /*
-        태그 이름
-    */
-
     NameInput.value =
         TagName || '';
 
-
-    /*
-        기존 색상 선택
-    */
 
     const ColorInputs =
         Form.querySelectorAll(
@@ -277,7 +253,8 @@ function openTagEditModal(
             const IsSelected =
                 String(
                     ColorInput.value
-                ) ===
+                )
+                ===
                 String(
                     TagColor || ''
                 );
@@ -297,11 +274,6 @@ function openTagEditModal(
         }
     );
 
-
-    /*
-        기존 색상이 없으면
-        gray를 기본값으로 선택
-    */
 
     if (!IsColorSelected) {
 
@@ -323,11 +295,6 @@ function openTagEditModal(
 
     Show_Tag_Modal(
         Modal
-    );
-
-
-    document.body.classList.add(
-        'overflow-hidden'
     );
 
 }
@@ -402,10 +369,6 @@ function openTagDeleteModal(
     }
 
 
-    /*
-        삭제 URL
-    */
-
     Form.action =
         '/tag/delete/'
         +
@@ -414,21 +377,12 @@ function openTagDeleteModal(
         '/';
 
 
-    /*
-        태그 이름
-    */
-
     NameElement.textContent =
         TagName || '';
 
 
     Show_Tag_Modal(
         Modal
-    );
-
-
-    document.body.classList.add(
-        'overflow-hidden'
     );
 
 }
@@ -457,19 +411,13 @@ function closeTagDeleteModal() {
    서버 응답 JSON 안전하게 읽기
    ============================================================ */
 
-async function Read_Json_Response(
-    Response
-) {
+async function Read_Json_Response(Response) {
 
     const ContentType =
         Response.headers.get(
             'content-type'
         ) || '';
 
-
-    /*
-        JSON 응답
-    */
 
     if (
         ContentType.includes(
@@ -481,11 +429,6 @@ async function Read_Json_Response(
 
     }
 
-
-    /*
-        JSON이 아닌 경우
-        서버에서 반환한 내용을 확인
-    */
 
     const Text =
         await Response.text();
@@ -510,7 +453,479 @@ async function Read_Json_Response(
 
 
 /* ============================================================
+   태그 ID 문자열 변환
+   ============================================================ */
+
+function Get_Tag_Id(TagId) {
+
+    return String(
+        TagId
+        ||
+        ''
+    );
+
+}
+
+
+/* ============================================================
+   태그 필터 이름 요소 가져오기
+   ============================================================ */
+
+function Get_Tag_Filter_Name_Element(FilterElement) {
+
+    if (!FilterElement) {
+
+        return null;
+
+    }
+
+
+    return FilterElement.querySelector(
+        '[data-tag-filter-name]'
+    );
+
+}
+
+
+/* ============================================================
+   태그 수정 DOM 공통 갱신
+
+   모든 태그 표시 요소:
+   data-tag-id="{{ todo.tag.id }}"
+
+   모든 태그 필터:
+   data-tag-filter-item
+   data-tag-filter-id="{{ tag.id }}"
+   data-tag-filter-name
+   ============================================================ */
+
+function Update_Tag_Dom(TagData) {
+
+    if (!TagData) {
+
+        return;
+
+    }
+
+
+    const TagId =
+        Get_Tag_Id(
+            TagData.id
+        );
+
+
+    const TagName =
+        TagData.name
+        ||
+        '기타';
+
+
+    if (!TagId) {
+
+        return;
+
+    }
+
+
+    document
+        .querySelectorAll(
+            '[data-tag-id]'
+        )
+        .forEach(
+            function(TagElement) {
+
+                const ElementTagId =
+                    Get_Tag_Id(
+                        TagElement.dataset.tagId
+                    );
+
+
+                if (
+                    ElementTagId !==
+                    TagId
+                ) {
+
+                    return;
+
+                }
+
+
+                TagElement.textContent =
+                    TagName;
+
+            }
+        );
+
+
+    document
+        .querySelectorAll(
+            '[data-tag-filter-item]'
+        )
+        .forEach(
+            function(FilterElement) {
+
+                const FilterTagId =
+                    Get_Tag_Id(
+                        FilterElement.dataset.tagFilterId
+                    );
+
+
+                if (
+                    FilterTagId !==
+                    TagId
+                ) {
+
+                    return;
+
+                }
+
+
+                const NameElement =
+                    Get_Tag_Filter_Name_Element(
+                        FilterElement
+                    );
+
+
+                if (NameElement) {
+
+                    NameElement.textContent =
+                        TagName;
+
+                    return;
+
+                }
+
+
+                FilterElement.textContent =
+                    TagName;
+
+            }
+        );
+
+}
+
+
+/* ============================================================
+   태그 필터 추가
+   ============================================================ */
+
+function Add_Tag_Filter_Dom(TagData) {
+
+    if (!TagData) {
+
+        return;
+
+    }
+
+
+    const TagId =
+        Get_Tag_Id(
+            TagData.id
+        );
+
+
+    const TagName =
+        TagData.name
+        ||
+        '기타';
+
+
+    if (!TagId) {
+
+        return;
+
+    }
+
+
+    let IsAlreadyAdded =
+        false;
+
+
+    document
+        .querySelectorAll(
+            '[data-tag-filter-item]'
+        )
+        .forEach(
+            function(FilterElement) {
+
+                const FilterTagId =
+                    Get_Tag_Id(
+                        FilterElement.dataset.tagFilterId
+                    );
+
+
+                if (
+                    FilterTagId !==
+                    TagId
+                ) {
+
+                    return;
+
+                }
+
+
+                IsAlreadyAdded =
+                    true;
+
+            }
+        );
+
+
+    if (IsAlreadyAdded) {
+
+        Update_Tag_Dom(
+            TagData
+        );
+
+        return;
+
+    }
+
+
+    const ExistingFilter =
+        document.querySelector(
+            '[data-tag-filter-item]'
+        );
+
+
+    const FilterList =
+        document.querySelector(
+            '[data-tag-filter-list]'
+        )
+        ||
+        (
+            ExistingFilter
+            ?
+            ExistingFilter.parentElement
+            :
+            null
+        );
+
+
+    if (!FilterList) {
+
+        return;
+
+    }
+
+
+    let NewFilter;
+
+
+    if (ExistingFilter) {
+
+        NewFilter =
+            ExistingFilter.cloneNode(
+                true
+            );
+
+
+        const Url =
+            new URL(
+                window.location.href
+            );
+
+
+        Url.searchParams.set(
+            'tag',
+            TagId
+        );
+
+
+        NewFilter.href =
+            Url.toString();
+
+    } else {
+
+        NewFilter =
+            document.createElement(
+                'a'
+            );
+
+
+        const Url =
+            new URL(
+                window.location.href
+            );
+
+
+        Url.searchParams.set(
+            'tag',
+            TagId
+        );
+
+
+        NewFilter.href =
+            Url.toString();
+
+
+        NewFilter.className =
+            'px-2.5 py-1 rounded text-sm font-medium transition-colors bg-gray-100 text-gray-600 hover:bg-gray-200';
+
+    }
+
+
+    NewFilter.setAttribute(
+        'data-tag-filter-item',
+        ''
+    );
+
+
+    NewFilter.dataset.tagFilterId =
+        TagId;
+
+
+    const NameElement =
+        Get_Tag_Filter_Name_Element(
+            NewFilter
+        );
+
+
+    if (NameElement) {
+
+        NameElement.textContent =
+            TagName;
+
+    } else {
+
+        NewFilter.textContent =
+            TagName;
+
+    }
+
+
+    FilterList.appendChild(
+        NewFilter
+    );
+
+}
+
+
+/* ============================================================
+   태그 삭제 DOM 공통 갱신
+
+   - 같은 data-tag-id를 가진 모든 표시 요소 → 기타
+   - data-tag-id 제거
+   - 수정 버튼 등에 남아 있는 data-tag 제거
+   - 해당 태그 필터 제거
+   ============================================================ */
+
+function Remove_Tag_Dom(DeletedTagId) {
+
+    const TagId =
+        Get_Tag_Id(
+            DeletedTagId
+        );
+
+
+    if (!TagId) {
+
+        return;
+
+    }
+
+
+    document
+        .querySelectorAll(
+            '[data-tag-id]'
+        )
+        .forEach(
+            function(TagElement) {
+
+                const ElementTagId =
+                    Get_Tag_Id(
+                        TagElement.dataset.tagId
+                    );
+
+
+                if (
+                    ElementTagId !==
+                    TagId
+                ) {
+
+                    return;
+
+                }
+
+
+                TagElement.textContent =
+                    '기타';
+
+
+                TagElement.removeAttribute(
+                    'data-tag-id'
+                );
+
+            }
+        );
+
+
+    document
+        .querySelectorAll(
+            '[data-tag]'
+        )
+        .forEach(
+            function(TagElement) {
+
+                const ElementTagId =
+                    Get_Tag_Id(
+                        TagElement.dataset.tag
+                    );
+
+
+                if (
+                    ElementTagId !==
+                    TagId
+                ) {
+
+                    return;
+
+                }
+
+
+                TagElement.removeAttribute(
+                    'data-tag'
+                );
+
+            }
+        );
+
+
+    document
+        .querySelectorAll(
+            '[data-tag-filter-item]'
+        )
+        .forEach(
+            function(FilterElement) {
+
+                const FilterTagId =
+                    Get_Tag_Id(
+                        FilterElement.dataset.tagFilterId
+                    );
+
+
+                if (
+                    FilterTagId !==
+                    TagId
+                ) {
+
+                    return;
+
+                }
+
+
+                FilterElement.remove();
+
+            }
+        );
+
+}
+
+
+/* ============================================================
    태그 목록 갱신
+
+   태그 관리 모달 내부 목록 갱신 전용
    ============================================================ */
 
 async function Refresh_Tag_List() {
@@ -592,35 +1007,18 @@ async function Refresh_Tag_List() {
         }
 
 
-        /*
-            현재 태그 관리 모달 내용 교체
-
-            중요:
-            tagManagementModal 자체를 교체하지 않고
-            내부 내용만 교체한다.
-        */
-
         Modal.innerHTML =
             NewModal.innerHTML;
 
-
-        /*
-            모달 열린 상태 유지
-        */
 
         Show_Tag_Modal(
             Modal
         );
 
 
-        /*
-            배경 스크롤 잠금 유지
-        */
-
         document.body.classList.add(
             'overflow-hidden'
         );
-
 
     } catch (Error) {
 
@@ -665,10 +1063,6 @@ async function Submit_Tag_Create(Form) {
 
 
     if (!CsrfToken) {
-
-        console.error(
-            'CSRF Token을 찾을 수 없습니다.'
-        );
 
         alert(
             '보안 토큰을 찾을 수 없습니다. 페이지를 새로고침해 주세요.'
@@ -738,16 +1132,17 @@ async function Submit_Tag_Create(Form) {
         }
 
 
-        /*
-            입력값 초기화
-        */
+        if (Data.tag) {
+
+            Add_Tag_Filter_Dom(
+                Data.tag
+            );
+
+        }
+
 
         Form.reset();
 
-
-        /*
-            gray 기본 선택
-        */
 
         const GrayInput =
             Form.querySelector(
@@ -763,28 +1158,7 @@ async function Submit_Tag_Create(Form) {
         }
 
 
-        /*
-            새로 생성된 태그를
-            태그 필터에도 즉시 반영
-        */
-        const CreatedTag =
-            Data.tag;
-
-        if (CreatedTag) {
-
-            Update_Tag_Filter_Dom(
-                CreatedTag
-            );
-
-        }
-
-
-        /*
-            태그 목록 갱신
-        */
-
         await Refresh_Tag_List();
-
 
     } catch (Error) {
 
@@ -803,11 +1177,10 @@ async function Submit_Tag_Create(Form) {
 }
 
 
-/*
-============================================================
-태그 수정
-============================================================
-*/
+/* ============================================================
+   태그 수정
+   ============================================================ */
+
 async function Submit_Tag_Update(Form) {
 
     if (!Form) {
@@ -831,10 +1204,6 @@ async function Submit_Tag_Update(Form) {
 
     if (!CsrfToken) {
 
-        console.error(
-            'CSRF Token을 찾을 수 없습니다.'
-        );
-
         alert(
             '보안 토큰을 찾을 수 없습니다. 페이지를 새로고침해 주세요.'
         );
@@ -879,15 +1248,23 @@ async function Submit_Tag_Update(Form) {
 
 
         if (
+
             !Response.ok
+
             ||
+
             !Data.success
+
         ) {
 
             alert(
+
                 Data.message
+
                 ||
+
                 '태그 수정에 실패했습니다.'
+
             );
 
             return;
@@ -895,17 +1272,9 @@ async function Submit_Tag_Update(Form) {
         }
 
 
-        /*
-            태그 수정 성공
-
-            현재 페이지의
-            Todo / Someday / 태그 필터를
-            전부 즉시 갱신
-        */
-
         if (Data.tag) {
 
-            Update_Tag_Usage_Dom(
+            Update_Tag_Dom(
                 Data.tag
             );
 
@@ -917,13 +1286,13 @@ async function Submit_Tag_Update(Form) {
 
         await Refresh_Tag_List();
 
-
     } catch (Error) {
 
         console.error(
             '태그 수정 오류:',
             Error
         );
+
 
         alert(
             '태그 수정 중 오류가 발생했습니다.'
@@ -936,7 +1305,8 @@ async function Submit_Tag_Update(Form) {
 
 /* ============================================================
    태그 삭제
-============================================================ */
+   ============================================================ */
+
 async function Submit_Tag_Delete(Form) {
 
     if (!Form) {
@@ -960,10 +1330,6 @@ async function Submit_Tag_Delete(Form) {
 
     if (!CsrfToken) {
 
-        console.error(
-            'CSRF Token을 찾을 수 없습니다.'
-        );
-
         alert(
             '보안 토큰을 찾을 수 없습니다. 페이지를 새로고침해 주세요.'
         );
@@ -1008,15 +1374,23 @@ async function Submit_Tag_Delete(Form) {
 
 
         if (
+
             !Response.ok
+
             ||
+
             !Data.success
+
         ) {
 
             alert(
+
                 Data.message
+
                 ||
+
                 '태그 삭제에 실패했습니다.'
+
             );
 
             return;
@@ -1025,34 +1399,16 @@ async function Submit_Tag_Delete(Form) {
 
 
         const DeletedTagId =
-            String(
+            Get_Tag_Id(
                 Data.tag_id
                 ||
-                ''
+                Data.deleted_tag_id
             );
 
 
-        /*
-            Todo / Someday Todo
-            삭제된 태그 → 기타
-        */
-
         if (DeletedTagId) {
 
-            Update_Tag_Usage_After_Delete(
-                DeletedTagId
-            );
-
-        }
-
-
-        /*
-            태그 필터에서 삭제된 태그 제거
-        */
-
-        if (DeletedTagId) {
-
-            Remove_Tag_Filter_Dom(
+            Remove_Tag_Dom(
                 DeletedTagId
             );
 
@@ -1064,7 +1420,6 @@ async function Submit_Tag_Delete(Form) {
 
         await Refresh_Tag_List();
 
-
     } catch (Error) {
 
         console.error(
@@ -1072,344 +1427,12 @@ async function Submit_Tag_Delete(Form) {
             Error
         );
 
+
         alert(
             '태그 삭제 중 오류가 발생했습니다.'
         );
 
     }
-
-}
-
-
-/*
-============================================================
-태그 변경 후 Todo / Someday / 태그 필터 즉시 갱신
-============================================================
-*/
-function Update_Tag_Usage_Dom(TagData) {
-
-    if (!TagData) {
-
-        return;
-
-    }
-
-
-    const TagId =
-        String(
-            TagData.id
-        );
-
-
-    const TagName =
-        TagData.name
-        ||
-        '기본';
-
-
-    /*
-    ========================================================
-    Todo / Someday Todo 태그 이름 갱신
-    ========================================================
-    */
-
-    document
-        .querySelectorAll(
-            '[data-todo-tag], [data-someday-tag]'
-        )
-        .forEach(
-            function(TagElement) {
-
-                const ElementTagId =
-                    String(
-                        TagElement.dataset.tagId
-                        ||
-                        ''
-                    );
-
-
-                if (
-                    ElementTagId !==
-                    TagId
-                ) {
-
-                    return;
-
-                }
-
-
-                TagElement.textContent =
-                    TagName;
-
-            }
-        );
-
-
-    /*
-    ========================================================
-    태그 필터 이름 갱신
-    ========================================================
-    */
-
-    document
-        .querySelectorAll(
-            '[data-tag-filter-item]'
-        )
-        .forEach(
-            function(FilterElement) {
-
-                const FilterTagId =
-                    String(
-                        FilterElement.dataset.tagFilterId
-                        ||
-                        ''
-                    );
-
-
-                if (
-                    FilterTagId !==
-                    TagId
-                ) {
-
-                    return;
-
-                }
-
-
-                const FilterNameElement =
-                    FilterElement.querySelector(
-                        '[data-tag-filter-name]'
-                    );
-
-
-                if (!FilterNameElement) {
-
-                    return;
-
-                }
-
-
-                FilterNameElement.textContent =
-                    TagName;
-
-            }
-        );
-
-}
-
-/*
-============================================================
-태그 삭제 후 Todo / Someday Todo 갱신
-============================================================
-*/
-function Update_Tag_Usage_After_Delete(
-    DeletedTagId
-) {
-
-    if (!DeletedTagId) {
-
-        return;
-
-    }
-
-
-    const TagId =
-        String(
-            DeletedTagId
-        );
-
-
-    document
-        .querySelectorAll(
-            '[data-todo-tag], [data-someday-tag]'
-        )
-        .forEach(
-            function(TagElement) {
-
-                const ElementTagId =
-                    String(
-                        TagElement.dataset.tagId
-                        ||
-                        ''
-                    );
-
-
-                if (
-                    ElementTagId !==
-                    TagId
-                ) {
-
-                    return;
-
-                }
-
-
-                /*
-                    삭제된 태그를
-                    기본 태그 '기타'로 표시
-                */
-
-                TagElement.textContent =
-                    '기타';
-
-
-                /*
-                    이제 이 요소는
-                    삭제된 태그 ID를 더 이상
-                    가지고 있지 않도록 초기화
-                */
-
-                TagElement.dataset.tagId =
-                    '';
-
-            }
-        );
-
-}
-
-
-// ============================================================
-// 태그 필터 DOM 즉시 갱신
-// ============================================================
-function Update_Tag_Filter_Dom(TagData) {
-
-    if (!TagData) {
-
-        return;
-
-    }
-
-
-    const TagId =
-        String(
-            TagData.id
-        );
-
-
-    const TagName =
-        TagData.name
-        ||
-        '기타';
-
-
-    const FilterList =
-        document.querySelector(
-            '[data-tag-filter-list]'
-        );
-
-
-    if (!FilterList) {
-
-        return;
-
-    }
-
-
-    /*
-        이미 존재하는 태그인지 확인
-    */
-
-    const ExistingTag =
-        FilterList.querySelector(
-            `[data-tag-filter-item][data-tag-filter-id="${TagId}"]`
-        );
-
-
-    if (ExistingTag) {
-
-        ExistingTag.textContent =
-            TagName;
-
-        return;
-
-    }
-
-
-    /*
-        현재 URL을 기준으로
-        새 태그 필터 링크 생성
-    */
-
-    const Url =
-        new URL(
-            window.location.href
-        );
-
-
-    Url.searchParams.set(
-        'tag',
-        TagId
-    );
-
-
-    /*
-        새 태그 필터 생성
-    */
-
-    const TagElement =
-        document.createElement(
-            'a'
-        );
-
-
-    TagElement.href =
-        Url.toString();
-
-
-    TagElement.setAttribute(
-        'data-tag-filter-item',
-        ''
-    );
-
-
-    TagElement.setAttribute(
-        'data-tag-filter-id',
-        TagId
-    );
-
-
-    TagElement.className =
-        'px-2.5 py-1 rounded text-sm font-medium transition-colors ' +
-        'bg-gray-100 text-gray-600 hover:bg-gray-200';
-
-
-    TagElement.textContent =
-        TagName;
-
-
-    FilterList.appendChild(
-        TagElement
-    );
-
-}
-
-
-// ============================================================
-// 태그 필터에서 태그 제거
-// ============================================================
-function Remove_Tag_Filter_Dom(TagId) {
-
-    if (!TagId) {
-
-        return;
-
-    }
-
-
-    const FilterElement =
-        document.querySelector(
-            `[data-tag-filter-item][data-tag-filter-id="${TagId}"]`
-        );
-
-
-    if (!FilterElement) {
-
-        return;
-
-    }
-
-
-    FilterElement.remove();
 
 }
 
@@ -1425,17 +1448,6 @@ document.addEventListener(
         const Form =
             Event.target;
 
-
-        if (!Form) {
-
-            return;
-
-        }
-
-
-        /*
-            태그 추가
-        */
 
         if (
             Form.matches(
@@ -1456,10 +1468,6 @@ document.addEventListener(
         }
 
 
-        /*
-            태그 수정
-        */
-
         if (
             Form.id ===
             'tagEditForm'
@@ -1478,10 +1486,6 @@ document.addEventListener(
         }
 
 
-        /*
-            태그 삭제
-        */
-
         if (
             Form.id ===
             'tagDeleteForm'
@@ -1493,9 +1497,6 @@ document.addEventListener(
             Submit_Tag_Delete(
                 Form
             );
-
-
-            return;
 
         }
 
@@ -1529,10 +1530,6 @@ document.addEventListener(
             );
 
 
-        /*
-            태그 관리 모달
-        */
-
         if (
 
             ManagementModal
@@ -1551,10 +1548,6 @@ document.addEventListener(
         }
 
 
-        /*
-            태그 수정 모달
-        */
-
         if (
 
             EditModal
@@ -1572,10 +1565,6 @@ document.addEventListener(
 
         }
 
-
-        /*
-            태그 삭제 모달
-        */
 
         if (
 
@@ -1632,10 +1621,6 @@ document.addEventListener(
             );
 
 
-        /*
-            삭제 모달 우선
-        */
-
         if (
 
             DeleteModal
@@ -1655,10 +1640,6 @@ document.addEventListener(
         }
 
 
-        /*
-            수정 모달
-        */
-
         if (
 
             EditModal
@@ -1677,10 +1658,6 @@ document.addEventListener(
 
         }
 
-
-        /*
-            태그 관리 모달
-        */
 
         if (
 

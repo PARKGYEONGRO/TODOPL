@@ -98,7 +98,8 @@
                                 {% for tag in user_tags %}
 
                                     <option
-                                        value='{{ tag.id }}'>
+                                        value='{{ tag.id }}'
+                                        data-tag-id="{{ tag.id }}">
 
                                         {{ tag.name }}
 

@@ -208,7 +208,6 @@
                 <select
                     name="tag"
                     required
-                    data-tag-id="{{ todo.tag.id }}"
                     class="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-black">
 
                     {% if user_tags %}
@@ -217,6 +216,7 @@
 
                             <option
                                 value="{{ tag.id }}"
+                                data-tag-id="{{ tag.id }}"
                                 {% if selected_tag == tag.id|stringformat:'s' %}
                                     selected
                                 {% elif not selected_tag and forloop.first %}

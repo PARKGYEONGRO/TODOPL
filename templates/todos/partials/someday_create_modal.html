@@ -104,6 +104,7 @@
 
                             <option
                                 value='{{ tag.id }}'
+                                data-tag-id="{{ tag.id }}"
                                 {% if not selected_tag and forloop.first %}
                                     selected
                                 {% endif %}>
