@@ -51,10 +51,93 @@ class UserProfile(models.Model):
             )
         ]
 
+    def save(self, *args, **kwargs): # 닉네임 태그 생성
+        if not self.nickname_tag:
+            import random as rd
+
+            while True:
+                NicknameTag = str(
+                    rd.randint(0,99999)).zfill(5)
+
+                if not UserProfile.objects.filter(
+                    nickname_tag=NicknameTag
+                ).exists():
+                    self.nickname_tag = NicknameTag
+                    break
+
+        super().save(
+            *args,
+            **kwargs
+        )
+
     def __str__(self):
         return (
             f'{self.nickname}#'
             f'{self.nickname_tag}'
+        )
+
+class SocialAccount(models.Model):
+    # 소셜 로그인 계정 연동 정보
+
+    PROVIDER_CHOICES = [
+        ('google', 'Google'),
+        ('naver', 'Naver'),
+        ('apple', 'Apple'),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='social_accounts',
+        verbose_name='사용자'
+    )
+
+    provider = models.CharField(
+        max_length=20,
+        choices=PROVIDER_CHOICES,
+        verbose_name='소셜 제공자'
+    )
+
+    provider_user_id = models.CharField(
+        max_length=255,
+        verbose_name='소셜 사용자 ID'
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    'provider',
+                    'provider_user_id'
+                ],
+                name='unique_social_account'
+            ),
+
+            models.UniqueConstraint(
+                fields=[
+                    'user',
+                    'provider'
+                ],
+                name='unique_user_social_provider'
+            )
+        ]
+
+        ordering = [
+            'created_at'
+        ]
+
+    def __str__(self):
+        return (
+            f'{self.provider}'
+            f'{self.provider_user_id}'
         )
 
 

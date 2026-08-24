@@ -1,3 +1,4 @@
+<!-- login.html -->
 {% load static %}
 
 
@@ -667,7 +668,6 @@
             브랜드
             ========================================================
         -->
-
         <section class='brand-section'>
 
             <h1 class='brand-logo'>
@@ -687,7 +687,6 @@
             로그인
             ========================================================
         -->
-
         <section class='login-section'>
 
 
@@ -778,7 +777,6 @@
                 소셜 로그인
                 ====================================================
             -->
-
             <div class='social-section'>
 
 
@@ -798,16 +796,16 @@
                 <div class='social-buttons'>
 
 
-                    <!-- 카카오 -->
+                    <!-- 네이버 -->
 
                     <button
                         type='button'
-                        class='social-button kakao-button'
-                        onclick='SocialLogin("kakao")'
-                        aria-label='카카오 로그인'
+                        class='social-button naver-button'
+                        onclick='SocialLogin("naver")'
+                        aria-label='네이버 로그인'
                     >
 
-                        <span class='kakao-icon'>
+                        <span class='naver-icon'>
                             ●
                         </span>
 
@@ -982,26 +980,26 @@
         */
 
         function SocialLogin(
-            provider
+            Provider
         ) {
 
             console.log(
                 '소셜 로그인:',
-                provider
+                Provider
             );
 
+            if (Provider === 'google') {
+                window.location.href = '/login/google/';
+                return;
+            }
 
+            alert('지원하지 않는 소셜 로그인')
             /*
                 추후 연결
 
-                Kakao
-                /accounts/kakao/login/
-
-                Google
-                /accounts/google/login/
+                Naver
 
                 Apple
-                /accounts/apple/login/
             */
 
         }

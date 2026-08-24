@@ -1,8 +1,13 @@
-import json
-import os
-import calendar
+#views.py
+import json, os, calendar, requests
 
 from datetime import date, datetime, timedelta
+
+from google_auth_oauthlib.flow import Flow
+
+from google.auth.transport import requests as GoogleRequests
+
+from google.oauth2 import id_token
 
 from django.contrib.auth import (
     get_user_model,
@@ -18,8 +23,11 @@ from django.http import (
     JsonResponse
 )
 
+from django.conf import settings
+
 from django.shortcuts import (
     render,
+    redirect,
     get_object_or_404
 )
 
@@ -38,10 +46,12 @@ from django.views.decorators.http import (
 )
 
 from .models import (
+    UserProfile,
+    SocialAccount,
     Tag,
     Todo,
-    TodoCompletion,
-    TodoSomeday
+    TodoSomeday,
+    TodoCompletion
 )
 
 from supabase import create_client
@@ -378,6 +388,291 @@ def supabase_login(request): #Supabase 로그인
 
             status=401
 
+        )
+
+
+GOOGLE_SCOPES = [
+    'openid',
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile'
+]
+
+def google_login(request):
+    FlowObject = Flow.from_client_config(
+        {
+            'web': {
+                'client_id':
+                    settings.GOOGLE_CLIENT_ID,
+
+                'client_secret':
+                    settings.GOOGLE_CLIENT_SECRET,
+
+                'auth_uri':
+                    'https://accounts.google.com/o/oauth2/auth',
+
+                'token_uri':
+                    'https://oauth2.googleapis.com/token',
+
+                'redirect_uris': [
+                    settings.GOOGLE_REDIRECT_URI
+                ]
+            }
+        },
+        scopes=GOOGLE_SCOPES
+    )
+
+    FlowObject.redirect_uri = (
+        settings.GOOGLE_REDIRECT_URI
+    )
+
+    AuthorizationUrl, State = (
+        FlowObject.authorization_url(
+            access_type='offline',
+            include_granted_scopes='true',
+            prompt='select_account'
+        )
+    )
+
+    request.session[
+        'google_oauth_state'
+    ] = State
+
+    request.session[
+        'google_code_verifier'
+    ] = FlowObject.code_verifier
+
+    return redirect(
+        AuthorizationUrl
+    )
+
+def google_login_callback(request):
+    # Google 인증 결과 확인
+
+    Code = request.GET.get(
+        'code'
+    )
+
+    if not Code:
+        return JsonResponse(
+            {
+                'success':
+                    False,
+                'message':
+                    'Google 인증에 실패하였습니다.'
+            },
+            status=400
+        )
+
+    try:
+        CodeVerifier = request.session.get(
+            'google_code_verifier'
+        )
+
+        if not CodeVerifier:
+            return JsonResponse(
+                {
+                    'success':
+                        False,
+                    'message':
+                        'Google 인증 정보가 만료되었습니다. 다시 로그인해주세요.'
+                },
+                status=400
+            )
+
+        FlowObject = Flow.from_client_config(
+            {
+                'web': {
+                    'client_id':
+                        settings.GOOGLE_CLIENT_ID,
+
+                    'client_secret':
+                        settings.GOOGLE_CLIENT_SECRET,
+
+                    'auth_uri':
+                        'https://accounts.google.com/o/oauth2/auth',
+
+                    'token_uri':
+                        'https://oauth2.googleapis.com/token',
+
+                    'redirect_uris': [
+                        settings.GOOGLE_REDIRECT_URI
+                    ]
+                }
+            },
+            scopes=GOOGLE_SCOPES
+        )
+
+        FlowObject.redirect_uri = (
+            settings.GOOGLE_REDIRECT_URI
+        )
+
+        FlowObject.code_verifier = (
+            CodeVerifier
+        )
+
+        FlowObject.fetch_token(
+            code=Code
+        )
+
+        GoogleIdInfo = id_token.verify_oauth2_token(
+            FlowObject.credentials.id_token,
+            GoogleRequests.Request(),
+            settings.GOOGLE_CLIENT_ID
+        )
+
+        GoogleUserId = GoogleIdInfo.get(
+            'sub'
+        )
+
+        GoogleEmail = (
+            GoogleIdInfo.get(
+                'email'
+            )
+            or
+            ''
+        ).strip().lower()
+
+        GoogleName = (
+            GoogleIdInfo.get(
+                'name'
+            )
+            or
+            ''
+        ).strip()
+
+        if not GoogleUserId:
+            return JsonResponse(
+                {
+                    'success':
+                        False,
+                    'message':
+                        'Google 사용자 정보를 확인할 수 없습니다.'
+                },
+                status=400
+            )
+
+        if not GoogleEmail:
+            return JsonResponse(
+                {
+                    'success':
+                        False,
+                    'message':
+                        'Google 이메일 정보를 확인할 수 없습니다.'
+                },
+                status=400
+            )
+
+        # 사용한 OAuth verifier 삭제
+        request.session.pop(
+            'google_code_verifier',
+            None
+        )
+
+        # 기존 Google 소셜 계정 확인
+        SocialAccountObject = (
+            SocialAccount.objects
+            .filter(
+                provider='google',
+                provider_user_id=GoogleUserId
+            )
+            .select_related(
+                'user'
+            )
+            .first()
+        )
+
+        if SocialAccountObject:
+
+            login(
+                request,
+                SocialAccountObject.user
+            )
+
+            return JsonResponse(
+                {
+                    'success':
+                        True,
+                    'message':
+                        'Google 로그인되었습니다.'
+                }
+            )
+
+        # 기존 이메일 계정 확인
+        User = get_user_model()
+
+        DjangoUser = (
+            User.objects
+            .filter(
+                email__iexact=GoogleEmail
+            )
+            .first()
+        )
+
+        if DjangoUser:
+
+            return JsonResponse(
+                {
+                    'success':
+                        False,
+                    'message':
+                        '이미 동일한 이메일로 가입된 계정이 있습니다. 기존 계정에서 Google 계정을 연동해주세요.'
+                },
+                status=409
+            )
+
+        # 신규 Google 사용자 생성
+        DjangoUser = User.objects.create_user(
+            username=GoogleEmail,
+            email=GoogleEmail
+        )
+
+        # UserProfile 생성
+        UserProfile.objects.create(
+            user=DjangoUser,
+            nickname=GoogleName or '사용자'
+        )
+
+        # SocialAccount 생성
+        SocialAccount.objects.create(
+            user=DjangoUser,
+            provider='google',
+            provider_user_id=GoogleUserId
+        )
+
+        # Django 로그인
+        login(
+            request,
+            DjangoUser
+        )
+
+        return JsonResponse(
+            {
+                'success':
+                    True,
+                'message':
+                    'Google 회원가입 및 로그인이 완료되었습니다.'
+            }
+        )
+
+    except Exception as Error:
+
+        import traceback
+
+        print(
+            'Google 로그인 오류:',
+            Error
+        )
+
+        traceback.print_exc()
+
+        return JsonResponse(
+            {
+                'success':
+                    False,
+                'message':
+                    str(Error)
+            },
+            status=500
         )
 
 
