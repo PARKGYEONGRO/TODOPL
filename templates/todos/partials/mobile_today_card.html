@@ -73,7 +73,6 @@
     <!-- 내용 -->
     <div class="flex-1 min-w-0">
 
-
         <p
             id="todo-title-{{ todo.id }}"
 
@@ -96,10 +95,7 @@
         </p>
 
 
-
-
         <div class="flex items-center gap-2 mt-1">
-
 
             <!-- 태그 -->
             <span
@@ -107,15 +103,13 @@
                 data-tag-id="{{ todo.tag.id }}"
                 class="px-2 py-0.5 rounded-md
                        border border-gray-200
-                       text-[10px] text-gray-600">
+                       text-[12px] text-gray-600">
 
 
                 {{ todo.tag }}
 
 
             </span>
-
-
 
 
             <!-- 우선순위 -->
@@ -147,6 +141,19 @@
             </span>
 
 
+            <!-- 시간 -->
+            {% if todo.is_time_manual%}
+
+                <span
+                    data-todo-time
+                    class="text-[12px] text-gray-400">
+
+                    {{ todo.todo_time|time:"H:i" }}
+
+                </span>
+
+            {% endif %}
+
         </div>
 
 
@@ -170,18 +177,22 @@
             data-title="{{ todo.title }}"
             data-tag="{{ todo.tag.id }}"
             data-priority="{{ todo.priority }}"
+
             data-date="{{ todo.due_date|date:'Y-m-d' }}"
+
             data-end-date="{% if todo.end_date %}{{ todo.end_date|date:'Y-m-d' }}{% endif %}"
+
             data-schedule-type="{% if todo.end_date %}range{% else %}single{% endif %}"
+
+            data-todo-time="{% if todo.is_time_manual %}{{ todo.todo_time|time:'H:i' }}{% endif %}"
+
+            data-time-manual="{% if todo.is_time_manual %}1{% else %}0{% endif %}"
 
             onclick="openEditModal(this)"
 
             class="w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center">
 
-
             <i class="fa-regular fa-pen-to-square text-[16px] text-gray-500"></i>
-
-
         </button>
 
 

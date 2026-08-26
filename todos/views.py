@@ -38,7 +38,7 @@ from django.db.models import (
     IntegerField,
     Q,
     Prefetch,
-    Count
+    TimeField
 )
 
 from django.views.decorators.http import (
@@ -56,6 +56,8 @@ from .models import (
 
 from supabase import create_client
 
+def Get_Current_Time():
+    return datetime.now().time()
 
 def Get_User_Default_Tag(user): #사용자 기본 태그 가져오기
 
@@ -927,7 +929,6 @@ def account_delete(request): #회원 탈퇴
     try:
 
         # Supabase 관리자 클라이언트
-
         Supabase = create_client(
 
             supabase_url,
@@ -938,7 +939,6 @@ def account_delete(request): #회원 탈퇴
 
 
         # 1. 탈퇴 사유 저장
-
         ReasonResponse = (
 
             Supabase
@@ -978,7 +978,6 @@ def account_delete(request): #회원 탈퇴
 
 
         # 2. Supabase Auth 사용자 삭제
-
         DeleteResponse = (
 
             Supabase
@@ -1004,9 +1003,12 @@ def account_delete(request): #회원 탈퇴
 
         )
 
+        # 3. Django User 삭제
+        DjangoUser = request.user
 
-        # 3. Django 세션 로그아웃
+        DjangoUser.delete()
 
+        # 4. Django 세션 로그아웃
         logout(request)
         request.session.flush()
 
@@ -1097,7 +1099,6 @@ def Get_Todo_Data(todo):
     DueDate = todo.due_date
     EndDate = todo.end_date
 
-
     # 혹시 문자열로 들어온 경우
     if isinstance(DueDate, str):
 
@@ -1106,14 +1107,12 @@ def Get_Todo_Data(todo):
             '%Y-%m-%d'
         ).date()
 
-
     if isinstance(EndDate, str):
 
         EndDate = datetime.strptime(
             EndDate,
             '%Y-%m-%d'
         ).date()
-
 
     return {
 
@@ -1136,6 +1135,18 @@ def Get_Todo_Data(todo):
                 if EndDate
                 else None
             ),
+
+        'todo_time':
+            (
+                todo.todo_time.strftime(
+                    '%H:%M'
+                )
+                if todo.todo_time
+                else None
+            ),
+
+        'is_time_manual':
+            todo.is_time_manual,
 
         'priority':
             todo.priority,
@@ -1534,54 +1545,58 @@ def todo_list(request):  # Todo 목록
     # Todo 조회
 
     todos = (
-
         Todo.objects
-
         .filter(
             user=request.user
         )
-
         .filter(
             todo_query
         )
-
         .select_related(
             'tag'
         )
-
         .annotate(
-
             priority_order=Case(
-
                 When(
                     priority='H',
                     then=Value(1)
                 ),
-
                 When(
                     priority='M',
                     then=Value(2)
                 ),
-
                 When(
                     priority='L',
                     then=Value(3)
                 ),
-
                 default=Value(4),
-
                 output_field=IntegerField()
-
+            ),
+            time_input_order=Case(
+                When(
+                    is_time_manual=True,
+                    then=Value(0)
+                ),
+                default=Value(1),
+                output_field=IntegerField()
+            ),
+            manual_todo_time=Case(
+                When(
+                    is_time_manual=True,
+                    then='todo_time'
+                ),
+                default=None,
+                output_field=TimeField()
             )
-
         )
-
         .order_by(
+            'time_input_order',
+            'manual_todo_time',
             'priority_order',
             'created_at'
         )
-
     )
+
 
     # ==========================
     # 선택 날짜 기준 완료 상태
@@ -2081,11 +2096,40 @@ def todo_create(request):  # Todo 생성
         'M'
     )
 
+    todo_time_str = request.POST.get(
+        'todo_time',
+        ''
+    ).strip()
+
+    is_time_manual = bool(
+        todo_time_str
+    )
+
+    if todo_time_str:
+        try:
+            todo_time =datetime.strptime(
+                todo_time_str,
+                '%H:%M'
+            ).time()
+
+        except ValueError:
+            return JsonResponse({
+                'success':
+                    False,
+
+                'status':
+                    'error',
+
+                'message':
+                    '시간 형식이 올바르지 않음'
+            }, status=400)
+
+    else:
+        todo_time = None
 
     # ==========================
     # 제목 확인
     # ==========================
-
     if not title:
 
         return JsonResponse({
@@ -2093,6 +2137,14 @@ def todo_create(request):  # Todo 생성
             'status': 'error',
             'message': '할 일을 입력해주세요.'
         }, status=400)
+
+
+    if priority not in [
+        'H',
+        'M',
+        'L'
+    ]:
+        priority = 'M'
 
 
     # ==========================
@@ -2169,31 +2221,55 @@ def todo_create(request):  # Todo 생성
     # 사용자 본인의 태그만 허용
     # ==========================
 
-    tag = get_object_or_404(
-        Tag,
-        id=tag_id,
-        user=request.user
-    )
+    if tag_id:
+        tag = get_object_or_404(
+            Tag,
+            id=tag_id,
+            user=request.user
+        )
+    else:
+        tag = Get_User_Default_Tag(
+            request.user
+        )
 
 
     # ==========================
     # Todo 생성
     # ==========================
 
+    TodoCreateData = {
+
+        'user':
+            request.user,
+
+        'title':
+            title,
+
+        'due_date':
+            due_date,
+
+        'end_date':
+            end_date,
+
+        'is_time_manual':
+            is_time_manual,
+
+        'tag':
+            tag,
+
+        'priority':
+            priority
+
+    }
+
+    if todo_time is not None:
+
+        TodoCreateData[
+            'todo_time'
+        ] = todo_time
+
     todo = Todo.objects.create(
-
-        user=request.user,
-
-        title=title,
-
-        due_date=due_date,
-
-        end_date=end_date,
-
-        tag=tag,
-
-        priority=priority
-
+        **TodoCreateData
     )
 
 
@@ -2680,6 +2756,43 @@ def todo_edit(request, todo_id): # Todo 수정
         'M'
     )
 
+    todo_time_str = request.POST.get(
+        'todo_time',
+        ''
+    ).strip()
+
+    is_time_manual = bool(
+        todo_time_str
+    )
+
+    if todo_time_str:
+
+        try:
+
+            todo_time = datetime.strptime(
+                todo_time_str,
+                '%H:%M'
+            ).time()
+
+        except ValueError:
+
+            return JsonResponse({
+
+                'success':
+                    False,
+
+                'status':
+                    'error',
+
+                'message':
+                    '시간 형식이 올바르지 않음'
+
+            }, status=400)
+
+    else:
+
+        todo_time = None
+
     schedule_type = request.POST.get(
         'schedule_type',
         'single'
@@ -2934,11 +3047,23 @@ def todo_edit(request, todo_id): # Todo 수정
 
     todo.tag = tag
 
-    todo.priority = priority
-
     todo.due_date = new_due_date
 
     todo.end_date = new_end_date
+
+    todo.is_time_manual = is_time_manual
+
+    if todo_time is not None:
+
+        todo.todo_time = todo_time
+
+    else:
+
+        todo.todo_time = Get_Current_Time()
+
+
+    todo.priority = priority
+
 
 
     todo.save()
@@ -2973,13 +3098,19 @@ def mobile_stats(request): #통계
     )
 
 
-    selected_date_obj = datetime.strptime(
-
-        selected_date_str,
-
-        '%Y-%m-%d'
-
-    )
+    try:
+        selected_date_obj = datetime.strptime(
+            selected_date_str,
+            '%Y-%m-%d'
+        )
+    except ValueError:
+        selected_date_obj = datetime.combine(
+            today,
+            datetime.min.time()
+        )
+        selected_date_str = today.strftime(
+            '%Y-%m-%d'
+        )
 
 
     year = selected_date_obj.year
@@ -3684,14 +3815,28 @@ def todo_someday_list(request): #언젠가 할 일 목록
 
         )
 
+        .annotate(
+            priority_order=Case(
+                When(
+                    priority='H',
+                    then=Value(1)
+                ),
+                When(
+                    priority='M',
+                    then=Value(2)
+                ),
+                When(
+                    priority='L',
+                    then=Value(3)
+                ),
+                default=Value(4),
+                output_field=IntegerField()
+            )
+        )
         .order_by(
-
             'is_completed',
-
-            'priority',
-
+            'priority_order',
             'created_at'
-
         )
 
     )

@@ -3243,7 +3243,6 @@ function openDatePicker(
 // ============================================================
 // 오늘 할 일 정렬
 // ============================================================
-
 function sortTodayTodoList() {
 
     const desktopList =
@@ -3252,13 +3251,18 @@ function sortTodayTodoList() {
         );
 
 
-    if (desktopList) {
+    if (
+        !desktopList
+    ) {
 
-        SortTodayTodoItems(
-            desktopList
-        );
+        return;
 
     }
+
+
+    SortTodayTodoItems(
+        desktopList
+    );
 
 }
 
@@ -3267,7 +3271,9 @@ function SortTodayTodoItems(
     list
 ) {
 
-    if (!list) {
+    if (
+        !list
+    ) {
 
         return;
 
@@ -3294,7 +3300,18 @@ function SortTodayTodoItems(
 
 
     items.sort(
-        (a, b) => {
+        (
+            a,
+            b
+        ) => {
+
+            // ====================================================
+            // 1. 완료 여부
+            //
+            // 미완료 0 → 완료 1
+            //
+            // 완료된 Todo는 무조건 아래쪽
+            // ====================================================
 
             const completedA =
                 Number(
@@ -3321,6 +3338,93 @@ function SortTodayTodoItems(
             }
 
 
+            // ====================================================
+            // 2. 직접 입력 시간 여부
+            //
+            // 시간이 있는 Todo가 먼저
+            // ====================================================
+
+            const editButtonA =
+                a.querySelector(
+                    'button[data-time-manual]'
+                );
+
+
+            const editButtonB =
+                b.querySelector(
+                    'button[data-time-manual]'
+                );
+
+
+            const timeManualA =
+                editButtonA
+                    ? editButtonA.dataset.timeManual === '1'
+                    : false;
+
+
+            const timeManualB =
+                editButtonB
+                    ? editButtonB.dataset.timeManual === '1'
+                    : false;
+
+
+            // ====================================================
+            // 3. 둘 다 직접 입력 시간이 있는 경우
+            //
+            // 빠른 시간 → 늦은 시간
+            // ====================================================
+
+            if (
+                timeManualA &&
+                timeManualB
+            ) {
+
+                const timeA =
+                    editButtonA.dataset.todoTime ||
+                    '';
+
+
+                const timeB =
+                    editButtonB.dataset.todoTime ||
+                    '';
+
+
+                if (
+                    timeA !==
+                    timeB
+                ) {
+
+                    return timeA.localeCompare(
+                        timeB
+                    );
+
+                }
+
+            }
+
+
+            // ====================================================
+            // 4. 시간 있음 → 시간 없음
+            // ====================================================
+
+            if (
+                timeManualA !==
+                timeManualB
+            ) {
+
+                return timeManualA
+                    ? -1
+                    : 1;
+
+            }
+
+
+            // ====================================================
+            // 5. 시간 없는 Todo
+            //
+            // H → M → L
+            // ====================================================
+
             const priorityA =
                 priorityOrder[
                     a.dataset.priority
@@ -3345,6 +3449,12 @@ function SortTodayTodoItems(
 
             }
 
+
+            // ====================================================
+            // 6. 최종 기준
+            //
+            // 오래 만든 Todo → 최근 Todo
+            // ====================================================
 
             const createdA =
                 Number(
@@ -3367,151 +3477,38 @@ function SortTodayTodoItems(
     );
 
 
+    // ============================================================
+    // DOM 재배치
+    //
+    // 완료된 항목은 위 comparator에서 이미 뒤로 정렬됨
+    // ============================================================
+
+    const fragment =
+        document.createDocumentFragment();
+
+
     items.forEach(
         item => {
 
-            list.appendChild(
+            fragment.appendChild(
                 item
             );
 
         }
     );
 
-}
 
-
-// ============================================================
-// 모바일 오늘 할 일 정렬
-// ============================================================
-
-function sortMobileTodayTodoList() {
-
-    const mobileList =
-        document.getElementById(
-            'mobileTodoList'
-        );
-
-
-    if (!mobileList) {
-
-        return;
-
-    }
-
-
-    SortMobileTodayTodoItems(
-        mobileList
+    list.appendChild(
+        fragment
     );
 
 }
 
-
-function SortMobileTodayTodoItems(
-    list
-) {
-
-    const priorityOrder = {
-
-        'H': 1,
-
-        'M': 2,
-
-        'L': 3
-
-    };
-
-
-    const items =
-        Array.from(
-            list.querySelectorAll(
-                '[data-mobile-today-sort-item]'
-            )
-        );
-
-
-    items.sort(
-        (a, b) => {
-
-            const completedA =
-                Number(
-                    a.dataset.completed || 0
-                );
-
-
-            const completedB =
-                Number(
-                    b.dataset.completed || 0
-                );
-
-
-            if (
-                completedA !==
-                completedB
-            ) {
-
-                return (
-                    completedA -
-                    completedB
-                );
-
-            }
-
-
-            const priorityA =
-                priorityOrder[
-                    a.dataset.priority
-                ] || 4;
-
-
-            const priorityB =
-                priorityOrder[
-                    b.dataset.priority
-                ] || 4;
-
-
-            if (
-                priorityA !==
-                priorityB
-            ) {
-
-                return (
-                    priorityA -
-                    priorityB
-                );
-
-            }
-
-
-            return (
-                Number(
-                    a.dataset.createdAt || 0
-                ) -
-                Number(
-                    b.dataset.createdAt || 0
-                )
-            );
-
-        }
-    );
-
-
-    items.forEach(
-        item => {
-
-            list.appendChild(
-                item
-            );
-
-        }
-    );
-
-}
 
 
 // ============================================================
 // 언젠가 할 일 정렬
 // ============================================================
-
 function sortSomedayTodoList() {
 
     const list =
@@ -3647,102 +3644,6 @@ function sortSomedayTodoList() {
 
 }
 
-// ============================================================
-// 모바일 언젠가 할 일 정렬
-// ============================================================
-
-function sortMobileSomedayTodoList() {
-
-
-    const list =
-        document.getElementById(
-            'somedayTodoList'
-        );
-
-
-    if (!list) {
-
-        return;
-
-    }
-
-
-
-    const items =
-        Array.from(
-            list.querySelectorAll(
-                '[data-mobile-someday-sort-item]'
-            )
-        );
-
-
-
-    items.sort(
-        (a, b) => {
-
-
-            const completedA =
-                Number(
-                    a.dataset.completed || 0
-                );
-
-
-            const completedB =
-                Number(
-                    b.dataset.completed || 0
-                );
-
-
-
-            if (
-                completedA !== completedB
-            ) {
-
-                return (
-                    completedA -
-                    completedB
-                );
-
-            }
-
-
-
-            const createdA =
-                Number(
-                    a.dataset.createdAt || 0
-                );
-
-
-            const createdB =
-                Number(
-                    b.dataset.createdAt || 0
-                );
-
-
-
-            return (
-                createdA -
-                createdB
-            );
-
-
-        }
-    );
-
-
-
-    items.forEach(
-        item => {
-
-            list.appendChild(
-                item
-            );
-
-        }
-    );
-
-
-}
 
 // ============================================================
 // 언젠가 할 일 버튼 이벤트 위임

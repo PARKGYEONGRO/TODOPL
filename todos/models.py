@@ -1,6 +1,10 @@
+#models.py
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
+def Get_Current_Time():
+    return timezone.localtime().time()
 
 class UserProfile(models.Model):
     # 사용자 프로필
@@ -244,6 +248,16 @@ class Todo(models.Model):
         null=True,
         blank=True,
         verbose_name='종료일'
+    )
+
+    todo_time = models.TimeField( # nullable로 하지 않음 -> 사용자가 시간 직접 입력 안 해도 현재 시간으로 대체하여 DB에 저장
+        default=Get_Current_Time,
+        verbose_name='할 일 시간'
+    )
+
+    is_time_manual = models.BooleanField(
+        default=False,
+        verbose_name='시간 직접 입력 여부'
     )
 
     priority = models.CharField(

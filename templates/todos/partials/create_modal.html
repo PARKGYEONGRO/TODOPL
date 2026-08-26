@@ -193,57 +193,74 @@
 
             </div>
 
+            <!-- 태그 / 시간 -->
+            <div class='grid grid-cols-2 gap-3'>
+                <!-- 태그 -->
+                <div>
 
-            <!-- 태그 -->
-            <div>
+                    <label
+                        class="block text-xs font-bold text-gray-500 mb-1">
 
-                <label
-                    class="block text-xs font-bold text-gray-500 mb-1">
+                        태그
 
-                    태그
-
-                </label>
+                    </label>
 
 
-                <select
-                    name="tag"
-                    required
-                    class="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-black">
+                    <select
+                        name="tag"
+                        required
+                        class="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-black">
 
-                    {% if user_tags %}
+                        {% if user_tags %}
 
-                        {% for tag in user_tags %}
+                            {% for tag in user_tags %}
 
-                            <option
-                                value="{{ tag.id }}"
-                                data-tag-id="{{ tag.id }}"
-                                {% if selected_tag == tag.id|stringformat:'s' %}
-                                    selected
-                                {% elif not selected_tag and forloop.first %}
-                                    selected
-                                {% endif %}>
+                                <option
+                                    value="{{ tag.id }}"
+                                    data-tag-id="{{ tag.id }}"
+                                    {% if selected_tag == tag.id|stringformat:'s' %}
+                                        selected
+                                    {% elif not selected_tag and forloop.first %}
+                                        selected
+                                    {% endif %}>
 
-                                {{ tag.name }}
+                                    {{ tag.name }}
 
+                                </option>
+
+                            {% endfor %}
+
+                        {% else %}
+
+                            <option value="{{ default_etc_tag.id }}" selected>
+                                기타
                             </option>
 
-                        {% endfor %}
+                        {% endif %}
 
-                    {% else %}
+                    </select>
 
-                        <option value="{{ default_etc_tag.id }}" selected>
-                            기타
-                        </option>
+                </div>
 
-                    {% endif %}
+                <!-- 시간 -->
+                <div>
 
-                </select>
+                    <label
+                        class='block text-xs font-bold text-gray-500 mb-1'>
 
+                        시간
+
+                    </label>
+
+                    <input
+                        type='time'
+                        name='todo_time'
+                        class='w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-black'>
+
+                </div>
             </div>
 
-
             <!-- 우선순위 -->
-
             <div>
 
                 <label
@@ -307,9 +324,7 @@
 
             </div>
 
-
             <!-- 버튼 -->
-
             <div class="flex justify-end gap-2 pt-3">
 
                 <button

@@ -1,5 +1,4 @@
 <!-- desktop_todaytodo_list.html -->
-
 <section
     class="todo-main-section min-w-0 flex flex-col p-6 md:p-8">
 
@@ -70,6 +69,7 @@
 
     <!-- Todo 목록 -->
     <div
+        id="desktopTodoList"
         class="todo-scroll pr-1 space-y-3">
 
 
@@ -168,40 +168,56 @@
                          제목
                          ==================================================== -->
 
-                    <span
-                        id="todo-title-{{ todo.id }}"
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span
+                            id="todo-title-{{ todo.id }}"
 
-                        class="font-medium truncate
+                            class="font-medium truncate
 
-                        {% if todo.end_date %}
+                            {% if todo.end_date %}
 
-                            {% if todo.id in selected_completed_todo_ids %}
+                                {% if todo.id in selected_completed_todo_ids %}
 
-                                line-through text-gray-400
+                                    line-through text-gray-400
 
-                            {% else %}
+                                {% else %}
 
-                                text-gray-800
+                                    text-gray-800
 
-                            {% endif %}
-
-                        {% else %}
-
-                            {% if todo.is_completed %}
-
-                                line-through text-gray-400
+                                {% endif %}
 
                             {% else %}
 
-                                text-gray-800
+                                {% if todo.is_completed %}
 
-                            {% endif %}
+                                    line-through text-gray-400
 
-                        {% endif %}">
+                                {% else %}
 
-                        {{ todo.title }}
+                                    text-gray-800
 
-                    </span>
+                                {% endif %}
+
+                            {% endif %}">
+
+                            {{ todo.title }}
+
+                        </span>
+
+
+                        {% if todo.is_time_manual %}
+
+                            <span
+                                data-todo-time
+                                class="text-xs text-gray-400 flex-shrink-0">
+
+                                {{ todo.todo_time|time:"H:i" }}
+
+                            </span>
+
+                        {% endif %}
+
+                    </div>
 
                 </div>
 
@@ -295,6 +311,10 @@
                         data-end-date="{% if todo.end_date %}{{ todo.end_date|date:'Y-m-d' }}{% endif %}"
 
                         data-schedule-type="{% if todo.end_date %}range{% else %}single{% endif %}"
+
+                        data-todo-time="{% if todo.is_time_manual %}{{ todo.todo_time|time:'H:i' }}{% endif %}"
+
+                        data-time-manual="{% if todo.is_time_manual %}1{% else %}0{% endif %}"
 
                         onclick="openEditModal(this)"
 
