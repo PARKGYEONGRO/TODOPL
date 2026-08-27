@@ -3243,6 +3243,7 @@ function openDatePicker(
 // ============================================================
 // 오늘 할 일 정렬
 // ============================================================
+
 function sortTodayTodoList() {
 
     const desktopList =
@@ -3250,20 +3251,15 @@ function sortTodayTodoList() {
             'desktopTodoList'
         );
 
-
     if (
         !desktopList
     ) {
-
         return;
-
     }
-
 
     SortTodayTodoItems(
         desktopList
     );
-
 }
 
 
@@ -3274,20 +3270,14 @@ function SortTodayTodoItems(
     if (
         !list
     ) {
-
         return;
-
     }
 
 
     const priorityOrder = {
-
         'H': 1,
-
         'M': 2,
-
         'L': 3
-
     };
 
 
@@ -3309,7 +3299,6 @@ function SortTodayTodoItems(
             // 1. 완료 여부
             //
             // 미완료 0 → 완료 1
-            //
             // 완료된 Todo는 무조건 아래쪽
             // ====================================================
 
@@ -3317,7 +3306,6 @@ function SortTodayTodoItems(
                 Number(
                     a.dataset.completed || 0
                 );
-
 
             const completedB =
                 Number(
@@ -3342,30 +3330,16 @@ function SortTodayTodoItems(
             // 2. 직접 입력 시간 여부
             //
             // 시간이 있는 Todo가 먼저
+            //
+            // 수정 버튼이 아니라
+            // Todo 카드 자체의 data-* 값을 사용
             // ====================================================
 
-            const editButtonA =
-                a.querySelector(
-                    'button[data-time-manual]'
-                );
-
-
-            const editButtonB =
-                b.querySelector(
-                    'button[data-time-manual]'
-                );
-
-
             const timeManualA =
-                editButtonA
-                    ? editButtonA.dataset.timeManual === '1'
-                    : false;
-
+                a.dataset.timeManual === '1';
 
             const timeManualB =
-                editButtonB
-                    ? editButtonB.dataset.timeManual === '1'
-                    : false;
+                b.dataset.timeManual === '1';
 
 
             // ====================================================
@@ -3380,12 +3354,11 @@ function SortTodayTodoItems(
             ) {
 
                 const timeA =
-                    editButtonA.dataset.todoTime ||
+                    a.dataset.todoTime ||
                     '';
 
-
                 const timeB =
-                    editButtonB.dataset.todoTime ||
+                    b.dataset.todoTime ||
                     '';
 
 
@@ -3479,8 +3452,6 @@ function SortTodayTodoItems(
 
     // ============================================================
     // DOM 재배치
-    //
-    // 완료된 항목은 위 comparator에서 이미 뒤로 정렬됨
     // ============================================================
 
     const fragment =

@@ -191,22 +191,8 @@ function SortMobileTodayTodoItems(list) {
 
 
         /*
-            수정 버튼 찾기
-        */
-        const editButtonA =
-            a.querySelector(
-                'button[data-time-manual]'
-            );
-
-        const editButtonB =
-            b.querySelector(
-                'button[data-time-manual]'
-            );
-
-
-        /*
             ========================================
-            2. 사용자가 직접 입력한 시간 여부
+            1. 사용자가 직접 입력한 시간 여부
             ========================================
 
             data-time-manual
@@ -216,19 +202,15 @@ function SortMobileTodayTodoItems(list) {
         */
 
         const timeManualA =
-            editButtonA
-                ? editButtonA.dataset.timeManual === '1'
-                : false;
+            a.dataset.timeManual === '1';
 
         const timeManualB =
-            editButtonB
-                ? editButtonB.dataset.timeManual === '1'
-                : false;
+            b.dataset.timeManual === '1';
 
 
         /*
             ========================================
-            3. 둘 다 사용자가 입력한 시간이 있으면
+            2. 둘 다 사용자가 입력한 시간이 있으면
                시간순 정렬
             ========================================
         */
@@ -239,10 +221,10 @@ function SortMobileTodayTodoItems(list) {
         ) {
 
             const timeA =
-                editButtonA.dataset.todoTime || '';
+                a.dataset.todoTime || '';
 
             const timeB =
-                editButtonB.dataset.todoTime || '';
+                b.dataset.todoTime || '';
 
 
             if (timeA !== timeB) {
@@ -256,7 +238,7 @@ function SortMobileTodayTodoItems(list) {
 
         /*
             ========================================
-            4. 한쪽만 직접 입력한 시간이 있으면
+            3. 한쪽만 직접 입력한 시간이 있으면
             ========================================
 
             직접 입력한 시간
@@ -286,7 +268,7 @@ function SortMobileTodayTodoItems(list) {
 
         /*
             ========================================
-            5. 둘 다 직접 입력 시간이 없거나
+            1. 둘 다 직접 입력 시간이 없거나
                같은 시간이면
 
                우선순위
@@ -320,7 +302,7 @@ function SortMobileTodayTodoItems(list) {
 
         /*
             ========================================
-            6. 최종 기준
+            5. 최종 기준
                오래 만든 Todo → 최근 만든 Todo
             ========================================
         */
