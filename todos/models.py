@@ -1,61 +1,10 @@
+# todos/models.py
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
-
-class UserProfile(models.Model):
-    # 사용자 프로필
-
-    user = models.OneToOneField(
-        User,
-        on_delete=models.CASCADE,
-        related_name='profile',
-        verbose_name='사용자'
-    )
-
-    nickname = models.CharField(
-        max_length=30,
-        verbose_name='닉네임'
-    )
-
-    nickname_tag = models.CharField(
-        max_length=5,
-        unique=True,
-        editable=False,
-        verbose_name='닉네임 태그'
-    )
-
-    created_at = models.DateTimeField(
-        auto_now_add=True
-    )
-
-    updated_at = models.DateTimeField(
-        auto_now=True
-    )
-
-    class Meta:
-        ordering = [
-            'created_at'
-        ]
-
-        indexes = [
-            models.Index(
-                fields=[
-                    'nickname'
-                ]
-            ),
-
-            models.Index(
-                fields=[
-                    'nickname_tag'
-                ]
-            )
-        ]
-
-    def __str__(self):
-        return (
-            f'{self.nickname}#'
-            f'{self.nickname_tag}'
-        )
+def Get_Current_Time():
+    return timezone.localtime().time()
 
 
 class Tag(models.Model):
@@ -161,6 +110,16 @@ class Todo(models.Model):
         null=True,
         blank=True,
         verbose_name='종료일'
+    )
+
+    todo_time = models.TimeField( # nullable로 하지 않음 -> 사용자가 시간 직접 입력 안 해도 현재 시간으로 대체하여 DB에 저장
+        default=Get_Current_Time,
+        verbose_name='할 일 시간'
+    )
+
+    is_time_manual = models.BooleanField(
+        default=False,
+        verbose_name='시간 직접 입력 여부'
     )
 
     priority = models.CharField(
@@ -346,154 +305,4 @@ class TodoCompletion(models.Model):
         return (
             f'{self.todo.title} - '
             f'{self.completed_date}'
-        )
-
-
-class FriendRequest(models.Model):
-    # 친구 요청
-
-    STATUS_CHOICES = [
-        ('PENDING', '대기'),
-        ('ACCEPTED', '수락'),
-        ('REJECTED', '거절'),
-        ('CANCELED', '취소'),
-    ]
-
-    sender = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='sent_friend_requests',
-        verbose_name='요청자'
-    )
-
-    receiver = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='received_friend_requests',
-        verbose_name='수신자'
-    )
-
-    status = models.CharField(
-        max_length=10,
-        choices=STATUS_CHOICES,
-        default='PENDING',
-        verbose_name='상태'
-    )
-
-    created_at = models.DateTimeField(
-        auto_now_add=True
-    )
-
-    responded_at = models.DateTimeField(
-        null=True,
-        blank=True
-    )
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=[
-                    'sender',
-                    'receiver'
-                ],
-                condition=models.Q(
-                    status='PENDING'
-                ),
-                name='unique_pending_friend_request'
-            ),
-
-            models.CheckConstraint(
-                condition=~models.Q(
-                    sender=models.F('receiver')
-                ),
-                name='prevent_self_friend_request'
-            )
-        ]
-
-        ordering = [
-            '-created_at'
-        ]
-
-        indexes = [
-            models.Index(
-                fields=[
-                    'receiver',
-                    'status'
-                ]
-            ),
-
-            models.Index(
-                fields=[
-                    'sender',
-                    'status'
-                ]
-            )
-        ]
-
-    def __str__(self):
-        return (
-            f'{self.sender} -> '
-            f'{self.receiver}'
-        )
-
-
-class Friendship(models.Model):
-    # 실제 친구 관계
-
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='friendships',
-        verbose_name='사용자'
-    )
-
-    friend = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='friend_of',
-        verbose_name='친구'
-    )
-
-    created_at = models.DateTimeField(
-        auto_now_add=True
-    )
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=[
-                    'user',
-                    'friend'
-                ],
-                name='unique_friendship'
-            ),
-
-            models.CheckConstraint(
-                condition=~models.Q(
-                    user=models.F('friend')
-                ),
-                name='prevent_self_friendship'
-            )
-        ]
-
-        indexes = [
-            models.Index(
-                fields=[
-                    'user',
-                    'created_at'
-                ]
-            ),
-
-            models.Index(
-                fields=[
-                    'friend',
-                    'created_at'
-                ]
-            )
-        ]
-
-    def __str__(self):
-        return (
-            f'{self.user} <-> '
-            f'{self.friend}'
         )

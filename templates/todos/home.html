@@ -147,8 +147,6 @@
 
 {% include 'todos/partials/delete_modal.html' %}
 
-{% include 'todos/partials/settings_modal.html' %}
-
 
 <!-- =========================================================
      언젠가 할 일 모달
@@ -162,36 +160,15 @@
 
 
 <!-- =========================================================
-     계정 관련 모달
-========================================================= -->
-
-{% include 'todos/partials/profile_setting.html' %}
-
-{% include 'todos/partials/account_delete_modal.html' %}
-
-{% include 'todos/partials/tag_manage_modal.html' %}
-
-
-<!-- =========================================================
      Todo JavaScript
 ========================================================= -->
-<script src="{% static 'todos/js/todo.js' %}"></script>
-
-<script src="{% static 'todos/js/home.js' %}"></script>
-
 <script src="{% static 'todos/js/edit_modal.js' %}"></script>
 
 <script src="{% static 'todos/js/delete_modal.js' %}"></script>
 
-<script src="{% static 'todos/js/settings_modal.js' %}"></script>
-
 <script src="{% static 'todos/js/someday_edit_modal.js' %}"></script>
 
 <script src="{% static 'todos/js/someday_delete_modal.js' %}"></script>
-
-<script src="{% static 'todos/js/account_delete_modal.js' %}"></script>
-
-<script src="{% static 'todos/js/tag_manage_modal.js' %}"></script>
 
 
 {% endblock %}

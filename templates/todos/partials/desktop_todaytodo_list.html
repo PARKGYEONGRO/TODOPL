@@ -1,5 +1,4 @@
 <!-- desktop_todaytodo_list.html -->
-
 <section
     class="todo-main-section min-w-0 flex flex-col p-6 md:p-8">
 
@@ -70,42 +69,39 @@
 
     <!-- Todo 목록 -->
     <div
+        id="desktopTodoList"
         class="todo-scroll pr-1 space-y-3">
 
 
         {% for todo in todos %}
 
-
-            <!-- ====================================================
-                 Todo 한 줄
-                 ==================================================== -->
-
+            <!-- 할 일 카드 -->
             <div
                 data-todo-sort-item
-
                 data-todo-id="{{ todo.id }}"
-
                 data-completed="{% if todo.end_date %}{% if todo.id in selected_completed_todo_ids %}1{% else %}0{% endif %}{% else %}{% if todo.is_completed %}1{% else %}0{% endif %}{% endif %}"
-
                 data-priority="{{ todo.priority }}"
-
                 data-created-at="{{ todo.created_at|date:'U' }}"
+
+                data-id="{{ todo.id }}"
+                data-title="{{ todo.title }}"
+                data-tag="{% if todo.tag %}{{ todo.tag.id }}{% endif %}"
+                data-date="{{ todo.due_date|date:'Y-m-d' }}"
+                data-end-date="{% if todo.end_date %}{{ todo.end_date|date:'Y-m-d' }}{% endif %}"
+                data-schedule-type="{% if todo.end_date %}range{% else %}single{% endif %}"
+                data-todo-time="{% if todo.is_time_manual %}{{ todo.todo_time|time:'H:i' }}{% endif %}"
+                data-time-manual="{% if todo.is_time_manual %}1{% else %}0{% endif %}"
+
+                onclick="openEditModal(this)"
 
                 class="flex items-center justify-between p-3 border-b border-gray-100 hover:bg-gray-50 rounded group flex-shrink-0">
 
 
-                <!-- ====================================================
-                     왼쪽
-                     ==================================================== -->
-
+                <!-- 좌측 -->
                 <div
                     class="flex items-center gap-3 min-w-0">
 
-
-                    <!-- ====================================================
-                         우선순위 색상
-                         ==================================================== -->
-
+                    <!-- 우선순위 색상 바 -->
                     <div
                         class="w-1 h-5 rounded-full flex-shrink-0
 
@@ -126,15 +122,13 @@
                     </div>
 
 
-
-                    <!-- ====================================================
-                         체크박스
-                         ==================================================== -->
-
+                    <!-- 체크박스 -->
                     <input
                         type="checkbox"
-
+                        
                         id="todo-check-{{ todo.id }}"
+
+                        onclick="event.stopPropagation();"
 
                         {% if todo.end_date %}
 
@@ -162,63 +156,67 @@
 
                         class="w-5 h-5 accent-black rounded cursor-pointer flex-shrink-0">
 
+                    <!-- 삭제 -->
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span
+                            id="todo-title-{{ todo.id }}"
 
+                            class="font-medium truncate
 
-                    <!-- ====================================================
-                         제목
-                         ==================================================== -->
+                            {% if todo.end_date %}
 
-                    <span
-                        id="todo-title-{{ todo.id }}"
+                                {% if todo.id in selected_completed_todo_ids %}
 
-                        class="font-medium truncate
+                                    line-through text-gray-400
 
-                        {% if todo.end_date %}
+                                {% else %}
 
-                            {% if todo.id in selected_completed_todo_ids %}
+                                    text-gray-800
 
-                                line-through text-gray-400
-
-                            {% else %}
-
-                                text-gray-800
-
-                            {% endif %}
-
-                        {% else %}
-
-                            {% if todo.is_completed %}
-
-                                line-through text-gray-400
+                                {% endif %}
 
                             {% else %}
 
-                                text-gray-800
+                                {% if todo.is_completed %}
 
-                            {% endif %}
+                                    line-through text-gray-400
 
-                        {% endif %}">
+                                {% else %}
 
-                        {{ todo.title }}
+                                    text-gray-800
 
-                    </span>
+                                {% endif %}
+
+                            {% endif %}">
+
+                            {{ todo.title }}
+
+                        </span>
+
+
+                        {% if todo.is_time_manual %}
+
+                            <span
+                                data-todo-time
+                                class="text-xs text-gray-400 flex-shrink-0">
+
+                                {{ todo.todo_time|time:"H:i" }}
+
+                            </span>
+
+                        {% endif %}
+
+                    </div>
 
                 </div>
 
-
-
-                <!-- ====================================================
-                     오른쪽
-                     ==================================================== -->
-
+                
+                <!-- 우측 -->
                 <div
                     class="flex items-center gap-3 flex-shrink-0">
 
 
-                    <!-- ====================================================
-                         태그
-                         ==================================================== -->
-
+                    <!-- 태그 -->
                     <span
                         data-todo-tag
                         data-tag-id="{{ todo.tag.id }}"
@@ -237,11 +235,7 @@
                     </span>
 
 
-
-                    <!-- ====================================================
-                         우선순위
-                         ==================================================== -->
-
+                    <!-- 우선순위 -->
                     {% if todo.priority == 'H' %}
 
                         <span
@@ -273,12 +267,8 @@
 
                     {% endif %}
 
-
-
-                    <!-- ====================================================
-                         수정
-                         ==================================================== -->
-
+                    
+                    <!-- 삭제 -->
                     <button
                         type="button"
 
@@ -286,44 +276,9 @@
 
                         data-title="{{ todo.title }}"
 
-                        data-tag="{% if todo.tag %}{{ todo.tag.id }}{% endif %}"
+                        onclick="event.stopPropagation(); openDeleteModal(this)"
 
-                        data-priority="{{ todo.priority }}"
-
-                        data-date="{{ todo.due_date|date:'Y-m-d' }}"
-
-                        data-end-date="{% if todo.end_date %}{{ todo.end_date|date:'Y-m-d' }}{% endif %}"
-
-                        data-schedule-type="{% if todo.end_date %}range{% else %}single{% endif %}"
-
-                        onclick="openEditModal(this)"
-
-                        class="text-gray-400 hover:text-black transition-colors mr-1">
-
-
-                        <i
-                            class="fa-regular fa-pen-to-square">
-                        </i>
-
-
-                    </button>
-
-
-
-                    <!-- ====================================================
-                         삭제
-                         ==================================================== -->
-
-                    <button
-                        type="button"
-
-                        data-id="{{ todo.id }}"
-
-                        data-title="{{ todo.title }}"
-
-                        onclick="openDeleteModal(this)"
-
-                        class="text-gray-300 hover:text-red-500 transition-colors">
+                        class="text-lg text-gray-400 hover:text-red-500 transition-colors">
 
 
                         <i
@@ -342,10 +297,7 @@
         {% empty %}
 
 
-            <!-- ====================================================
-                 Todo 없음
-                 ==================================================== -->
-
+            <!-- 할 일 없을 시-->
             <div
                 class="text-center py-12 text-gray-400">
 

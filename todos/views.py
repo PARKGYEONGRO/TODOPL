@@ -1,14 +1,8 @@
-import json
-import os
-import calendar
+# todos/views.py
+import json, calendar
 
 from datetime import date, datetime, timedelta
 
-from django.contrib.auth import (
-    get_user_model,
-    login,
-    logout
-)
 
 from django.contrib.auth.decorators import (
     login_required
@@ -30,7 +24,7 @@ from django.db.models import (
     IntegerField,
     Q,
     Prefetch,
-    Count
+    TimeField
 )
 
 from django.views.decorators.http import (
@@ -40,35 +34,14 @@ from django.views.decorators.http import (
 from .models import (
     Tag,
     Todo,
-    TodoCompletion,
-    TodoSomeday
+    TodoSomeday,
+    TodoCompletion
 )
 
-from supabase import create_client
+from .services import Get_User_Default_Tag
 
-
-def Get_User_Default_Tag(user): #사용자 기본 태그 가져오기
-
-    DefaultTag, Created = Tag.objects.get_or_create(
-
-        user=user,
-
-        is_default=True,
-
-        defaults={
-
-            'name':
-                '기본',
-
-            'color':
-                'gray'
-
-        }
-
-    )
-
-
-    return DefaultTag
+def Get_Current_Time():
+    return datetime.now().time()
 
 def Get_User_Tags(user): #사용자 태그 목록
 
@@ -122,645 +95,6 @@ def login_view(request): #로그인 화면
     )
 
 
-@require_POST
-def supabase_login(request): #Supabase 로그인
-
-    email = request.POST.get(
-
-        'email',
-
-        ''
-
-    ).strip().lower()
-
-
-    password = request.POST.get(
-
-        'password',
-
-        ''
-
-    )
-
-
-    if not email or not password:
-
-        return JsonResponse(
-
-            {
-
-                'success':
-                    False,
-
-                'message':
-                    '이메일과 비밀번호를 입력해주세요.'
-
-            },
-
-            status=400
-
-        )
-
-
-    supabase_url = os.getenv(
-
-        'SUPABASE_URL'
-
-    )
-
-
-    supabase_anon_key = os.getenv(
-
-        'SUPABASE_ANON_KEY'
-
-    )
-
-
-    if (
-
-        not supabase_url
-
-        or
-
-        not supabase_anon_key
-
-    ):
-
-        return JsonResponse(
-
-            {
-
-                'success':
-                    False,
-
-                'message':
-                    'Supabase 설정을 확인해주세요.'
-
-            },
-
-            status=500
-
-        )
-
-
-    try:
-
-        Supabase = create_client(
-
-            supabase_url,
-
-            supabase_anon_key
-
-        )
-
-
-        Response = (
-
-            Supabase
-
-            .auth
-
-            .sign_in_with_password(
-
-                {
-
-                    'email':
-                        email,
-
-                    'password':
-                        password,
-
-                }
-
-            )
-
-        )
-
-
-        if not Response.user:
-
-            return JsonResponse(
-
-                {
-
-                    'success':
-                        False,
-
-                    'message':
-                        '로그인에 실패했습니다.'
-
-                },
-
-                status=401
-
-            )
-
-
-        SupabaseUser = Response.user
-
-
-        User = get_user_model()
-
-
-        DjangoUser, Created = (
-
-            User.objects.get_or_create(
-
-                username=email,
-
-                defaults={
-
-                    'email':
-                        email,
-
-                }
-
-            )
-
-        )
-
-
-        if not DjangoUser.email:
-
-            DjangoUser.email = email
-
-            DjangoUser.save(
-
-                update_fields=[
-
-                    'email'
-
-                ]
-
-            )
-
-
-        # Django 로그인 세션
-
-        login(
-
-            request,
-
-            DjangoUser
-
-        )
-
-
-        # Supabase User ID 세션
-
-        request.session[
-
-            'supabase_user_id'
-
-        ] = SupabaseUser.id
-
-
-        print(
-
-            '로그인 성공:',
-
-            DjangoUser
-
-        )
-
-
-        Get_User_Default_Tag(
-
-            DjangoUser
-
-        )
-
-
-        return JsonResponse(
-
-            {
-
-                'success':
-                    True,
-
-                'message':
-                    '로그인되었습니다.',
-
-                'user': {
-
-                    'email':
-                        email,
-
-                }
-
-            }
-
-        )
-
-
-    except Exception as Error:
-
-        print(
-
-            'Supabase 로그인 오류:',
-
-            Error
-
-        )
-
-
-        return JsonResponse(
-
-            {
-
-                'success':
-                    False,
-
-                'message':
-                    '이메일 또는 비밀번호를 확인해주세요.'
-
-            },
-
-            status=401
-
-        )
-
-
-@require_POST
-def account_delete(request): #회원 탈퇴
-
-    withdrawal_reason = request.POST.get(
-
-        'withdrawal_reason',
-
-        ''
-
-    ).strip()
-
-
-    withdrawal_detail = request.POST.get(
-
-        'withdrawal_detail',
-
-        ''
-
-    ).strip()
-
-
-    withdrawal_confirm = request.POST.get(
-
-        'withdrawal_confirm'
-
-    )
-
-
-    withdrawal_identity = request.POST.get(
-
-        'withdrawal_identity',
-
-        ''
-
-    ).strip()
-
-
-    # 로그인 확인
-
-    if not request.user.is_authenticated:
-
-        return JsonResponse(
-
-            {
-
-                'success':
-                    False,
-
-                'message':
-                    '로그인이 필요합니다.'
-
-            },
-
-            status=401
-
-        )
-
-
-    # 필수값 확인
-
-    if not withdrawal_reason:
-
-        return JsonResponse(
-
-            {
-
-                'success':
-                    False,
-
-                'message':
-                    '탈퇴 사유를 선택해주세요.'
-
-            },
-
-            status=400
-
-        )
-
-
-    if len(withdrawal_detail) < 10:
-
-        return JsonResponse(
-
-            {
-
-                'success':
-                    False,
-
-                'message':
-                    '상세 사유를 10자 이상 입력해주세요.'
-
-            },
-
-            status=400
-
-        )
-
-
-    if len(withdrawal_detail) > 500:
-
-        return JsonResponse(
-
-            {
-
-                'success':
-                    False,
-
-                'message':
-                    '상세 사유는 500자 이하로 입력해주세요.'
-
-            },
-
-            status=400
-
-        )
-
-
-    if withdrawal_confirm != 'on':
-
-        return JsonResponse(
-
-            {
-
-                'success':
-                    False,
-
-                'message':
-                    '계정 및 데이터 복구 불가에 동의해주세요.'
-
-            },
-
-            status=400
-
-        )
-
-
-    # 이메일 / 아이디 확인
-
-    UserEmail = (
-
-        request.user.email
-
-        or
-
-        request.user.username
-
-    )
-
-
-    if withdrawal_identity != UserEmail:
-
-        return JsonResponse(
-
-            {
-
-                'success':
-                    False,
-
-                'message':
-                    '확인 문구가 일치하지 않습니다.'
-
-            },
-
-            status=400
-
-        )
-
-
-    # Supabase 설정
-
-    supabase_url = os.getenv(
-
-        'SUPABASE_URL'
-
-    )
-
-
-    supabase_service_role_key = os.getenv(
-
-        'SUPABASE_SERVICE_ROLE_KEY'
-
-    )
-
-
-    if (
-
-        not supabase_url
-
-        or
-
-        not supabase_service_role_key
-
-    ):
-
-        return JsonResponse(
-
-            {
-
-                'success':
-                    False,
-
-                'message':
-                    'Supabase 설정을 확인해주세요.'
-
-            },
-
-            status=500
-
-        )
-
-
-    # Supabase User ID
-
-    SupabaseUserId = request.session.get(
-
-        'supabase_user_id'
-
-    )
-
-
-    print(
-
-        '탈퇴 SupabaseUserID:',
-
-        SupabaseUserId
-
-    )
-
-
-    if not SupabaseUserId:
-
-        return JsonResponse(
-
-            {
-
-                'success':
-                    False,
-
-                'message':
-                    '사용자 인증 정보를 찾을 수 없습니다.'
-
-            },
-
-            status=400
-
-        )
-
-
-    try:
-
-        # Supabase 관리자 클라이언트
-
-        Supabase = create_client(
-
-            supabase_url,
-
-            supabase_service_role_key
-
-        )
-
-
-        # 1. 탈퇴 사유 저장
-
-        ReasonResponse = (
-
-            Supabase
-
-            .table(
-
-                'account_deletion_reasons'
-
-            )
-
-            .insert(
-
-                {
-
-                    'reason':
-                        withdrawal_reason,
-
-                    'detail':
-                        withdrawal_detail,
-
-                }
-
-            )
-
-            .execute()
-
-        )
-
-
-        print(
-
-            '탈퇴사유 저장 결과:',
-
-            ReasonResponse
-
-        )
-
-
-        # 2. Supabase Auth 사용자 삭제
-
-        DeleteResponse = (
-
-            Supabase
-
-            .auth
-
-            .admin
-
-            .delete_user(
-
-                SupabaseUserId
-
-            )
-
-        )
-
-
-        print(
-
-            'Supabase 사용자 삭제 결과:',
-
-            DeleteResponse
-
-        )
-
-
-        # 3. Django 세션 로그아웃
-
-        logout(request)
-        request.session.flush()
-
-        return JsonResponse(
-
-            {
-
-                'success':
-                    True,
-
-                'message':
-                    '회원탈퇴가 완료되었습니다.',
-
-                'redirect_url':
-                    '/login/'
-
-            }
-
-        )
-
-
-    except Exception as Error:
-
-        print(
-
-            '회원탈퇴 오류:',
-
-            Error
-
-        )
-
-
-        return JsonResponse(
-
-            {
-
-                'success':
-                    False,
-
-                'message':
-                    '회원탈퇴 처리 중 오류가 발생했습니다.'
-
-            },
-
-            status=500
-
-        )
-
-
 TAG_COLORS = [
 
     'gray',
@@ -802,7 +136,6 @@ def Get_Todo_Data(todo):
     DueDate = todo.due_date
     EndDate = todo.end_date
 
-
     # 혹시 문자열로 들어온 경우
     if isinstance(DueDate, str):
 
@@ -811,14 +144,12 @@ def Get_Todo_Data(todo):
             '%Y-%m-%d'
         ).date()
 
-
     if isinstance(EndDate, str):
 
         EndDate = datetime.strptime(
             EndDate,
             '%Y-%m-%d'
         ).date()
-
 
     return {
 
@@ -841,6 +172,18 @@ def Get_Todo_Data(todo):
                 if EndDate
                 else None
             ),
+
+        'todo_time':
+            (
+                todo.todo_time.strftime(
+                    '%H:%M'
+                )
+                if todo.todo_time
+                else None
+            ),
+
+        'is_time_manual':
+            todo.is_time_manual,
 
         'priority':
             todo.priority,
@@ -1239,54 +582,58 @@ def todo_list(request):  # Todo 목록
     # Todo 조회
 
     todos = (
-
         Todo.objects
-
         .filter(
             user=request.user
         )
-
         .filter(
             todo_query
         )
-
         .select_related(
             'tag'
         )
-
         .annotate(
-
             priority_order=Case(
-
                 When(
                     priority='H',
                     then=Value(1)
                 ),
-
                 When(
                     priority='M',
                     then=Value(2)
                 ),
-
                 When(
                     priority='L',
                     then=Value(3)
                 ),
-
                 default=Value(4),
-
                 output_field=IntegerField()
-
+            ),
+            time_input_order=Case(
+                When(
+                    is_time_manual=True,
+                    then=Value(0)
+                ),
+                default=Value(1),
+                output_field=IntegerField()
+            ),
+            manual_todo_time=Case(
+                When(
+                    is_time_manual=True,
+                    then='todo_time'
+                ),
+                default=None,
+                output_field=TimeField()
             )
-
         )
-
         .order_by(
+            'time_input_order',
+            'manual_todo_time',
             'priority_order',
             'created_at'
         )
-
     )
+
 
     # ==========================
     # 선택 날짜 기준 완료 상태
@@ -1786,11 +1133,40 @@ def todo_create(request):  # Todo 생성
         'M'
     )
 
+    todo_time_str = request.POST.get(
+        'todo_time',
+        ''
+    ).strip()
+
+    is_time_manual = bool(
+        todo_time_str
+    )
+
+    if todo_time_str:
+        try:
+            todo_time =datetime.strptime(
+                todo_time_str,
+                '%H:%M'
+            ).time()
+
+        except ValueError:
+            return JsonResponse({
+                'success':
+                    False,
+
+                'status':
+                    'error',
+
+                'message':
+                    '시간 형식이 올바르지 않음'
+            }, status=400)
+
+    else:
+        todo_time = None
 
     # ==========================
     # 제목 확인
     # ==========================
-
     if not title:
 
         return JsonResponse({
@@ -1798,6 +1174,14 @@ def todo_create(request):  # Todo 생성
             'status': 'error',
             'message': '할 일을 입력해주세요.'
         }, status=400)
+
+
+    if priority not in [
+        'H',
+        'M',
+        'L'
+    ]:
+        priority = 'M'
 
 
     # ==========================
@@ -1874,31 +1258,55 @@ def todo_create(request):  # Todo 생성
     # 사용자 본인의 태그만 허용
     # ==========================
 
-    tag = get_object_or_404(
-        Tag,
-        id=tag_id,
-        user=request.user
-    )
+    if tag_id:
+        tag = get_object_or_404(
+            Tag,
+            id=tag_id,
+            user=request.user
+        )
+    else:
+        tag = Get_User_Default_Tag(
+            request.user
+        )
 
 
     # ==========================
     # Todo 생성
     # ==========================
 
+    TodoCreateData = {
+
+        'user':
+            request.user,
+
+        'title':
+            title,
+
+        'due_date':
+            due_date,
+
+        'end_date':
+            end_date,
+
+        'is_time_manual':
+            is_time_manual,
+
+        'tag':
+            tag,
+
+        'priority':
+            priority
+
+    }
+
+    if todo_time is not None:
+
+        TodoCreateData[
+            'todo_time'
+        ] = todo_time
+
     todo = Todo.objects.create(
-
-        user=request.user,
-
-        title=title,
-
-        due_date=due_date,
-
-        end_date=end_date,
-
-        tag=tag,
-
-        priority=priority
-
+        **TodoCreateData
     )
 
 
@@ -2385,6 +1793,43 @@ def todo_edit(request, todo_id): # Todo 수정
         'M'
     )
 
+    todo_time_str = request.POST.get(
+        'todo_time',
+        ''
+    ).strip()
+
+    is_time_manual = bool(
+        todo_time_str
+    )
+
+    if todo_time_str:
+
+        try:
+
+            todo_time = datetime.strptime(
+                todo_time_str,
+                '%H:%M'
+            ).time()
+
+        except ValueError:
+
+            return JsonResponse({
+
+                'success':
+                    False,
+
+                'status':
+                    'error',
+
+                'message':
+                    '시간 형식이 올바르지 않음'
+
+            }, status=400)
+
+    else:
+
+        todo_time = None
+
     schedule_type = request.POST.get(
         'schedule_type',
         'single'
@@ -2639,11 +2084,23 @@ def todo_edit(request, todo_id): # Todo 수정
 
     todo.tag = tag
 
-    todo.priority = priority
-
     todo.due_date = new_due_date
 
     todo.end_date = new_end_date
+
+    todo.is_time_manual = is_time_manual
+
+    if todo_time is not None:
+
+        todo.todo_time = todo_time
+
+    else:
+
+        todo.todo_time = Get_Current_Time()
+
+
+    todo.priority = priority
+
 
 
     todo.save()
@@ -2678,13 +2135,19 @@ def mobile_stats(request): #통계
     )
 
 
-    selected_date_obj = datetime.strptime(
-
-        selected_date_str,
-
-        '%Y-%m-%d'
-
-    )
+    try:
+        selected_date_obj = datetime.strptime(
+            selected_date_str,
+            '%Y-%m-%d'
+        )
+    except ValueError:
+        selected_date_obj = datetime.combine(
+            today,
+            datetime.min.time()
+        )
+        selected_date_str = today.strftime(
+            '%Y-%m-%d'
+        )
 
 
     year = selected_date_obj.year
@@ -3389,14 +2852,28 @@ def todo_someday_list(request): #언젠가 할 일 목록
 
         )
 
+        .annotate(
+            priority_order=Case(
+                When(
+                    priority='H',
+                    then=Value(1)
+                ),
+                When(
+                    priority='M',
+                    then=Value(2)
+                ),
+                When(
+                    priority='L',
+                    then=Value(3)
+                ),
+                default=Value(4),
+                output_field=IntegerField()
+            )
+        )
         .order_by(
-
             'is_completed',
-
-            'priority',
-
+            'priority_order',
             'created_at'
-
         )
 
     )

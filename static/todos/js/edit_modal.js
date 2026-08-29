@@ -58,6 +58,8 @@ window.openEditModal = function(button) {
     const priority =
         button.dataset.priority;
 
+    const TodoTime =
+        button.dataset.todoTime;
 
     const dueDate =
         button.dataset.date;
@@ -95,10 +97,19 @@ window.openEditModal = function(button) {
         tagId || '';
 
 
-    document.getElementById(
-        'edit-priority'
-    ).value =
-        priority || 'M';
+    document.getElementById('edit-todo-time').value = TodoTime || '';
+
+    document.getElementById('edit-priority-high').checked = (
+        priority === 'H'
+    );
+
+    document.getElementById('edit-priority-medium').checked = (
+        priority === 'M'
+    );
+
+    document.getElementById('edit-priority-low').checked = (
+        priority === 'L'
+    );
 
 
     document.getElementById(

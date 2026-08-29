@@ -1,19 +1,14 @@
 <!-- desktop_somedaytodo_list.html -->
-
 <section
     class="flex-shrink-0 mt-24 px-6 md:px-8 pt-6 border-t border-gray-200">
 
 
-    <!-- ============================================================
-         헤더
-         ============================================================ -->
-
+    <!-- 헤더 -->
     <div
         class="flex items-center justify-between mb-4">
 
 
         <!-- 왼쪽 : 제목 -->
-
         <div
             class="flex items-center gap-3">
 
@@ -36,7 +31,6 @@
 
 
         <!-- 오른쪽 : 완료 수 / 추가 -->
-
         <div
             class="flex items-center gap-4">
 
@@ -68,7 +62,6 @@
     <!-- ============================================================
          언젠가 할 일 목록
          ============================================================ -->
-
     <div
         id="desktopSomedayTodoList"
         class="space-y-3">
@@ -77,34 +70,28 @@
         {% for someday_todo in someday_todos %}
 
 
-            <!-- ====================================================
-                 언젠가 할 일 한 줄
-                 ==================================================== -->
-
+            <!-- 언젠가 할 일 카드 -->
             <div
                 data-desktop-someday-id="{{ someday_todo.id }}"
-
                 data-completed="{{ someday_todo.is_completed|yesno:'1,0' }}"
+                data-priority="{{ someday_todo.priority }}"
+                data-created-at="{{ someday_todo.created_at|date:'U' }}"
 
+                data-id="{{ someday_todo.id }}"
+                data-title="{{ someday_todo.title|escapejs }}"
+                data-tag="{% if someday_todo.tag %}{{ someday_todo.tag.id }}{% endif %}"
                 data-priority="{{ someday_todo.priority }}"
 
-                data-created-at="{{ someday_todo.created_at|date:'U' }}"
+                onclick="openSomedayEditModal(this)"
 
                 class="flex items-center justify-between p-3 border-b border-gray-100 rounded group bg-white hover:bg-gray-50 transition-colors">
 
 
-                <!-- ====================================================
-                     왼쪽
-                     ==================================================== -->
-
+                <!-- 좌측 -->
                 <div
                     class="flex items-center gap-3 min-w-0">
 
-
-                    <!-- ====================================================
-                         우선순위 색상
-                         ==================================================== -->
-
+                    <!-- 우선순위 바 -->
                     <div
                         class="w-1 h-5 rounded-full flex-shrink-0
 
@@ -125,15 +112,13 @@
                     </div>
 
 
-
-                    <!-- ====================================================
-                         체크박스
-                         ==================================================== -->
-
+                    <!-- 체크 박스 -->
                     <input
                         type="checkbox"
 
                         id="someday-check-{{ someday_todo.id }}"
+
+                        onclick="event.stopPropagation();"
 
                         {% if someday_todo.is_completed %}
 
@@ -148,11 +133,7 @@
                         class="w-5 h-5 accent-black rounded cursor-pointer flex-shrink-0">
 
 
-
-                    <!-- ====================================================
-                         제목
-                         ==================================================== -->
-
+                    <!-- 제목 -->
                     <span
                         id="desktop-someday-title-{{ someday_todo.id }}"
 
@@ -175,22 +156,14 @@
                 </div>
 
 
-
-                <!-- ====================================================
-                     오른쪽
-                     ==================================================== -->
-
+                <!-- 우측 -->
                 <div
                     class="flex items-center gap-3 flex-shrink-0">
 
-
-                    <!-- ====================================================
-                         태그
-                         ==================================================== -->
-
+                    <!-- 태그 -->
                     <span
                         data-someday-tag
-                        data-tag-id="{{ todo.tag.id }}"
+                        data-tag-id="{{ someday_todo.tag.id }}"
                         class="border border-gray-200 text-gray-500 text-xs px-2 py-0.5 rounded">
 
                         {% if someday_todo.tag %}
@@ -206,11 +179,7 @@
                     </span>
 
 
-
-                    <!-- ====================================================
-                         우선순위
-                         ==================================================== -->
-
+                    <!-- 우선순위 -->
                     {% if someday_todo.priority == 'H' %}
 
                         <span
@@ -243,42 +212,7 @@
                     {% endif %}
 
 
-
-                    <!-- ====================================================
-                         수정
-                         ==================================================== -->
-
-                    <button
-                        type="button"
-
-                        data-someday-edit
-
-                        data-id="{{ someday_todo.id }}"
-
-                        data-title="{{ someday_todo.title|escapejs }}"
-
-                        data-tag="{% if someday_todo.tag %}{{ someday_todo.tag.id }}{% endif %}"
-
-                        data-priority="{{ someday_todo.priority }}"
-
-                        onclick="openSomedayEditModal(this)"
-
-                        class="text-gray-400 hover:text-black transition-colors mr-1">
-
-
-                        <i
-                            class="fa-regular fa-pen-to-square">
-                        </i>
-
-
-                    </button>
-
-
-
-                    <!-- ====================================================
-                         삭제
-                         ==================================================== -->
-
+                    <!-- 삭제 -->
                     <button
                         type="button"
 
@@ -288,9 +222,9 @@
 
                         data-title="{{ someday_todo.title|escapejs }}"
 
-                        onclick="openSomedayDeleteModal(this)"
+                        onclick="event.stopPropagation(); openSomedayDeleteModal(this)"
 
-                        class="text-gray-300 hover:text-red-500 transition-colors">
+                        class="text-lg text-gray-400 hover:text-red-500 transition-colors">
 
 
                         <i
@@ -309,10 +243,7 @@
         {% empty %}
 
 
-            <!-- ====================================================
-                 언젠가 할 일 없음
-                 ==================================================== -->
-
+            <!-- 언젠가 할 일 없을 시 -->
             <div
                 class="text-center py-8 text-gray-400">
 

@@ -1,22 +1,9 @@
-"""
-URL configuration for ToDoPlProject project.
+#urls.py
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.urls import path
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
+from accounts import views as AccountViews
 from todos import views
 
 urlpatterns = [
@@ -37,10 +24,21 @@ urlpatterns = [
 
     path(
         'login/auth/',
-        views.supabase_login,
+        AccountViews.supabase_login,
         name='supabase_login'
     ),
 
+    path(
+        'login/google/',
+        AccountViews.google_login,
+        name='google_login'
+    ),
+
+    path(
+        'login/google/callback/',
+        AccountViews.google_login_callback,
+        name='google_login_callback'
+    ),
 
     #로그아웃
     path(
@@ -53,7 +51,7 @@ urlpatterns = [
     # 회원탈퇴
     path(
         'account/delete/',
-        views.account_delete,
+        AccountViews.account_delete,
         name='account_delete'
     ),
 

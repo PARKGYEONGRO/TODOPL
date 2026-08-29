@@ -10,6 +10,22 @@
     data-priority="{{ todo.priority }}"
     data-created-at="{{ todo.created_at|date:'U.u' }}"
 
+    data-id="{{ todo.id }}"
+    data-title="{{ todo.title }}"
+    data-tag="{{ todo.tag.id }}"
+
+    data-date="{{ todo.due_date|date:'Y-m-d' }}"
+
+    data-end-date="{% if todo.end_date %}{{ todo.end_date|date:'Y-m-d' }}{% endif %}"
+
+    data-schedule-type="{% if todo.end_date %}range{% else %}single{% endif %}"
+
+    data-todo-time="{% if todo.is_time_manual %}{{ todo.todo_time|time:'H:i' }}{% endif %}"
+
+    data-time-manual="{% if todo.is_time_manual %}1{% else %}0{% endif %}"
+
+    onclick="openEditModal(this)"
+
     class="relative flex items-center gap-3 px-3 py-3
            border border-gray-200 rounded-xl
            {% if todo.display_completed %}
@@ -41,7 +57,8 @@
 
         data-todo-id="{{ todo.id }}"
 
-        onclick="toggleTodo(
+        onclick="event.stopPropagation();
+        toggleTodo(
             {{ todo.id }},
             '{{ todo.tag }}',
             '{{ today_str }}'
@@ -73,7 +90,6 @@
     <!-- 내용 -->
     <div class="flex-1 min-w-0">
 
-
         <p
             id="todo-title-{{ todo.id }}"
 
@@ -96,10 +112,7 @@
         </p>
 
 
-
-
         <div class="flex items-center gap-2 mt-1">
-
 
             <!-- 태그 -->
             <span
@@ -107,15 +120,13 @@
                 data-tag-id="{{ todo.tag.id }}"
                 class="px-2 py-0.5 rounded-md
                        border border-gray-200
-                       text-[10px] text-gray-600">
+                       text-xs text-gray-600">
 
 
                 {{ todo.tag }}
 
 
             </span>
-
-
 
 
             <!-- 우선순위 -->
@@ -147,6 +158,19 @@
             </span>
 
 
+            <!-- 시간 -->
+            {% if todo.is_time_manual%}
+
+                <span
+                    data-todo-time
+                    class="text-xs text-gray-400">
+
+                    {{ todo.todo_time|time:"H:i" }}
+
+                </span>
+
+            {% endif %}
+
         </div>
 
 
@@ -160,34 +184,6 @@
     <!-- 오른쪽 버튼 -->
     <div class="flex items-center gap-1">
 
-
-
-        <!-- 수정 -->
-        <button
-            type="button"
-
-            data-id="{{ todo.id }}"
-            data-title="{{ todo.title }}"
-            data-tag="{{ todo.tag.id }}"
-            data-priority="{{ todo.priority }}"
-            data-date="{{ todo.due_date|date:'Y-m-d' }}"
-            data-end-date="{% if todo.end_date %}{{ todo.end_date|date:'Y-m-d' }}{% endif %}"
-            data-schedule-type="{% if todo.end_date %}range{% else %}single{% endif %}"
-
-            onclick="openEditModal(this)"
-
-            class="w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center">
-
-
-            <i class="fa-regular fa-pen-to-square text-[16px] text-gray-500"></i>
-
-
-        </button>
-
-
-
-
-
         <!-- 삭제 -->
         <button
             type="button"
@@ -195,12 +191,12 @@
             data-id="{{ todo.id }}"
             data-title="{{ todo.title }}"
 
-            onclick="openDeleteModal(this)"
+            onclick="event.stopPropagation(); openDeleteModal(this)"
 
             class="w-9 h-9 rounded-full hover:bg-red-50 flex items-center justify-center">
 
 
-            <i class="fa-regular fa-trash-can text-[16px] text-gray-400"></i>
+            <i class="fa-regular fa-trash-can text-lg text-gray-400"></i>
 
 
         </button>
@@ -214,7 +210,7 @@
 {% empty %}
 
 <div
-    class='py-8 text-center text-[11px] text-gray-400'>
+    class='py-8 text-center text-xs text-gray-400'>
 
     오늘 할 일이 없습니다.
 

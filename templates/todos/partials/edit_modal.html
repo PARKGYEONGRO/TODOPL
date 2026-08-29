@@ -1,8 +1,4 @@
-<!--
-    ==================================================================
-    Todo 수정 모달
-    ==================================================================
--->
+<!-- edit_modal.html -->
 
 <div
     id='editModal'
@@ -82,8 +78,7 @@
                 value='{{ request.get_full_path }}'>
 
 
-            <div
-                class='space-y-4'>
+            <div class='space-y-4'>
 
 
                 <!-- 제목 -->
@@ -107,105 +102,7 @@
 
                 </div>
 
-
-                <!-- 태그 / 우선순위 -->
-
-                <div
-                    class='grid grid-cols-2 gap-3'>
-
-
-                    <!-- 태그 -->
-                    <div>
-
-                        <label
-                            class='block text-xs font-semibold text-gray-500 mb-1'>
-
-                            태그
-
-                        </label>
-
-
-                        <select
-                            id='edit-tag'
-                            name='tag'
-                            required
-                            class='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black'>
-
-
-                            {% if user_tags %}
-
-                                {% for tag in user_tags %}
-
-                                    <option
-                                        value='{{ tag.id }}'
-                                        data-tag-id="{{ tag.id }}">
-
-                                        {{ tag.name }}
-
-                                    </option>
-
-                                {% endfor %}
-
-
-                            {% else %}
-
-                                <option
-                                    value='{{ default_etc_tag.id }}'>
-
-                                    기타
-
-                                </option>
-
-                            {% endif %}
-
-
-                        </select>
-
-                    </div>
-
-
-                    <!-- 우선순위 -->
-
-                    <div>
-
-                        <label
-                            class='block text-xs font-semibold text-gray-500 mb-1'>
-
-                            우선순위
-
-                        </label>
-
-
-                        <select
-                            id='edit-priority'
-                            name='priority'
-                            class='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black'>
-
-
-                            <option value='H'>
-                                높음
-                            </option>
-
-
-                            <option value='M'>
-                                보통
-                            </option>
-
-
-                            <option value='L'>
-                                낮음
-                            </option>
-
-
-                        </select>
-
-                    </div>
-
-                </div>
-
-
                 <!-- 일정 유형 -->
-
                 <div>
 
                     <label
@@ -267,7 +164,6 @@
 
 
                 <!-- 날짜 -->
-
                 <div
                     class='grid grid-cols-2 gap-3'>
 
@@ -337,11 +233,148 @@
 
                 </div>
 
+                <!-- 태그 / 시간 -->
+                <div
+                    class='grid grid-cols-2 gap-3'>
+
+                    <!-- 태그 -->
+                    <div>
+
+                        <label
+                            class='block text-xs font-semibold text-gray-500 mb-1'>
+
+                            태그
+
+                        </label>
+
+                        <select
+                            id='edit-tag'
+                            name='tag'
+                            required
+                            class='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black'>
+
+                            {% if user_tags %}
+
+                                {% for tag in user_tags %}
+
+                                    <option
+                                        value='{{ tag.id }}'
+                                        data-tag-id='{{ tag.id }}'>
+
+                                        {{ tag.name }}
+
+                                    </option>
+
+                                {% endfor %}
+
+                            {% else %}
+
+                                <option
+                                    value='{{ default_etc_tag.id }}'>
+
+                                    기타
+
+                                </option>
+
+                            {% endif %}
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- 시간 -->
+                    <div>
+
+                        <label
+                            class='block text-xs font-semibold text-gray-500 mb-1'>
+
+                            시간
+
+                        </label>
+
+                        <input
+                            type='time'
+                            id='edit-todo-time'
+                            name='todo_time'
+                            class='w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black'>
+
+                    </div>
+
+                </div>
+
+                <!-- 우선순위 -->
+                <div>
+
+                    <label
+                        class='block text-xs font-bold text-gray-500 mb-1'>
+
+                        우선순위
+
+                    </label>
+
+                    <div class='flex gap-4 text-sm mt-1'>
+
+                        <label
+                            class='flex items-center gap-1 cursor-pointer'>
+
+                            <input
+                                type='radio'
+                                id='edit-priority-high'
+                                name='priority'
+                                value='H'
+                                class='accent-red-500'>
+
+                            <span class='text-red-500 font-bold'>
+                                높음(H)
+                            </span>
+
+                        </label>
+
+
+                        <label
+                            class='flex items-center gap-1 cursor-pointer'>
+
+                            <input
+                                type='radio'
+                                id='edit-priority-medium'
+                                name='priority'
+                                value='M'
+                                class='accent-amber-500'>
+
+                            <span class='text-amber-500 font-bold'>
+                                보통(M)
+                            </span>
+
+                        </label>
+
+
+                        <label
+                            class='flex items-center gap-1 cursor-pointer'>
+
+                            <input
+                                type='radio'
+                                id='edit-priority-low'
+                                name='priority'
+                                value='L'
+                                class='accent-green-400'>
+
+                            <span class='text-green-400 font-bold'>
+                                낮음(L)
+                            </span>
+
+                        </label>
+
+                    </div>
+
+                </div>
+
             </div>
 
 
-            <!-- 버튼 -->
+            
 
+            <!-- 버튼 -->
             <div
                 class='flex gap-2 mt-6'>
 
