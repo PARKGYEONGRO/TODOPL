@@ -3,6 +3,7 @@
 from django.urls import path
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
+from accounts import views as AccountViews
 from todos import views
 
 urlpatterns = [
@@ -23,19 +24,19 @@ urlpatterns = [
 
     path(
         'login/auth/',
-        views.supabase_login,
+        AccountViews.supabase_login,
         name='supabase_login'
     ),
 
     path(
         'login/google/',
-        views.google_login,
+        AccountViews.google_login,
         name='google_login'
     ),
 
     path(
         'login/google/callback/',
-        views.google_login_callback,
+        AccountViews.google_login_callback,
         name='google_login_callback'
     ),
 
@@ -50,7 +51,7 @@ urlpatterns = [
     # 회원탈퇴
     path(
         'account/delete/',
-        views.account_delete,
+        AccountViews.account_delete,
         name='account_delete'
     ),
 
