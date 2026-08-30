@@ -67,7 +67,7 @@ class UserProfile(models.Model):
     )
 
     bio = models.CharField(
-        max_length=150,
+        max_length=100,
         blank=True,
         default='',
         verbose_name='한 줄 소개'

@@ -1,9 +1,8 @@
-#urls.py
+# todos/urls.py
 
-from django.urls import path
+from django.urls import include, path
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
-from accounts import views as AccountViews
 from todos import views
 
 urlpatterns = [
@@ -22,23 +21,7 @@ urlpatterns = [
         name='login'
     ),
 
-    path(
-        'login/auth/',
-        AccountViews.supabase_login,
-        name='supabase_login'
-    ),
 
-    path(
-        'login/google/',
-        AccountViews.google_login,
-        name='google_login'
-    ),
-
-    path(
-        'login/google/callback/',
-        AccountViews.google_login_callback,
-        name='google_login_callback'
-    ),
 
     #로그아웃
     path(
@@ -47,12 +30,9 @@ urlpatterns = [
         name='logout'
     ),
 
-
-    # 회원탈퇴
     path(
-        'account/delete/',
-        AccountViews.account_delete,
-        name='account_delete'
+        '',
+        include('accounts.urls')
     ),
 
 

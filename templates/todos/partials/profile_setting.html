@@ -1,42 +1,57 @@
+{% load static %}
+
 <!-- profile_setting.html -->
+
 <div
     id='profilePage'
     class='fixed inset-0 z-[70] hidden bg-black/30'
-    onclick='backdropClick(event)'>
-
+    onclick='backdropClick(event)'
+>
 
     <div
-        class='h-full flex flex-col bg-white
-            md:w-[430px] md:ml-auto
-            md:shadow-2xl'
-        onclick='event.stopPropagation()'>
-
+        class='flex h-full flex-col bg-white md:ml-auto md:w-[430px] md:shadow-2xl'
+        onclick='event.stopPropagation()'
+    >
 
         <!-- ========================================================
              상단
         ========================================================= -->
 
         <header
-            class='relative flex items-center justify-center px-5 py-5'>
-
+            class='relative flex items-center justify-center px-5 py-5'
+        >
 
             <button
                 type='button'
                 onclick='closeProfilePage()'
-                class='absolute left-4 w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 active:bg-white/10 transition'>
+                class='
+                    absolute
+                    left-4
+                    flex
+                    h-10
+                    w-10
+                    items-center
+                    justify-center
+                    rounded-full
+                    transition
+                    hover:bg-gray-100
+                    active:bg-gray-100
+                '
+                aria-label='프로필 설정 닫기'
+            >
 
                 <i
-                    class='fa-solid fa-chevron-left text-xl'>
-                </i>
+                    class='fa-solid fa-chevron-left text-xl text-gray-900'
+                ></i>
 
             </button>
 
 
             <h1
-                class='text-xl font-extrabold'>
-
-                닉네임
-
+                id='profileHeaderNickname'
+                class='text-xl font-extrabold text-gray-900'
+            >
+                {{ request.user.profile.nickname }}
             </h1>
 
         </header>
@@ -47,33 +62,51 @@
         ========================================================= -->
 
         <div
-            class='grid grid-cols-3 border-b border-white/10'>
-
+            class='grid grid-cols-3 border-b border-gray-100'
+        >
 
             <button
                 type='button'
-                class='py-4 text-lg font-bold text-gray-400 border-b-2 border-gray-200'>
-
+                class='
+                    border-b-2
+                    border-gray-900
+                    py-4
+                    text-lg
+                    font-bold
+                    text-gray-900
+                '
+            >
                 Profile
-
             </button>
 
 
             <button
                 type='button'
-                class='py-4 text-lg font-bold text-gray-900'>
-
+                class='
+                    border-b-2
+                    border-transparent
+                    py-4
+                    text-lg
+                    font-bold
+                    text-gray-400
+                '
+            >
                 Following
-
             </button>
 
 
             <button
                 type='button'
-                class='py-4 text-lg font-bold text-gray-900'>
-
+                class='
+                    border-b-2
+                    border-transparent
+                    py-4
+                    text-lg
+                    font-bold
+                    text-gray-400
+                '
+            >
                 Followers
-
             </button>
 
         </div>
@@ -84,40 +117,110 @@
         ========================================================= -->
 
         <main
-            class='flex-1 overflow-y-auto px-5 py-8'>
+            class='flex-1 overflow-y-auto px-5 py-8'
+        >
 
 
-            <!-- 프로필 이미지 -->
+            <!-- ====================================================
+                 프로필 이미지
+            ==================================================== -->
 
             <div
-                class='flex justify-center mb-10'>
-
+                class='mb-10 flex justify-center'
+            >
 
                 <div
-                    class='relative'>
-
+                    class='relative'
+                >
 
                     <div
-                        class='w-40 h-40 rounded-full bg-gray-700 flex items-center justify-center'>
+                        id='profileImageContainer'
+                        class='
+                            flex
+                            h-40
+                            w-40
+                            items-center
+                            justify-center
+                            overflow-hidden
+                            rounded-full
+                            bg-gray-300
+                        '
+                    >
+
+                        <!--
+                            중요:
+
+                            여기서는 Django URL을 직접 사용하지 않는다.
+
+                            프로필 이미지가 Private Bucket에 있기 때문에
+                            JavaScript가 /profile/image-url/ API를 호출하여
+                            Signed URL을 받아서 src에 넣는다.
+                        -->
+
+                        <img
+                            id='profileImagePreview'
+                            src=''
+                            alt='프로필 이미지'
+                            class='
+                                hidden
+                                h-full
+                                w-full
+                                object-cover
+                            '
+                        >
 
 
                         <i
-                            class='fa-regular fa-user text-7xl text-gray-300'>
-                        </i>
-
+                            id='profileImageDefaultIcon'
+                            class='
+                                fa-regular
+                                fa-user
+                                text-7xl
+                                text-gray-400
+                            '
+                            aria-hidden='true'
+                        ></i>
 
                     </div>
+
+
+                    <input
+                        type='file'
+                        id='profileImageInput'
+                        name='profile_image'
+                        accept='image/jpeg,image/png,image/webp'
+                        class='hidden'
+                    >
 
 
                     <!-- 이미지 수정 -->
 
                     <button
                         type='button'
-                        class='absolute right-0 bottom-0 w-14 h-14 rounded-full bg-white text-gray-900 flex items-center justify-center shadow-lg'>
+                        id='profileImageEditButton'
+                        class='
+                            absolute
+                            bottom-0
+                            right-0
+                            flex
+                            h-14
+                            w-14
+                            items-center
+                            justify-center
+                            rounded-full
+                            bg-white
+                            text-gray-900
+                            shadow-lg
+                            transition
+                            hover:bg-gray-50
+                            active:scale-95
+                        '
+                        aria-label='프로필 이미지 수정'
+                    >
 
                         <i
-                            class='fa-solid fa-pen text-xl'>
-                        </i>
+                            class='fa-solid fa-pen text-xl'
+                        ></i>
 
                     </button>
 
@@ -126,39 +229,240 @@
             </div>
 
 
-            <!-- 이메일 ID -->
-            <section
-                class='mb-8'>
+            <!-- ====================================================
+                 이메일 ID
+            ==================================================== -->
 
+            <section
+                class='mb-8'
+            >
 
                 <h2
-                    class='text-2xl font-extrabold mb-4'>
-
+                    class='mb-4 text-2xl font-extrabold text-gray-900'
+                >
                     이메일 ID
-
                 </h2>
 
 
                 <div
-                    class='rounded-2xl bg-gray-50 px-5 py-5 flex items-center gap-4'>
-
+                    class='rounded-2xl bg-gray-50 px-5 py-5'
+                >
 
                     <div
-                        class='w-14 h-14 rounded-full bg-yellow-400 text-gray-900 flex items-center justify-center flex-shrink-0'>
+                        class='flex items-center gap-4'
+                    >
 
-                        <i
-                            class='fa-solid fa-comment text-2xl'> <!-- provider 아이콘 -->
-                        </i>
+                        <!-- Provider 목록 -->
+
+                        <div
+                            class='
+                                flex
+                                flex-shrink-0
+                                items-center
+                                -space-x-2
+                            '
+                        >
+
+                            <!-- Supabase -->
+
+                            {% for SocialAccountObject in request.user.social_accounts.all %}
+
+                                {% if SocialAccountObject.provider == 'supabase' %}
+
+                                    <div
+                                        class='
+                                            relative
+                                            z-40
+                                            flex
+                                            h-12
+                                            w-12
+                                            items-center
+                                            justify-center
+                                            rounded-full
+                                            border-2
+                                            border-white
+                                            bg-gray-700
+                                            shadow
+                                        '
+                                    >
+
+                                        <i
+                                            class='
+                                                fa-solid
+                                                fa-envelope
+                                                text-xl
+                                                text-white
+                                            '
+                                        ></i>
+
+                                    </div>
+
+                                {% endif %}
+
+                            {% endfor %}
+
+
+                            <!-- Google -->
+
+                            {% for SocialAccountObject in request.user.social_accounts.all %}
+
+                                {% if SocialAccountObject.provider == 'google' %}
+
+                                    <div
+                                        class='
+                                            relative
+                                            z-30
+                                            flex
+                                            h-12
+                                            w-12
+                                            flex-shrink-0
+                                            items-center
+                                            justify-center
+                                            rounded-full
+                                            border-2
+                                            border-white
+                                            bg-white
+                                            shadow
+                                        '
+                                    >
+
+                                        <svg
+                                            xmlns='http://www.w3.org/2000/svg'
+                                            viewBox='0 0 48 48'
+                                            class='h-7 w-7'
+                                        >
+
+                                            <path
+                                                fill='#EA4335'
+                                                d='M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z'
+                                            ></path>
+
+                                            <path
+                                                fill='#4285F4'
+                                                d='M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z'
+                                            ></path>
+
+                                            <path
+                                                fill='#FBBC05'
+                                                d='M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24s.92 7.66 2.55 10.59l7.98-6z'
+                                            ></path>
+
+                                            <path
+                                                fill='#34A853'
+                                                d='M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z'
+                                            ></path>
+
+                                            <path
+                                                fill='none'
+                                                d='M0 0h48v48H0z'
+                                            ></path>
+
+                                        </svg>
+
+                                    </div>
+
+                                {% endif %}
+
+                            {% endfor %}
+
+
+                            <!-- Naver -->
+
+                            {% for SocialAccountObject in request.user.social_accounts.all %}
+
+                                {% if SocialAccountObject.provider == 'naver' %}
+
+                                    <div
+                                        class='
+                                            relative
+                                            z-20
+                                            flex
+                                            h-12
+                                            w-12
+                                            items-center
+                                            justify-center
+                                            rounded-full
+                                            border-2
+                                            border-white
+                                            bg-[#03C75A]
+                                            shadow
+                                        '
+                                    >
+
+                                        <span
+                                            class='
+                                                text-lg
+                                                font-extrabold
+                                                text-white
+                                            '
+                                        >
+                                            N
+                                        </span>
+
+                                    </div>
+
+                                {% endif %}
+
+                            {% endfor %}
+
+
+                            <!-- Apple -->
+
+                            {% for SocialAccountObject in request.user.social_accounts.all %}
+
+                                {% if SocialAccountObject.provider == 'apple' %}
+
+                                    <div
+                                        class='
+                                            relative
+                                            z-10
+                                            flex
+                                            h-12
+                                            w-12
+                                            items-center
+                                            justify-center
+                                            rounded-full
+                                            border-2
+                                            border-white
+                                            bg-black
+                                            shadow
+                                        '
+                                    >
+
+                                        <i
+                                            class='
+                                                fa-brands
+                                                fa-apple
+                                                text-xl
+                                                text-white
+                                            '
+                                        ></i>
+
+                                    </div>
+
+                                {% endif %}
+
+                            {% endfor %}
+
+                        </div>
+
+
+                        <!-- 이메일 -->
+
+                        <p
+                            class='
+                                min-w-0
+                                flex-1
+                                break-all
+                                text-xl
+                                font-medium
+                                text-gray-400
+                            '
+                        >
+                            {{ request.user.email }}
+                        </p>
 
                     </div>
-
-
-                    <p
-                        class='text-xl text-gray-300 font-medium break-all'>
-
-                        example@example.com
-
-                    </p>
 
                 </div>
 
@@ -167,99 +471,204 @@
 
             <!-- ====================================================
                  프로필 설정
-            ===================================================== -->
+            ==================================================== -->
 
             <section
-                class='mb-8'>
-
+                class='mb-8'
+            >
 
                 <h2
-                    class='text-2xl font-extrabold mb-4'>
-
+                    class='mb-4 text-2xl font-extrabold text-gray-900'
+                >
                     프로필 설정
-
                 </h2>
 
 
                 <div
-                    class='rounded-2xl bg-gray-50 overflow-hidden'>
+                    class='
+                        overflow-hidden
+                        rounded-2xl
+                        bg-gray-50
+                    '
+                >
 
+                    <!-- ==================================================
+                         닉네임
+                    ================================================== -->
 
-                    <!-- 이름 -->
-
-                    <button
-                        type='button'
-                        class='w-full px-5 py-5 flex items-center gap-4 text-left border-b border-white/5'>
-
+                    <div
+                        class='
+                            flex
+                            w-full
+                            items-center
+                            gap-4
+                            border-b
+                            border-white
+                            px-5
+                            py-5
+                        '
+                    >
 
                         <div
-                            class='flex-1 min-w-0'>
+                            class='
+                                min-w-0
+                                flex-1
+                            '
+                        >
 
-
-                            <p
-                                class='text-xl font-medium'>
-
-                                닉네임
-
-                            </p>
+                            <input
+                                type='text'
+                                id='nicknameInput'
+                                name='nickname'
+                                value='{{ request.user.profile.nickname }}'
+                                maxlength='30'
+                                autocomplete='nickname'
+                                placeholder='닉네임'
+                                class='
+                                    block
+                                    w-full
+                                    min-w-0
+                                    border-0
+                                    bg-transparent
+                                    p-0
+                                    text-xl
+                                    font-medium
+                                    text-gray-900
+                                    outline-none
+                                    placeholder:text-gray-400
+                                    focus:ring-0
+                                '
+                            >
 
                         </div>
 
 
                         <i
-                            class='fa-solid fa-pen text-xl text-white'>
-                        </i>
+                            class='
+                                fa-solid
+                                fa-pen
+                                flex-shrink-0
+                                text-xl
+                                text-gray-300
+                            '
+                            aria-hidden='true'
+                        ></i>
 
 
                         <div
-                            class='w-px h-8 bg-white/10'>
-                        </div>
+                            class='
+                                h-8
+                                w-px
+                                flex-shrink-0
+                                bg-gray-200
+                            '
+                        ></div>
 
 
                         <span
-                            class='text-xl text-gray-500 font-bold'>
-
-                            #닉네임태그
-
+                            id='nicknameTag'
+                            class='
+                                flex-shrink-0
+                                text-xl
+                                font-bold
+                                text-gray-500
+                            '
+                        >
+                            #{{ request.user.profile.nickname_tag }}
                         </span>
 
-                    </button>
+                    </div>
 
 
-                    <!-- 한줄 소개 -->
+                    <!-- ==================================================
+                         한 줄 소개
+                    ================================================== -->
 
-                    <button
-                        type='button'
-                        class='w-full px-5 py-5 flex items-center text-left'>
+                    <div
+                        class='
+                            flex
+                            w-full
+                            items-center
+                            gap-4
+                            px-5
+                            py-5
+                        '
+                    >
 
+                        <div
+                            class='
+                                min-w-0
+                                flex-1
+                            '
+                        >
 
-                        <p
-                            class='flex-1 text-xl text-gray-500'>
+                            <input
+                                type='text'
+                                id='bioInput'
+                                name='bio'
+                                value='{{ request.user.profile.bio|default_if_none:"" }}'
+                                maxlength='100'
+                                placeholder='한 줄 소개를 입력하세요'
+                                class='
+                                    block
+                                    w-full
+                                    min-w-0
+                                    border-0
+                                    bg-transparent
+                                    p-0
+                                    text-xl
+                                    text-gray-500
+                                    outline-none
+                                    placeholder:text-gray-400
+                                    focus:ring-0
+                                '
+                            >
 
-                            한 줄 소개를 입력하세요...
-
-                        </p>
+                        </div>
 
 
                         <i
-                            class='fa-solid fa-pen text-xl text-white'>
-                        </i>
+                            class='
+                                fa-solid
+                                fa-pen
+                                flex-shrink-0
+                                text-xl
+                                text-gray-300
+                            '
+                            aria-hidden='true'
+                        ></i>
 
-                    </button>
+                    </div>
 
                 </div>
 
             </section>
 
 
-            <!-- 저장 버튼-->
+            <!-- ====================================================
+                 저장 버튼
+            ==================================================== -->
+
             <button
                 type='button'
-                onclick='saveProfile()'
-                class='w-full py-5 rounded-full bg-black text-white text-2xl font-extrabold active:scale-[0.99] transition'>
-
+                id='saveProfileButton'
+                class='
+                    w-full
+                    rounded-full
+                    bg-black
+                    py-5
+                    text-2xl
+                    font-extrabold
+                    text-white
+                    transition
+                    duration-150
+                    hover:bg-gray-800
+                    disabled:cursor-not-allowed
+                    disabled:opacity-50
+                    active:scale-[0.99]
+                '
+            >
                 저장
-
             </button>
 
 

@@ -199,19 +199,6 @@ function closeProfilePage() {
 
 }
 
-
-function saveProfile() {
-
-    /*
-        현재는 UI 연결만 먼저 처리.
-        실제 이름 / 소개 / 프로필 이미지 저장은
-        다음 단계에서 DB와 연결.
-    */
-
-    closeProfilePage();
-
-}
-
 function backdropClick(event) {
 
     if (event.target !== event.currentTarget) {
@@ -250,6 +237,121 @@ function backdropClick(event) {
 
     }
 
+}
+
+/*
+============================================================
+설정창 프로필 정보 갱신
+============================================================
+*/
+
+function UpdateSettingsProfile(
+    Nickname,
+    Bio
+) {
+
+    const SettingsProfileNickname =
+        document.getElementById(
+            'settingsProfileNickname'
+        );
+
+    const SettingsProfileBio =
+        document.getElementById(
+            'settingsProfileBio'
+        );
+
+
+    if (SettingsProfileNickname) {
+
+        SettingsProfileNickname.textContent =
+            Nickname;
+
+    }
+
+
+    if (SettingsProfileBio) {
+
+        SettingsProfileBio.textContent =
+            Bio ||
+            '한 줄 소개를 입력하세요';
+
+    }
+
+}
+
+async function LoadSettingsProfileImage() {
+
+    const ProfileImage = document.getElementById(
+        'settingsProfileImage'
+    );
+
+    const DefaultIcon = document.getElementById(
+        'settingsProfileDefaultIcon'
+    );
+
+    if (!ProfileImage || !DefaultIcon) {
+        return;
+    }
+
+    try {
+
+        const Response = await fetch(
+            '/account/profile/image-url/',
+            {
+                method: 'GET',
+                credentials: 'same-origin'
+            }
+        );
+
+        const Data = await Response.json();
+
+        if (
+            Data.success
+            &&
+            Data.image_url
+        ) {
+
+            ProfileImage.src = Data.image_url;
+
+            ProfileImage.classList.remove(
+                'hidden'
+            );
+
+            DefaultIcon.classList.add(
+                'hidden'
+            );
+
+        } else {
+
+            ProfileImage.src = '';
+
+            ProfileImage.classList.add(
+                'hidden'
+            );
+
+            DefaultIcon.classList.remove(
+                'hidden'
+            );
+
+        }
+
+    } catch (Error) {
+
+        console.error(
+            '프로필 이미지 불러오기 오류:',
+            Error
+        );
+
+        ProfileImage.src = '';
+
+        ProfileImage.classList.add(
+            'hidden'
+        );
+
+        DefaultIcon.classList.remove(
+            'hidden'
+        );
+    }
 }
 
 function logoutUser() {
