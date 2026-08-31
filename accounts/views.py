@@ -15,7 +15,7 @@ from google.oauth2 import id_token
 from django.contrib.auth.decorators import login_required
 
 from django.http import (
-    JsonResponse
+    JsonResponse,
 )
 
 from django.contrib.auth import (
@@ -24,7 +24,10 @@ from django.contrib.auth import (
     logout
 )
 
-from django.shortcuts import redirect
+from django.shortcuts import (
+    redirect,
+    render
+)
 
 from django.views.decorators.http import (
     require_GET,
@@ -1348,3 +1351,131 @@ def profile_image_url(request):
             },
             status=500
         )
+
+@require_POST
+def password_reset_send(request):
+
+    try:
+
+        Data = json.loads(
+            request.body
+        )
+
+
+        Email = (
+            Data.get(
+                'email',
+                ''
+            )
+            .strip()
+            .lower()
+        )
+
+
+        if not Email:
+
+            return JsonResponse(
+                {
+                    'success':
+                        False,
+
+                    'message':
+                        '이메일을 입력해주세요.'
+                },
+                status=400
+            )
+
+
+        SupabaseUrl = os.getenv(
+            'SUPABASE_URL'
+        )
+
+
+        SupabaseAnonKey = os.getenv(
+            'SUPABASE_ANON_KEY'
+        )
+
+
+        if (
+            not SupabaseUrl
+            or
+            not SupabaseAnonKey
+        ):
+
+            return JsonResponse(
+                {
+                    'success':
+                        False,
+
+                    'message':
+                        'Supabase 설정을 확인해주세요.'
+                },
+                status=500
+            )
+
+
+        Supabase = create_client(
+            SupabaseUrl,
+            SupabaseAnonKey
+        )
+
+
+        RedirectUrl = (
+            request.scheme
+            + '://'
+            + request.get_host()
+            + '/password-reset/confirm/'
+        )
+
+
+        Supabase.auth.reset_password_for_email(
+            Email,
+            {
+                'redirect_to':
+                    RedirectUrl
+            }
+        )
+
+
+        return JsonResponse(
+            {
+                'success':
+                    True,
+
+                'message':
+                    (
+                        '비밀번호 재설정 이메일을 보냈습니다.'
+                    )
+            }
+        )
+
+
+    except Exception as Error:
+
+        print(
+            '비밀번호 재설정 이메일 전송 오류:',
+            Error
+        )
+
+
+        return JsonResponse(
+            {
+                'success':
+                    False,
+
+                'message':
+                    (
+                        '비밀번호 재설정 이메일 전송 중 '
+                        '오류가 발생했습니다.'
+                    )
+            },
+            status=500
+        )
+
+
+def password_reset_confirm(request):
+
+    return render(
+        request,
+        'todos/partials/password_reset_confirm.html'
+    )   

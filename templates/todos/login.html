@@ -310,6 +310,7 @@
 
                             focus:outline-none
                         '
+                        onclick='openPasswordResetModal()'
                     >
                         비밀번호 재설정
                     </button>
@@ -811,10 +812,11 @@
 
     <!-- 회원가입 signup_modal.html에서 관리 -->
     {% include 'todos/partials/signup_modal.html' %}
-
     <script src="{% static 'todos/js/signup_modal.js' %}"></script>
 
-
+    <!-- 비밀번호 재설정 password_reset_modal.html에서 관리 -->
+     {% include 'todos/partials/password_reset_modal.html' %}
+    <script src="{% static 'todos/js/password_reset_modal.js' %}"></script>
 
     <!-- Supabase -->
     <script>

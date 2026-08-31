@@ -23,6 +23,19 @@ urlpatterns = [
         name='google_login_callback'
     ),
 
+    # 비밀번호 재설정 이메일 발송
+    path(
+        'password-reset/send/',
+        AccountViews.password_reset_send,
+        name='password_reset'
+    ),
+
+    path(
+        'password-reset/confirm/',
+        AccountViews.password_reset_confirm,
+        name='password_reset_confirm'
+    ),
+
     # 회원 탈퇴
     path(
         'account/delete/',
