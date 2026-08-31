@@ -759,6 +759,19 @@ def profile_update(request):
         )
 
 
+        SupabaseUrl = os.getenv(
+            'SUPABASE_URL'
+        )
+
+        SupabaseServiceRoleKey = os.getenv(
+            'SUPABASE_SERVICE_ROLE_KEY'
+        )
+
+        ProfileBucket = os.getenv(
+            'SUPABASE_PROFILE_BUCKET'
+        )
+
+
         # ============================================================
         # 이미지가 선택된 경우
         # ============================================================
@@ -1029,11 +1042,36 @@ def profile_update(request):
         ImageUrl = ''
 
 
-        if (
-            Profile.profile_image_path
-            and
-            Supabase
-        ):
+        if Profile.profile_image_path:
+
+            if not SupabaseUrl:
+
+                raise Exception(
+                    'SUPABASE_URL 설정이 없습니다.'
+                )
+
+
+            if not SupabaseServiceRoleKey:
+
+                raise Exception(
+                    'SUPABASE_SERVICE_ROLE_KEY 설정이 없습니다.'
+                )
+
+
+            if not ProfileBucket:
+
+                raise Exception(
+                    'SUPABASE_PROFILE_BUCKET 설정이 없습니다.'
+                )
+
+
+            if not Supabase:
+
+                Supabase = create_client(
+                    SupabaseUrl,
+                    SupabaseServiceRoleKey
+                )
+
 
             SignedUrlResponse = (
                 Supabase
@@ -1073,7 +1111,6 @@ def profile_update(request):
                     'signed_url',
                     ''
                 )
-
 
         # ============================================================
         # 성공 응답
