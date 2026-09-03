@@ -1,3 +1,7 @@
+// ============================================================
+// add_friend.js
+// ============================================================
+
 console.log(
     'add_friend.js 로드됨'
 );
@@ -63,8 +67,7 @@ function Get_CSRF_Token() {
 
 
     const CookieList =
-        document.cookie
-        .split(
+        document.cookie.split(
             ';'
         );
 
@@ -111,6 +114,17 @@ async function Friend_API_Fetch(
     Options = {}
 ) {
 
+    const {
+
+        headers:
+            CustomHeaders = {},
+
+        ...FetchOptions
+
+    } =
+        Options;
+
+
     const Response =
         await fetch(
             Url,
@@ -118,19 +132,26 @@ async function Friend_API_Fetch(
                 credentials:
                     'same-origin',
 
+                ...FetchOptions,
+
                 headers: {
-                    'Content-Type':
-                        'application/json',
 
                     'X-CSRFToken':
                         Get_CSRF_Token(),
 
-                    ...Options.headers
-                },
+                    ...CustomHeaders
 
-                ...Options
+                }
+
             }
         );
+
+
+    const ContentType =
+        Response.headers.get(
+            'content-type'
+        ) ||
+        '';
 
 
     let ResponseData =
@@ -139,8 +160,51 @@ async function Friend_API_Fetch(
 
     try {
 
-        ResponseData =
-            await Response.json();
+        if (
+            ContentType.includes(
+                'application/json'
+            )
+        ) {
+
+            ResponseData =
+                await Response.json();
+
+        }
+
+        else {
+
+            const ResponseText =
+                await Response.text();
+
+
+            if (
+                ResponseText
+            ) {
+
+                try {
+
+                    ResponseData =
+                        JSON.parse(
+                            ResponseText
+                        );
+
+                }
+
+                catch (
+                    Error
+                ) {
+
+                    ResponseData =
+                        {
+                            message:
+                                ResponseText
+                        };
+
+                }
+
+            }
+
+        }
 
     }
 
@@ -149,7 +213,7 @@ async function Friend_API_Fetch(
     ) {
 
         console.error(
-            'JSON 응답 파싱 실패:',
+            '응답 파싱 실패:',
             Error
         );
 
@@ -209,6 +273,71 @@ function Escape_HTML(
 
 
 // ============================================================
+// 사용자 표시 이름
+// ============================================================
+
+function Get_Friend_Display_Name(
+    FriendObject
+) {
+
+    const DisplayName =
+        String(
+            FriendObject.display_name ||
+            ''
+        )
+        .trim();
+
+
+    if (
+        DisplayName
+    ) {
+
+        return DisplayName;
+
+    }
+
+
+    const Nickname =
+        String(
+            FriendObject.nickname ||
+            ''
+        )
+        .trim();
+
+
+    const NicknameTag =
+        String(
+            FriendObject.nickname_tag ||
+            ''
+        )
+        .trim();
+
+
+    if (
+        Nickname &&
+        NicknameTag
+    ) {
+
+        return `${Nickname}#${NicknameTag}`;
+
+    }
+
+
+    if (
+        Nickname
+    ) {
+
+        return Nickname;
+
+    }
+
+
+    return '알 수 없는 사용자';
+
+}
+
+
+// ============================================================
 // 프로필 첫 글자
 // ============================================================
 
@@ -216,8 +345,15 @@ function Get_Profile_Initial(
     Nickname
 ) {
 
+    const SafeNickname =
+        String(
+            Nickname || ''
+        )
+        .trim();
+
+
     if (
-        !Nickname
+        !SafeNickname
     ) {
 
         return '?';
@@ -225,17 +361,15 @@ function Get_Profile_Initial(
     }
 
 
-    return (
-        Nickname.charAt(
-            0
-        )
+    return SafeNickname.charAt(
+        0
     );
 
 }
 
 
 // ============================================================
-// 프로필 이미지 HTML
+// 프로필 아바타 생성
 // ============================================================
 
 function Create_Profile_Avatar(
@@ -244,13 +378,17 @@ function Create_Profile_Avatar(
 ) {
 
     const Nickname =
-        Escape_HTML(
-            FriendObject.nickname
-        );
+        String(
+            FriendObject.nickname ||
+            FriendObject.display_name ||
+            ''
+        )
+        .trim();
 
 
-    const ProfileImagePath =
-        FriendObject.profile_image_path;
+    const ProfileImageURL =
+        FriendObject.profile_image_url ||
+        '';
 
 
     const BackgroundClass =
@@ -259,14 +397,8 @@ function Create_Profile_Avatar(
             : 'bg-emerald-500';
 
 
-    // --------------------------------------------------------
-    // 현재 API에서는 profile_image_path만 전달한다.
-    // Private Bucket Signed URL은 별도 API 구현 전까지
-    // 실제 이미지 대신 기본 아바타를 표시한다.
-    // --------------------------------------------------------
-
     if (
-        ProfileImagePath
+        ProfileImageURL
     ) {
 
         return `
@@ -280,18 +412,23 @@ function Create_Profile_Avatar(
                     justify-center
                     overflow-hidden
                     rounded-full
-                    bg-gray-200
+                    bg-gray-100
                 '
             >
 
-                <i
+                <img
+                    src='${Escape_HTML(
+                        ProfileImageURL
+                    )}'
+                    alt='${Escape_HTML(
+                        Nickname
+                    )}'
                     class='
-                        fa-regular
-                        fa-user
-                        text-lg
-                        text-gray-400
+                        h-full
+                        w-full
+                        object-cover
                     '
-                ></i>
+                >
 
             </div>
         `;
@@ -314,9 +451,16 @@ function Create_Profile_Avatar(
         >
 
             <span
-                class='font-extrabold text-white'
+                class='
+                    font-extrabold
+                    text-white
+                '
             >
-                ${Get_Profile_Initial(Nickname)}
+                ${Escape_HTML(
+                    Get_Profile_Initial(
+                        Nickname
+                    )
+                )}
             </span>
 
         </div>
@@ -326,22 +470,14 @@ function Create_Profile_Avatar(
 
 
 // ============================================================
-// 보낸 친구 요청 카드
+// 카드 공통 컨테이너 생성
 // ============================================================
 
-function Create_Sent_Request_Card(
-    FriendObject
-) {
+function Create_Friend_Request_Card() {
 
     const Card =
         document.createElement(
             'div'
-        );
-
-
-    const DisplayName =
-        Escape_HTML(
-            FriendObject.display_name
         );
 
 
@@ -355,9 +491,41 @@ function Create_Sent_Request_Card(
         `;
 
 
-    Card.dataset
-        .friendRequestId =
-            FriendObject.request_id;
+    return Card;
+
+}
+
+
+// ============================================================
+// 보낸 친구 요청 카드
+// ============================================================
+
+function Create_Sent_Request_Card(
+    FriendObject
+) {
+
+    const Card =
+        Create_Friend_Request_Card();
+
+
+    const RequestId =
+        FriendObject.request_id;
+
+
+    const DisplayName =
+        Escape_HTML(
+            Get_Friend_Display_Name(
+                FriendObject
+            )
+        );
+
+
+    Card.dataset.friendRequestId =
+        RequestId;
+
+
+    Card.dataset.friendRequestType =
+        'sent';
 
 
     Card.innerHTML =
@@ -445,30 +613,27 @@ function Create_Received_Request_Card(
 ) {
 
     const Card =
-        document.createElement(
-            'div'
-        );
+        Create_Friend_Request_Card();
+
+
+    const RequestId =
+        FriendObject.request_id;
 
 
     const DisplayName =
         Escape_HTML(
-            FriendObject.display_name
+            Get_Friend_Display_Name(
+                FriendObject
+            )
         );
 
 
-    Card.className =
-        `
-        rounded-2xl
-        border
-        border-gray-100
-        bg-gray-50
-        p-4
-        `;
+    Card.dataset.friendRequestId =
+        RequestId;
 
 
-    Card.dataset
-        .friendRequestId =
-            FriendObject.request_id;
+    Card.dataset.friendRequestType =
+        'received';
 
 
     Card.innerHTML =
@@ -520,7 +685,9 @@ function Create_Received_Request_Card(
 
             <button
                 type='button'
-                data-friend-request-accept='${FriendObject.request_id}'
+                data-friend-request-accept='${Escape_HTML(
+                    RequestId
+                )}'
                 class='
                     flex-1
                     rounded-xl
@@ -540,7 +707,9 @@ function Create_Received_Request_Card(
 
             <button
                 type='button'
-                data-friend-request-reject='${FriendObject.request_id}'
+                data-friend-request-reject='${Escape_HTML(
+                    RequestId
+                )}'
                 class='
                     flex-1
                     rounded-xl
@@ -643,6 +812,154 @@ function Create_Empty_Friend_Request() {
 
 
 // ============================================================
+// 로딩 상태
+// ============================================================
+
+function Render_Friend_Request_Loading() {
+
+    if (
+        !NewFriendList
+    ) {
+
+        return;
+
+    }
+
+
+    NewFriendList.innerHTML =
+        `
+        <div
+            class='
+                flex
+                min-h-48
+                flex-col
+                items-center
+                justify-center
+                rounded-2xl
+                border
+                border-gray-100
+                bg-gray-50
+            '
+        >
+
+            <div
+                class='
+                    h-7
+                    w-7
+                    animate-spin
+                    rounded-full
+                    border-2
+                    border-gray-200
+                    border-t-indigo-500
+                '
+            ></div>
+
+
+            <p
+                class='
+                    mt-4
+                    text-sm
+                    font-medium
+                    text-gray-400
+                '
+            >
+                친구 요청을 불러오는 중...
+            </p>
+
+        </div>
+        `;
+
+}
+
+
+// ============================================================
+// 오류 상태
+// ============================================================
+
+function Render_Friend_Request_Error(
+    Message
+) {
+
+    if (
+        !NewFriendList
+    ) {
+
+        return;
+
+    }
+
+
+    NewFriendList.innerHTML =
+        `
+        <div
+            class='
+                flex
+                min-h-48
+                flex-col
+                items-center
+                justify-center
+                rounded-2xl
+                border
+                border-red-100
+                bg-red-50
+                px-5
+                text-center
+            '
+        >
+
+            <div
+                class='
+                    mb-4
+                    flex
+                    h-12
+                    w-12
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-white
+                '
+            >
+
+                <i
+                    class='
+                        fa-solid
+                        fa-circle-exclamation
+                        text-lg
+                        text-red-400
+                    '
+                ></i>
+
+            </div>
+
+
+            <p
+                class='font-bold text-red-500'
+            >
+                친구 요청을 불러올 수 없습니다.
+            </p>
+
+
+            <p
+                class='
+                    mt-2
+                    text-sm
+                    leading-relaxed
+                    text-red-400
+                '
+            >
+                ${Escape_HTML(
+                    Message ||
+                    '잠시 후 다시 시도해주세요.'
+                )}
+            </p>
+
+        </div>
+        `;
+
+}
+
+
+// ============================================================
 // 친구 요청 목록 렌더링
 // ============================================================
 
@@ -668,13 +985,19 @@ function Render_Friend_Request_List(
 
 
     const SentRequests =
-        ResponseData.sent_requests ||
-        [];
+        Array.isArray(
+            ResponseData.sent_requests
+        )
+            ? ResponseData.sent_requests
+            : [];
 
 
     const ReceivedRequests =
-        ResponseData.received_requests ||
-        [];
+        Array.isArray(
+            ResponseData.received_requests
+        )
+            ? ResponseData.received_requests
+            : [];
 
 
     const TotalCount =
@@ -687,14 +1010,12 @@ function Render_Friend_Request_List(
     ) {
 
         NewFriendCount.textContent =
-            TotalCount;
+            String(
+                TotalCount
+            );
 
     }
 
-
-    // --------------------------------------------------------
-    // 빈 상태
-    // --------------------------------------------------------
 
     if (
         TotalCount === 0
@@ -709,17 +1030,13 @@ function Render_Friend_Request_List(
     }
 
 
-    // --------------------------------------------------------
-    // 보낸 요청
-    // --------------------------------------------------------
-
-    SentRequests.forEach(
+    ReceivedRequests.forEach(
         function (
             FriendObject
         ) {
 
             const RequestCard =
-                Create_Sent_Request_Card(
+                Create_Received_Request_Card(
                     FriendObject
                 );
 
@@ -732,17 +1049,13 @@ function Render_Friend_Request_List(
     );
 
 
-    // --------------------------------------------------------
-    // 받은 요청
-    // --------------------------------------------------------
-
-    ReceivedRequests.forEach(
+    SentRequests.forEach(
         function (
             FriendObject
         ) {
 
             const RequestCard =
-                Create_Received_Request_Card(
+                Create_Sent_Request_Card(
                     FriendObject
                 );
 
@@ -763,12 +1076,28 @@ function Render_Friend_Request_List(
 
 async function Load_Friend_Requests() {
 
+    if (
+        !NewFriendList
+    ) {
+
+        return;
+
+    }
+
+
+    Render_Friend_Request_Loading();
+
+
     try {
 
         const ResponseData =
             await Friend_API_Fetch(
                 Friend_API_URL
-                .RequestList
+                .RequestList,
+                {
+                    method:
+                        'GET'
+                }
             );
 
 
@@ -805,6 +1134,21 @@ async function Load_Friend_Requests() {
             Error
         );
 
+
+        if (
+            NewFriendCount
+        ) {
+
+            NewFriendCount.textContent =
+                '0';
+
+        }
+
+
+        Render_Friend_Request_Error(
+            Error.message
+        );
+
     }
 
 }
@@ -817,8 +1161,7 @@ async function Load_Friend_Requests() {
 async function Send_Friend_Request() {
 
     if (
-        !AddFriendInput
-        ||
+        !AddFriendInput ||
         !SendFriendRequestButton
     ) {
 
@@ -838,7 +1181,7 @@ async function Send_Friend_Request() {
     ) {
 
         alert(
-            '사용자명을 입력해주세요.'
+            '닉네임#태그를 입력해주세요.'
         );
 
 
@@ -872,6 +1215,11 @@ async function Send_Friend_Request() {
                 {
                     method:
                         'POST',
+
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
 
                     body:
                         JSON.stringify(
@@ -907,6 +1255,12 @@ async function Send_Friend_Request() {
 
 
         await Load_Friend_Requests();
+
+
+        alert(
+            ResponseData.message ||
+            '친구 요청을 보냈습니다.'
+        );
 
     }
 
@@ -949,7 +1303,25 @@ async function Accept_Friend_Request(
     ButtonElement
 ) {
 
+    const Card =
+        ButtonElement?.closest(
+            '[data-friend-request-id]'
+        );
+
+
     try {
+
+        if (
+            Card
+        ) {
+
+            Card.classList.add(
+                'opacity-60',
+                'pointer-events-none'
+            );
+
+        }
+
 
         if (
             ButtonElement
@@ -972,6 +1344,11 @@ async function Accept_Friend_Request(
                 {
                     method:
                         'POST',
+
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
 
                     body:
                         JSON.stringify(
@@ -1022,6 +1399,18 @@ async function Accept_Friend_Request(
 
 
         if (
+            Card
+        ) {
+
+            Card.classList.remove(
+                'opacity-60',
+                'pointer-events-none'
+            );
+
+        }
+
+
+        if (
             ButtonElement
         ) {
 
@@ -1048,7 +1437,25 @@ async function Reject_Friend_Request(
     ButtonElement
 ) {
 
+    const Card =
+        ButtonElement?.closest(
+            '[data-friend-request-id]'
+        );
+
+
     try {
+
+        if (
+            Card
+        ) {
+
+            Card.classList.add(
+                'opacity-60',
+                'pointer-events-none'
+            );
+
+        }
+
 
         if (
             ButtonElement
@@ -1071,6 +1478,11 @@ async function Reject_Friend_Request(
                 {
                     method:
                         'POST',
+
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
 
                     body:
                         JSON.stringify(
@@ -1121,6 +1533,18 @@ async function Reject_Friend_Request(
 
 
         if (
+            Card
+        ) {
+
+            Card.classList.remove(
+                'opacity-60',
+                'pointer-events-none'
+            );
+
+        }
+
+
+        if (
             ButtonElement
         ) {
 
@@ -1139,7 +1563,7 @@ async function Reject_Friend_Request(
 
 
 // ============================================================
-// 이벤트
+// 이벤트 초기화
 // ============================================================
 
 function Initialize_Add_Friend_Page() {
@@ -1148,10 +1572,6 @@ function Initialize_Add_Friend_Page() {
         '친구 추가 페이지 초기화'
     );
 
-
-    // --------------------------------------------------------
-    // 친구 요청 보내기
-    // --------------------------------------------------------
 
     if (
         SendFriendRequestButton
@@ -1166,10 +1586,6 @@ function Initialize_Add_Friend_Page() {
     }
 
 
-    // --------------------------------------------------------
-    // Enter
-    // --------------------------------------------------------
-
     if (
         AddFriendInput
     ) {
@@ -1182,25 +1598,24 @@ function Initialize_Add_Friend_Page() {
             ) {
 
                 if (
-                    Event.key === 'Enter'
+                    Event.key !== 'Enter'
                 ) {
 
-                    Event.preventDefault();
-
-
-                    Send_Friend_Request();
+                    return;
 
                 }
+
+
+                Event.preventDefault();
+
+
+                Send_Friend_Request();
 
             }
         );
 
     }
 
-
-    // --------------------------------------------------------
-    // 수락 / 거절
-    // --------------------------------------------------------
 
     if (
         NewFriendList
@@ -1226,6 +1641,15 @@ function Initialize_Add_Friend_Page() {
                     const RequestId =
                         AcceptButton.dataset
                         .friendRequestAccept;
+
+
+                    if (
+                        !RequestId
+                    ) {
+
+                        return;
+
+                    }
 
 
                     Accept_Friend_Request(
@@ -1254,6 +1678,15 @@ function Initialize_Add_Friend_Page() {
                         .friendRequestReject;
 
 
+                    if (
+                        !RequestId
+                    ) {
+
+                        return;
+
+                    }
+
+
                     Reject_Friend_Request(
                         RequestId,
                         RejectButton
@@ -1267,10 +1700,6 @@ function Initialize_Add_Friend_Page() {
     }
 
 
-    // --------------------------------------------------------
-    // 초기 데이터 로드
-    // --------------------------------------------------------
-
     Load_Friend_Requests();
 
 }
@@ -1280,7 +1709,19 @@ function Initialize_Add_Friend_Page() {
 // DOM READY
 // ============================================================
 
-document.addEventListener(
-    'DOMContentLoaded',
-    Initialize_Add_Friend_Page
-);
+if (
+    document.readyState === 'loading'
+) {
+
+    document.addEventListener(
+        'DOMContentLoaded',
+        Initialize_Add_Friend_Page
+    );
+
+}
+
+else {
+
+    Initialize_Add_Friend_Page();
+
+}

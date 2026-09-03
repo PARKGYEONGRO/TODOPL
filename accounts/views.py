@@ -4,8 +4,6 @@ import json
 import uuid
 import mimetypes
 
-from datetime import timezone
-
 from PIL import Image
 
 from google_auth_oauthlib.flow import Flow
@@ -17,6 +15,8 @@ from google.oauth2 import id_token
 from django.contrib.auth.decorators import login_required
 
 from django.db import  transaction
+
+from django.utils import timezone
 
 from django.http import (
     JsonResponse,
@@ -47,7 +47,11 @@ from accounts.models import (
     Friendship
 )
 
-from supabase import create_client
+from supabase import (
+    create_client,
+    Client
+)
+
 
 from .services import (
     Create_User_Initial_Data,
@@ -1557,7 +1561,9 @@ def friend_requests(
                 ),
 
                 'profile_image_path': (
-                    FriendProfile.profile_image_path
+                    Get_Profile_Image_Signed_Url(
+                        FriendProfile
+                    )
                 ),
 
                 'created_at': (
@@ -1600,7 +1606,9 @@ def friend_requests(
                 ),
 
                 'profile_image_path': (
-                    FriendProfile.profile_image_path
+                    Get_Profile_Image_Signed_Url(
+                        FriendProfile
+                    )
                 ),
 
                 'created_at': (
@@ -1627,9 +1635,7 @@ def friend_requests(
 
 @login_required
 @require_POST
-def friend_request_send(
-    request
-):
+def friend_request_send(request):
 
     try:
 
@@ -1886,6 +1892,12 @@ def friend_request_send(
                 'display_name': (
                     f'{ReceiverProfile.nickname}'
                     f'#{ReceiverProfile.nickname_tag}'
+                ),
+
+                'profile_image_url': (
+                    Get_Profile_Image_Signed_Url(
+                        ReceiverProfile
+                    )
                 )
             }
         }
@@ -1949,10 +1961,10 @@ def friend_request_accept(
             FriendRequestObject = (
                 FriendRequest.objects
                 .select_for_update()
-                .select_related(
-                    'sender',
-                    'sender__profile'
-                )
+                # .select_related(
+                #     'sender',
+                #     'sender__profile'
+                # ) # 오류 FOR UPDATE cannot be applied to the nullable side of an outer join
                 .get(
                     id=RequestId,
                     receiver=request.user,
@@ -2036,6 +2048,12 @@ def friend_request_accept(
                 'display_name': (
                     f'{SenderProfile.nickname}'
                     f'#{SenderProfile.nickname_tag}'
+                ),
+
+                'profile_image_url': (
+                    Get_Profile_Image_Signed_Url(
+                        SenderProfile
+                    )
                 )
             }
         }
@@ -2146,4 +2164,105 @@ def friend_request_reject(
             )
         }
     )
+
+
+def Get_Profile_Image_Signed_Url(
+    ProfileObject
+):
+
+    if not ProfileObject.profile_image_path:
+
+        return ''
+
+
+    try:
+
+        SupabaseUrl = os.getenv(
+            'SUPABASE_URL'
+        )
+
+        SupabaseServiceRoleKey = os.getenv(
+            'SUPABASE_SERVICE_ROLE_KEY'
+        )
+
+        ProfileBucket = os.getenv(
+            'SUPABASE_PROFILE_BUCKET',
+            'profile-images'
+        )
+
+
+        if not SupabaseUrl:
+
+            raise Exception(
+                'SUPABASE_URL 설정이 없습니다.'
+            )
+
+
+        if not SupabaseServiceRoleKey:
+
+            raise Exception(
+                'SUPABASE_SERVICE_ROLE_KEY 설정이 없습니다.'
+            )
+
+
+        Supabase = create_client(
+            SupabaseUrl,
+            SupabaseServiceRoleKey
+        )
+
+
+        SignedUrlResponse = (
+            Supabase
+            .storage
+            .from_(
+                ProfileBucket
+            )
+            .create_signed_url(
+                ProfileObject.profile_image_path,
+                3600
+            )
+        )
+
+
+        if isinstance(
+            SignedUrlResponse,
+            dict
+        ):
+
+            return (
+                SignedUrlResponse.get(
+                    'signedURL'
+                )
+                or
+                SignedUrlResponse.get(
+                    'signedUrl'
+                )
+                or
+                ''
+            )
+
+
+        return (
+            getattr(
+                SignedUrlResponse,
+                'signed_url',
+                ''
+            )
+            or
+            getattr(
+                SignedUrlResponse,
+                'signedURL',
+                ''
+            )
+        )
+
+
+    except Exception as Error:
+
+        print(
+            '프로필 이미지 Signed URL 생성 실패:',
+            Error
+        )
+
+        return ''
 
