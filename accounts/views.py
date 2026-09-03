@@ -4,6 +4,8 @@ import json
 import uuid
 import mimetypes
 
+from datetime import timezone
+
 from PIL import Image
 
 from google_auth_oauthlib.flow import Flow
@@ -13,6 +15,8 @@ from google.auth.transport import requests as GoogleRequests
 from google.oauth2 import id_token
 
 from django.contrib.auth.decorators import login_required
+
+from django.db import  transaction
 
 from django.http import (
     JsonResponse,
@@ -38,7 +42,9 @@ from django.conf import settings
 
 from accounts.models import (
     UserProfile,
-    SocialAccount
+    SocialAccount,
+    FriendRequest,
+    Friendship
 )
 
 from supabase import create_client
@@ -1478,4 +1484,666 @@ def password_reset_confirm(request):
     return render(
         request,
         'todos/partials/password_reset_confirm.html'
-    )   
+    )
+
+
+@login_required
+@require_GET
+def friend_requests(
+    request
+):
+
+    SentFriendRequests = (
+        FriendRequest.objects
+        .filter(
+            sender=request.user,
+            status='PENDING'
+        )
+        .select_related(
+            'receiver',
+            'receiver__profile'
+        )
+        .order_by(
+            '-created_at'
+        )
+    )
+
+
+    ReceivedFriendRequests = (
+        FriendRequest.objects
+        .filter(
+            receiver=request.user,
+            status='PENDING'
+        )
+        .select_related(
+            'sender',
+            'sender__profile'
+        )
+        .order_by(
+            '-created_at'
+        )
+    )
+
+
+    SentList = []
+
+
+    for FriendRequestObject in SentFriendRequests:
+
+        FriendProfile = (
+            FriendRequestObject
+            .receiver
+            .profile
+        )
+
+
+        SentList.append(
+            {
+                'request_id': (
+                    FriendRequestObject.id
+                ),
+
+                'nickname': (
+                    FriendProfile.nickname
+                ),
+
+                'nickname_tag': (
+                    FriendProfile.nickname_tag
+                ),
+
+                'display_name': (
+                    f'{FriendProfile.nickname}'
+                    f'#{FriendProfile.nickname_tag}'
+                ),
+
+                'profile_image_path': (
+                    FriendProfile.profile_image_path
+                ),
+
+                'created_at': (
+                    FriendRequestObject.created_at
+                    .isoformat()
+                )
+            }
+        )
+
+
+    ReceivedList = []
+
+
+    for FriendRequestObject in ReceivedFriendRequests:
+
+        FriendProfile = (
+            FriendRequestObject
+            .sender
+            .profile
+        )
+
+
+        ReceivedList.append(
+            {
+                'request_id': (
+                    FriendRequestObject.id
+                ),
+
+                'nickname': (
+                    FriendProfile.nickname
+                ),
+
+                'nickname_tag': (
+                    FriendProfile.nickname_tag
+                ),
+
+                'display_name': (
+                    f'{FriendProfile.nickname}'
+                    f'#{FriendProfile.nickname_tag}'
+                ),
+
+                'profile_image_path': (
+                    FriendProfile.profile_image_path
+                ),
+
+                'created_at': (
+                    FriendRequestObject.created_at
+                    .isoformat()
+                )
+            }
+        )
+
+
+    return JsonResponse(
+        {
+            'success': True,
+
+            'sent_requests': (
+                SentList
+            ),
+
+            'received_requests': (
+                ReceivedList
+            )
+        }
+    )
+
+@login_required
+@require_POST
+def friend_request_send(
+    request
+):
+
+    try:
+
+        Data = json.loads(
+            request.body
+        )
+
+
+    except json.JSONDecodeError:
+
+        return JsonResponse(
+            {
+                'success': False,
+
+                'message': (
+                    '잘못된 요청입니다.'
+                )
+            },
+            status=400
+        )
+
+
+    FriendUsername = (
+        Data
+        .get(
+            'username',
+            ''
+        )
+        .strip()
+    )
+
+
+    if (
+        '#' not in FriendUsername
+    ):
+
+        return JsonResponse(
+            {
+                'success': False,
+
+                'message': (
+                    '닉네임과 닉네임 태그를 '
+                    '정확하게 입력해주세요.'
+                )
+            },
+            status=400
+        )
+
+
+    Nickname, NicknameTag = (
+        FriendUsername
+        .rsplit(
+            '#',
+            1
+        )
+    )
+
+
+    Nickname = (
+        Nickname
+        .strip()
+    )
+
+
+    NicknameTag = (
+        NicknameTag
+        .strip()
+    )
+
+
+    if (
+        not Nickname
+        or not NicknameTag
+    ):
+
+        return JsonResponse(
+            {
+                'success': False,
+
+                'message': (
+                    '닉네임과 닉네임 태그를 '
+                    '정확하게 입력해주세요.'
+                )
+            },
+            status=400
+        )
+
+
+    try:
+
+        ReceiverProfile = (
+            UserProfile.objects
+            .select_related(
+                'user'
+            )
+            .get(
+                nickname=Nickname,
+                nickname_tag=NicknameTag
+            )
+        )
+
+
+    except UserProfile.DoesNotExist:
+
+        return JsonResponse(
+            {
+                'success': False,
+
+                'message': (
+                    '사용자를 찾을 수 없습니다.'
+                )
+            },
+            status=404
+        )
+
+
+    Receiver = (
+        ReceiverProfile.user
+    )
+
+
+    if (
+        Receiver == request.user
+    ):
+
+        return JsonResponse(
+            {
+                'success': False,
+
+                'message': (
+                    '자기 자신에게 '
+                    '친구 요청을 보낼 수 없습니다.'
+                )
+            },
+            status=400
+        )
+
+
+    AlreadyFriend = (
+        Friendship.objects
+        .filter(
+            user=request.user,
+            friend=Receiver
+        )
+        .exists()
+    )
+
+
+    if (
+        AlreadyFriend
+    ):
+
+        return JsonResponse(
+            {
+                'success': False,
+
+                'message': (
+                    '이미 친구입니다.'
+                )
+            },
+            status=400
+        )
+
+
+    AlreadySent = (
+        FriendRequest.objects
+        .filter(
+            sender=request.user,
+            receiver=Receiver,
+            status='PENDING'
+        )
+        .exists()
+    )
+
+
+    if (
+        AlreadySent
+    ):
+
+        return JsonResponse(
+            {
+                'success': False,
+
+                'message': (
+                    '이미 친구 요청을 보냈습니다.'
+                )
+            },
+            status=400
+        )
+
+
+    AlreadyReceived = (
+        FriendRequest.objects
+        .filter(
+            sender=Receiver,
+            receiver=request.user,
+            status='PENDING'
+        )
+        .exists()
+    )
+
+
+    if (
+        AlreadyReceived
+    ):
+
+        return JsonResponse(
+            {
+                'success': False,
+
+                'message': (
+                    '상대방이 이미 '
+                    '친구 요청을 보냈습니다. '
+                    '요청을 수락해주세요.'
+                ),
+
+                'already_received': True
+            },
+            status=400
+        )
+
+
+    FriendRequestObject = (
+        FriendRequest.objects
+        .create(
+            sender=request.user,
+            receiver=Receiver,
+            status='PENDING'
+        )
+    )
+
+
+    return JsonResponse(
+        {
+            'success': True,
+
+            'message': (
+                '친구 요청을 보냈습니다.'
+            ),
+
+            'friend_request': {
+                'request_id': (
+                    FriendRequestObject.id
+                ),
+
+                'nickname': (
+                    ReceiverProfile.nickname
+                ),
+
+                'nickname_tag': (
+                    ReceiverProfile.nickname_tag
+                ),
+
+                'display_name': (
+                    f'{ReceiverProfile.nickname}'
+                    f'#{ReceiverProfile.nickname_tag}'
+                )
+            }
+        }
+    )
+
+@login_required
+@require_POST
+def friend_request_accept(
+    request
+):
+
+    try:
+
+        Data = json.loads(
+            request.body
+        )
+
+
+    except json.JSONDecodeError:
+
+        return JsonResponse(
+            {
+                'success': False,
+
+                'message': (
+                    '잘못된 요청입니다.'
+                )
+            },
+            status=400
+        )
+
+
+    RequestId = (
+        Data
+        .get(
+            'request_id'
+        )
+    )
+
+
+    if (
+        not RequestId
+    ):
+
+        return JsonResponse(
+            {
+                'success': False,
+
+                'message': (
+                    '친구 요청 정보가 없습니다.'
+                )
+            },
+            status=400
+        )
+
+
+    try:
+
+        with transaction.atomic():
+
+            FriendRequestObject = (
+                FriendRequest.objects
+                .select_for_update()
+                .select_related(
+                    'sender',
+                    'sender__profile'
+                )
+                .get(
+                    id=RequestId,
+                    receiver=request.user,
+                    status='PENDING'
+                )
+            )
+
+
+            Sender = (
+                FriendRequestObject.sender
+            )
+
+
+            FriendRequestObject.status = (
+                'ACCEPTED'
+            )
+
+
+            FriendRequestObject.responded_at = (
+                timezone.now()
+            )
+
+
+            FriendRequestObject.save(
+                update_fields=[
+                    'status',
+                    'responded_at'
+                ]
+            )
+
+
+            Friendship.objects.get_or_create(
+                user=request.user,
+                friend=Sender
+            )
+
+
+            Friendship.objects.get_or_create(
+                user=Sender,
+                friend=request.user
+            )
+
+
+    except FriendRequest.DoesNotExist:
+
+        return JsonResponse(
+            {
+                'success': False,
+
+                'message': (
+                    '대기 중인 친구 요청을 '
+                    '찾을 수 없습니다.'
+                )
+            },
+            status=404
+        )
+
+
+    SenderProfile = (
+        Sender.profile
+    )
+
+
+    return JsonResponse(
+        {
+            'success': True,
+
+            'message': (
+                '친구 요청을 수락했습니다.'
+            ),
+
+            'friend': {
+                'nickname': (
+                    SenderProfile.nickname
+                ),
+
+                'nickname_tag': (
+                    SenderProfile.nickname_tag
+                ),
+
+                'display_name': (
+                    f'{SenderProfile.nickname}'
+                    f'#{SenderProfile.nickname_tag}'
+                )
+            }
+        }
+    )
+
+@login_required
+@require_POST
+def friend_request_reject(
+    request
+):
+
+    try:
+
+        Data = json.loads(
+            request.body
+        )
+
+
+    except json.JSONDecodeError:
+
+        return JsonResponse(
+            {
+                'success': False,
+
+                'message': (
+                    '잘못된 요청입니다.'
+                )
+            },
+            status=400
+        )
+
+
+    RequestId = (
+        Data
+        .get(
+            'request_id'
+        )
+    )
+
+
+    if (
+        not RequestId
+    ):
+
+        return JsonResponse(
+            {
+                'success': False,
+
+                'message': (
+                    '친구 요청 정보가 없습니다.'
+                )
+            },
+            status=400
+        )
+
+
+    try:
+
+        FriendRequestObject = (
+            FriendRequest.objects
+            .get(
+                id=RequestId,
+                receiver=request.user,
+                status='PENDING'
+            )
+        )
+
+
+    except FriendRequest.DoesNotExist:
+
+        return JsonResponse(
+            {
+                'success': False,
+
+                'message': (
+                    '대기 중인 친구 요청을 '
+                    '찾을 수 없습니다.'
+                )
+            },
+            status=404
+        )
+
+
+    FriendRequestObject.status = (
+        'REJECTED'
+    )
+
+
+    FriendRequestObject.responded_at = (
+        timezone.now()
+    )
+
+
+    FriendRequestObject.save(
+        update_fields=[
+            'status',
+            'responded_at'
+        ]
+    )
+
+
+    return JsonResponse(
+        {
+            'success': True,
+
+            'message': (
+                '친구 요청을 거절했습니다.'
+            )
+        }
+    )
+

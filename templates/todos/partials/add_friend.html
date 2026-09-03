@@ -1,21 +1,16 @@
-<!-- ============================================================
-     친구 추가
-============================================================ -->
+<!-- add_friend.html -->
 
 <div
-    class='h-full overflow-y-auto'
+    class='h-full overflow-y-auto bg-white'
 >
 
-    <!-- ========================================================
-         친구 추가 상단 영역
-    ========================================================= -->
 
-   <div
-        class='relative overflow-hidden border-b border-gray-200 bg-white px-5 py-8'
+    <!-- 친구 추가 상단 영역 -->
+    <div
+        class='relative overflow-hidden border-b border-gray-100 px-5 py-8'
     >
 
         <!-- 텍스트 -->
-
         <div
             class='relative z-10 pr-28'
         >
@@ -30,14 +25,13 @@
             <p
                 class='mt-3 text-base leading-relaxed text-gray-500'
             >
-                사용자명과 닉네임 태그를 사용하여 친구를 추가할 수 있어요.
+                사용자명(닉네임#닉네임 태그)를 사용하여 친구를 추가할 수 있어요.
             </p>
 
         </div>
 
 
-        <!-- 로봇 아이콘 영역 -->
-
+        <!-- 아이콘 -->
         <div
             class='absolute right-5 top-4 flex h-24 w-24 items-center justify-center'
         >
@@ -46,20 +40,16 @@
                 class='relative flex h-16 w-16 items-center justify-center rounded-3xl bg-indigo-500 shadow-lg'
             >
 
-                <!-- 얼굴 -->
-
                 <div
                     class='flex h-11 w-12 items-center justify-center rounded-2xl bg-indigo-100'
                 >
 
                     <i
-                        class='fa-solid fa-robot text-2xl text-indigo-600'
+                        class='fa-solid fa-user-plus text-xl text-indigo-600'
                     ></i>
 
                 </div>
 
-
-                <!-- 장식 -->
 
                 <div
                     class='absolute -left-3 top-7 h-5 w-3 rounded-l-full bg-indigo-400'
@@ -88,16 +78,12 @@
     </div>
 
 
-    <!-- ========================================================
-         친구 추가 폼
-    ========================================================= -->
-
+    <!-- 친구 추가 영역 -->
     <div
         class='px-5 py-6'
     >
 
         <!-- 입력 카드 -->
-
         <div
             class='rounded-2xl border border-gray-200 bg-gray-50 p-2 shadow-sm'
         >
@@ -105,8 +91,6 @@
             <div
                 class='flex items-center gap-2'
             >
-
-                <!-- 입력 -->
 
                 <input
                     type='text'
@@ -129,8 +113,6 @@
                     '
                 >
 
-
-                <!-- 요청 버튼 -->
 
                 <button
                     type='button'
@@ -158,57 +140,168 @@
         </div>
 
 
-        <!-- 입력 안내 -->
-
-        <p
-            class='mt-3 px-1 text-sm leading-relaxed text-gray-400'
+        <!-- 본인 정보 -->
+        <div
+            class='mt-4 flex items-center gap-3 px-2'
         >
-            친구의 사용자명 또는 사용자명과 닉네임 태그를 입력해주세요.
+
+            <div
+                class='
+                    flex
+                    h-9
+                    w-9
+                    flex-shrink-0
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-gray-100
+                '
+            >
+
+                <i
+                    class='fa-solid fa-user text-sm text-gray-400'
+                ></i>
+
+            </div>
+
+
+            <div
+                class='min-w-0'
+            >
+
+                <p
+                    class='text-xs font-medium text-gray-400'
+                >
+                    내 사용자명
+                </p>
+
+
+                <p
+                    class='truncate text-sm font-bold text-gray-600'
+                >
+                    {{ request.user.profile.nickname }}#{{ request.user.profile.nickname_tag }}
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- 입력 안내 -->
+        <p
+            class='mt-4 px-1 text-sm leading-relaxed text-gray-400'
+        >
+            친구의 사용자명과 닉네임 태그를 입력해주세요.
         </p>
 
 
         <!-- ====================================================
              구분선
         ==================================================== -->
-
         <div
             class='my-8 border-t border-gray-100'
         ></div>
 
 
         <!-- ====================================================
-             하단 안내
+             친구 요청 상태
         ==================================================== -->
-
-        <div
-            class='flex flex-col items-center justify-center px-5 py-10 text-center'
-        >
+        <section>
 
             <div
-                class='mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100'
+                class='mb-5 flex items-center justify-between'
             >
 
-                <i
-                    class='fa-solid fa-user-plus text-2xl text-gray-400'
-                ></i>
+                <div>
+
+                    <h3
+                        class='text-xl font-extrabold text-gray-900'
+                    >
+                        새로운 친구
+                    </h3>
+
+
+                    <p
+                        class='mt-1 text-sm text-gray-400'
+                    >
+                        친구 요청 상태를 확인하세요.
+                    </p>
+
+                </div>
+
+
+                <span
+                    id='newFriendCount'
+                    class='text-sm font-bold text-gray-400'
+                >
+                    0
+                </span>
 
             </div>
 
 
-            <h3
-                class='text-lg font-bold text-gray-700'
+            <div
+                id='newFriendList'
+                class='space-y-3'
             >
-                새로운 친구를 추가해보세요
-            </h3>
+
+            </div>
+
+        </section>
 
 
-            <p
-                class='mt-2 max-w-[280px] text-sm leading-relaxed text-gray-400'
+        <!-- ====================================================
+             하단 안내
+        ==================================================== -->
+        <div
+            class='pt-8'
+        >
+
+            <div
+                class='rounded-2xl bg-gray-50 px-5 py-5'
             >
-                사용자명으로 친구를 검색하고 친구 요청을 보낼 수 있습니다.
-            </p>
+
+                <div
+                    class='flex items-start gap-3'
+                >
+
+                    <div
+                        class='
+                            flex
+                            h-10
+                            w-10
+                            flex-shrink-0
+                            items-center
+                            justify-center
+                            rounded-full
+                            bg-white
+                        '
+                    >
+
+                        <i
+                            class='
+                                fa-solid
+                                fa-user-group
+                                text-sm
+                                text-gray-400
+                            '
+                        ></i>
+
+                    </div>
+
+
+                    <p
+                        class='text-sm leading-relaxed text-gray-400'
+                    >
+                        친구 요청을 수락하면 친구 목록에서 서로 연결됩니다.
+                    </p>
+
+                </div>
+
+            </div>
 
         </div>
+
 
     </div>
 

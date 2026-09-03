@@ -57,5 +57,31 @@ urlpatterns = [
         name='profile_image_url'
     ),
 
+
+    # 친구
+    path(
+        'friend-requests/',
+        AccountViews.friend_requests,
+        name='friend_requests'
+    ),
+
+    path(
+        'friend-request/send/',
+        AccountViews.friend_request_send,
+        name='friend_request_send'
+    ),
+
+    path(
+        'friend-request/accept/',
+        AccountViews.friend_request_accept,
+        name='friend_request_accept'
+    ),
+
+    path(
+        'friend-request/reject/',
+        AccountViews.friend_request_reject,
+        name='friend_request_reject'
+    ),
+
 ]
 
