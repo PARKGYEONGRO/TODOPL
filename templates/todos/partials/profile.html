@@ -1,0 +1,180 @@
+{% load static %}
+
+<!-- profile.html -->
+
+<div
+    id='profilePage'
+    class='fixed inset-0 z-[70] hidden bg-black/30'
+    onclick='backdropClick(event)'
+>
+
+    <div
+        class='flex h-full flex-col bg-white md:ml-auto md:w-[430px] md:shadow-2xl'
+        onclick='event.stopPropagation()'
+    >
+
+        <!-- ========================================================
+             상단
+        ========================================================= -->
+
+        <header
+            class='relative flex items-center justify-center px-5 py-5'
+        >
+
+            <button
+                type='button'
+                onclick='closeProfilePage()'
+                class='
+                    absolute
+                    left-4
+                    flex
+                    h-10
+                    w-10
+                    items-center
+                    justify-center
+                    rounded-full
+                    transition
+                    hover:bg-gray-100
+                    active:bg-gray-100
+                '
+                aria-label='프로필 설정 닫기'
+            >
+
+                <i
+                    class='fa-solid fa-chevron-left text-xl text-gray-900'
+                ></i>
+
+            </button>
+
+
+            <h1
+                id='profileHeaderNickname'
+                class='text-xl font-extrabold text-gray-900'
+            >
+                {{ request.user.profile.nickname }}
+            </h1>
+
+        </header>
+
+
+        <!-- ========================================================
+             탭
+        ========================================================= -->
+
+        <div
+            class='grid grid-cols-3 border-b border-gray-100'
+        >
+
+            <!-- 프로필 -->
+
+            <button
+                type='button'
+                data-profile-tab='profile'
+                class='
+                    border-b-2
+                    border-gray-900
+                    py-4
+                    text-lg
+                    font-bold
+                    text-gray-900
+                '
+            >
+                프로필
+            </button>
+
+
+            <!-- 친구 -->
+
+            <button
+                type='button'
+                data-profile-tab='friend'
+                class='
+                    border-b-2
+                    border-transparent
+                    py-4
+                    text-lg
+                    font-bold
+                    text-gray-400
+                '
+            >
+                친구
+            </button>
+
+
+            <!-- 친구 추가 -->
+
+            <button
+                type='button'
+                data-profile-tab='addFriend'
+                class='
+                    border-b-2
+                    border-transparent
+                    py-4
+                    text-lg
+                    font-bold
+                    text-gray-400
+                '
+            >
+                친구 추가
+            </button>
+
+        </div>
+
+
+        <!-- ========================================================
+             탭 내용
+        ========================================================= -->
+
+        <div
+            class='min-h-0 flex-1 overflow-hidden'
+        >
+
+            <!-- 프로필 설정 -->
+
+            <div
+                id='profileTabProfile'
+                class='profile-tab-content h-full'
+            >
+
+                {% include 'todos/partials/profile_setting.html' %}
+
+            </div>
+
+
+            <!-- 친구 -->
+
+            <div
+                id='profileTabFriend'
+                class='profile-tab-content hidden h-full'
+            >
+
+                {% include 'todos/partials/friend.html' %}
+
+            </div>
+
+
+            <!-- 친구 추가 -->
+
+            <div
+                id='profileTabAddFriend'
+                class='profile-tab-content hidden h-full'
+            >
+
+                {% include 'todos/partials/add_friend.html' %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script
+    src='{% static "todos/js/profile_tab.js" %}'
+></script>
+
+<script
+    src='{% static "todos/js/profile_setting.js" %}'
+></script>

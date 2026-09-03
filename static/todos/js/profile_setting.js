@@ -1,4 +1,6 @@
 // profile_setting.js
+console.log('profile_setting.js 로드됨');
+
 
 let SelectedProfileImageFile =
     null;
