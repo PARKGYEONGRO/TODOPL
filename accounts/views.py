@@ -1493,9 +1493,7 @@ def password_reset_confirm(request):
 
 @login_required
 @require_GET
-def friend_requests(
-    request
-):
+def friend_requests(request):
 
     SentFriendRequests = (
         FriendRequest.objects
@@ -1905,9 +1903,7 @@ def friend_request_send(request):
 
 @login_required
 @require_POST
-def friend_request_accept(
-    request
-):
+def friend_request_accept(request):
 
     try:
 
@@ -2061,9 +2057,7 @@ def friend_request_accept(
 
 @login_required
 @require_POST
-def friend_request_reject(
-    request
-):
+def friend_request_reject(request):
 
     try:
 
@@ -2166,9 +2160,7 @@ def friend_request_reject(
     )
 
 
-def Get_Profile_Image_Signed_Url(
-    ProfileObject
-):
+def Get_Profile_Image_Signed_Url(ProfileObject):
 
     if not ProfileObject.profile_image_path:
 
@@ -2265,4 +2257,96 @@ def Get_Profile_Image_Signed_Url(
         )
 
         return ''
+
+@login_required
+@require_GET
+def friend_list(request):
+
+    Friendships = (
+        Friendship.objects
+        .filter(
+            user=request.user
+        )
+        .select_related(
+            'friend',
+            'friend__profile'
+        )
+        .order_by(
+            '-created_at'
+        )
+    )
+
+
+    FriendList = []
+
+
+    for FriendshipObject in Friendships:
+
+        Friend = (
+            FriendshipObject.friend
+        )
+
+
+        FriendProfile = (
+            Friend.profile
+        )
+
+
+        FriendList.append(
+            {
+                'friendship_id': (
+                    FriendshipObject.id
+                ),
+
+                'user_id': (
+                    Friend.id
+                ),
+
+                'nickname': (
+                    FriendProfile.nickname
+                ),
+
+                'nickname_tag': (
+                    FriendProfile.nickname_tag
+                ),
+
+                'display_name': (
+                    f'{FriendProfile.nickname}'
+                    f'#{FriendProfile.nickname_tag}'
+                ),
+
+                'bio': (
+                    FriendProfile.bio
+                    or ''
+                ),
+
+                'profile_image_url': (
+                    Get_Profile_Image_Signed_Url(
+                        FriendProfile
+                    )
+                ),
+
+                'created_at': (
+                    FriendshipObject.created_at
+                    .isoformat()
+                )
+            }
+        )
+
+
+    return JsonResponse(
+        {
+            'success': True,
+
+            'friend_count': (
+                len(
+                    FriendList
+                )
+            ),
+
+            'friends': (
+                FriendList
+            )
+        }
+    )
 

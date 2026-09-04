@@ -170,14 +170,14 @@
             >
 
                 <p
-                    class='text-xs font-medium text-gray-400'
+                    class='text-sm font-medium text-gray-400'
                 >
                     내 사용자명
                 </p>
 
 
                 <p
-                    class='truncate text-sm font-bold text-gray-600'
+                    class='truncate text-base font-bold text-gray-600'
                 >
                     {{ request.user.profile.nickname }}#{{ request.user.profile.nickname_tag }}
                 </p>
@@ -189,9 +189,9 @@
 
         <!-- 입력 안내 -->
         <p
-            class='mt-4 px-1 text-sm leading-relaxed text-gray-400'
+            class='mt-4 px-1 text-base leading-relaxed text-gray-400'
         >
-            친구의 사용자명과 닉네임 태그를 입력해주세요.
+            친구의 사용자명을 입력해주세요.
         </p>
 
 
@@ -293,7 +293,7 @@
                     <p
                         class='text-sm leading-relaxed text-gray-400'
                     >
-                        친구 요청을 수락하면 친구 목록에서 서로 연결됩니다.
+                        요청을 수락하면 친구의 할 일을 확인할 수 있습니다.
                     </p>
 
                 </div>

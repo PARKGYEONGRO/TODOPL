@@ -83,5 +83,11 @@ urlpatterns = [
         name='friend_request_reject'
     ),
 
+    path(
+        'friend-list/',
+        AccountViews.friend_list,
+        name='friend_list'
+    ),
+
 ]
 

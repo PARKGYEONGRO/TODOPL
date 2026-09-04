@@ -1705,23 +1705,31 @@ function Initialize_Add_Friend_Page() {
 }
 
 
-// ============================================================
-// DOM READY
-// ============================================================
+document.addEventListener(
+    'DOMContentLoaded',
+    () => {
 
-if (
-    document.readyState === 'loading'
-) {
+        Initialize_Add_Friend_Page();
 
-    document.addEventListener(
-        'DOMContentLoaded',
-        Initialize_Add_Friend_Page
-    );
+        Load_Friend_Requests();
 
-}
+        const AddFriendTabButton = document.getElementById(
+            'AddFriendTabButton'
+        );
 
-else {
+        if (
+            AddFriendTabButton
+        ) {
+            AddFriendTabButton.addEventListener(
+                'click',
+                () => {
+                    console.log(
+                        '친구 추가 탭 열기 - 친구 추가 목록 최신 데이터 로드'
+                    );
 
-    Initialize_Add_Friend_Page();
-
-}
+                    Load_Friend_Requests();
+                }
+            );
+        }
+    }
+);
