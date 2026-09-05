@@ -14,7 +14,10 @@ from google.oauth2 import id_token
 
 from django.contrib.auth.decorators import login_required
 
-from django.db import  transaction
+from django.db import (
+    models,
+    transaction  
+) 
 
 from django.utils import timezone
 
@@ -1961,6 +1964,8 @@ def friend_request_accept(request):
                 #     'sender',
                 #     'sender__profile'
                 # ) # 오류 FOR UPDATE cannot be applied to the nullable side of an outer join
+                # nullalbe한 조합을 같이 사용할 시 오류 발생
+                # 먼저 잠글 레코드만 가져오는 방식이 안전
                 .get(
                     id=RequestId,
                     receiver=request.user,
@@ -2350,3 +2355,132 @@ def friend_list(request):
         }
     )
 
+@login_required
+@require_POST
+def friend_remove(
+    request
+):
+
+    try:
+
+        Data = json.loads(
+            request.body
+        )
+
+
+    except json.JSONDecodeError:
+
+        return JsonResponse(
+            {
+                'success': False,
+
+                'message': (
+                    '잘못된 요청입니다.'
+                )
+            },
+            status=400
+        )
+
+
+    FriendshipId = (
+        Data
+        .get(
+            'friendship_id'
+        )
+    )
+
+
+    if (
+        not FriendshipId
+    ):
+
+        return JsonResponse(
+            {
+                'success': False,
+
+                'message': (
+                    '친구 관계 정보가 없습니다.'
+                )
+            },
+            status=400
+        )
+
+
+    try:
+
+        with transaction.atomic():
+
+            FriendshipObject = (
+                Friendship.objects
+                .select_for_update()
+                .get(
+                    id=FriendshipId,
+                    user=request.user
+                )
+            )
+
+
+            Friend = (
+                FriendshipObject.friend
+            )
+
+
+            Friendship.objects.filter(
+                user=request.user,
+                friend=Friend
+            ).delete()
+
+
+            Friendship.objects.filter(
+                user=Friend,
+                friend=request.user
+            ).delete()
+
+
+    except Friendship.DoesNotExist:
+
+        return JsonResponse(
+            {
+                'success': False,
+
+                'message': (
+                    '친구 관계를 찾을 수 없습니다.'
+                )
+            },
+            status=404
+        )
+
+
+    FriendProfile = (
+        Friend.profile
+    )
+
+
+    return JsonResponse(
+        {
+            'success': True,
+
+            'message': (
+                '친구 관계를 해제했습니다.'
+            ),
+
+            'friend': {
+                'user_id': (
+                    Friend.id
+                ),
+
+                'nickname': (
+                    FriendProfile.nickname
+                ),
+
+                'nickname_tag': (
+                    FriendProfile.nickname_tag
+                ),
+
+                'display_name': (
+                    f'{FriendProfile.nickname}'
+                    f'#{FriendProfile.nickname_tag}'
+                )
+            }
+        }
+    )

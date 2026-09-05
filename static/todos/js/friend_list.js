@@ -713,18 +713,128 @@ async function Remove_Friend(
     FriendNickname
 ) {
 
-    console.log(
-        '친구 끊기:',
-        FriendshipId,
-        FriendNickname
+    const ConfirmRemove = window.confirm(
+        `'${FriendNickname}'님과 친구 관계를 끊을까요?`
     );
 
 
-    /*
-    다음 단계에서
-    friend-remove view를 추가한 뒤 연결
+    if (
+        !ConfirmRemove
+    ) {
 
-    */
+        return;
+
+    }
+
+
+    try {
+
+        const Response = await fetch(
+            '/friend-remove/',
+            {
+                method: 'POST',
+
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': Get_Csrf_Token()
+                },
+
+                body: JSON.stringify(
+                    {
+                        friendship_id: FriendshipId
+                    }
+                )
+            }
+        );
+
+
+        const ResponseText = await Response.text();
+
+
+        console.log(
+            '친구 끊기 응답 상태:',
+            Response.status
+        );
+
+
+        console.log(
+            '친구 끊기 원본 응답:',
+            ResponseText
+        );
+
+
+        let Data = {};
+
+
+        if (
+            ResponseText
+        ) {
+
+            try {
+
+                Data = JSON.parse(
+                    ResponseText
+                );
+
+            }
+
+            catch (
+                Error
+            ) {
+
+                console.error(
+                    '친구 끊기 응답 JSON 변환 실패:',
+                    Error
+                );
+
+            }
+
+        }
+
+
+        if (
+            !Response.ok
+            ||
+            !Data.success
+        ) {
+
+            throw new Error(
+                Data.message
+                ||
+                `친구 끊기에 실패했습니다. (HTTP ${Response.status})`
+            );
+
+        }
+
+
+        console.log(
+            '친구 끊기 성공:',
+            Data
+        );
+
+
+        Load_Friend_List();
+
+
+    }
+
+    catch (
+        Error
+    ) {
+
+        console.error(
+            '친구 끊기 실패:',
+            Error
+        );
+
+
+        alert(
+            Error.message
+            ||
+            '친구 끊기에 실패했습니다.'
+        );
+
+    }
 
 }
 

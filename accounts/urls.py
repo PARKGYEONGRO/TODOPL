@@ -89,5 +89,11 @@ urlpatterns = [
         name='friend_list'
     ),
 
+    path(
+        'friend-remove/',
+        AccountViews.friend_remove,
+        name='friend_remove'
+    ),
+
 ]
 
