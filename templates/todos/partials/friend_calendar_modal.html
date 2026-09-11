@@ -1,0 +1,295 @@
+<!-- ============================================================
+     친구 캘린더 모달
+============================================================ -->
+
+<div
+    id='FriendCalendarModal'
+    class='
+        fixed
+        inset-0
+        z-50
+        hidden
+        items-center
+        justify-center
+        bg-black/40
+        p-4
+    '
+>
+
+    <!-- ========================================================
+         모달
+    ========================================================= -->
+
+    <div
+        class='
+            flex
+            max-h-[90vh]
+            w-full
+            max-w-md
+            flex-col
+            overflow-hidden
+            rounded-3xl
+            bg-white
+            shadow-2xl
+        '
+    >
+
+        <!-- ====================================================
+             상단
+        ==================================================== -->
+
+        <div
+            class='
+                flex
+                items-center
+                justify-between
+                border-b
+                border-gray-100
+                px-5
+                py-4
+            '
+        >
+
+            <div
+                class='min-w-0'
+            >
+
+                <p
+                    id='FriendCalendarNickname'
+                    class='
+                        truncate
+                        text-lg
+                        font-extrabold
+                        text-gray-900
+                    '
+                >
+                    친구 캘린더
+                </p>
+
+            </div>
+
+
+            <button
+                id='FriendCalendarCloseButton'
+                type='button'
+                class='
+                    flex
+                    h-10
+                    w-10
+                    flex-shrink-0
+                    items-center
+                    justify-center
+                    rounded-full
+                    text-gray-400
+                    transition
+                    hover:bg-gray-100
+                    hover:text-gray-700
+                    active:scale-95
+                '
+                aria-label='닫기'
+                title='닫기'
+            >
+
+                <i
+                    class='fa-solid fa-xmark text-lg'
+                ></i>
+
+            </button>
+
+        </div>
+
+
+        <!-- ====================================================
+             캘린더 영역
+        ==================================================== -->
+
+        <div
+            class='
+                overflow-y-auto
+                px-5
+                py-5
+            '
+        >
+
+            <!-- =================================================
+                 현재 연도 / 월
+            ================================================== -->
+
+            <div
+                class='
+                    mb-5
+                    flex
+                    items-center
+                    justify-between
+                '
+            >
+
+                <p
+                    id='FriendCalendarYearMonth'
+                    class='
+                        text-xl
+                        font-extrabold
+                        tracking-tight
+                        text-gray-900
+                    '
+                >
+                    2026.09
+                </p>
+
+            </div>
+
+
+            <!-- =================================================
+                 요일
+            ================================================== -->
+
+            <div
+                class='
+                    mb-3
+                    grid
+                    grid-cols-7
+                    text-center
+                    text-sm
+                    font-bold
+                    text-gray-400
+                '
+            >
+
+                <span
+                    class='text-red-500'
+                >
+                    일
+                </span>
+
+                <span>
+                    월
+                </span>
+
+                <span>
+                    화
+                </span>
+
+                <span>
+                    수
+                </span>
+
+                <span>
+                    목
+                </span>
+
+                <span>
+                    금
+                </span>
+
+                <span>
+                    토
+                </span>
+
+            </div>
+
+
+            <!-- =================================================
+                 날짜
+            ================================================== -->
+
+            <div
+                id='FriendCalendarGrid'
+                class='
+                    grid
+                    grid-cols-7
+                    gap-y-2
+                    text-center
+                '
+            ></div>
+
+
+            <!-- =================================================
+                 선택 날짜 Todo
+            ================================================== -->
+
+            <div
+                class='
+                    mt-6
+                    border-t
+                    border-gray-100
+                    pt-5
+                '
+            >
+
+                <div
+                    class='
+                        flex
+                        items-center
+                        justify-between
+                    '
+                >
+
+                    <div>
+
+                        <p
+                            class='
+                                text-sm
+                                font-bold
+                                text-gray-400
+                            '
+                        >
+                            선택한 날짜
+                        </p>
+
+                        <p
+                            id='FriendCalendarTodoDate'
+                            class='
+                                mt-1
+                                text-lg
+                                font-extrabold
+                                text-gray-900
+                            '
+                        >
+                            날짜를 선택해주세요.
+                        </p>
+
+                    </div>
+
+
+                    <div
+                        class='
+                            flex
+                            h-10
+                            w-10
+                            items-center
+                            justify-center
+                            rounded-full
+                            bg-gray-50
+                        '
+                    >
+
+                        <i
+                            class='
+                                fa-solid
+                                fa-list-check
+                                text-sm
+                                text-gray-400
+                            '
+                        ></i>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     Todo 목록
+                ================================================== -->
+
+                <div
+                    id='FriendCalendarTodoList'
+                    class='mt-4 space-y-2'
+                ></div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

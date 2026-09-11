@@ -681,33 +681,6 @@ function Render_Friend_Load_Error() {
 }
 
 
-
-function Open_Friend_Calendar(
-    FriendObject
-) {
-
-    console.log(
-        '친구 캘린더 열기:',
-        FriendObject
-    );
-
-
-
-    /*
-    다음 단계에서 연결
-
-    예시:
-
-    window.location.href = (
-        `/friend-calendar/${FriendObject.user_id}/`
-    );
-
-    */
-
-}
-
-
-
 async function Remove_Friend(
     FriendshipId,
     FriendNickname
