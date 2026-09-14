@@ -3017,8 +3017,8 @@ function updatePcMonthButton() {
                 ) {
 
                     button.classList.add(
-                        'bg-black',
-                        'text-white'
+                        'bg-indigo-50',
+                        'text-indigo-600'
                     );
 
                     button.classList.remove(
@@ -3036,8 +3036,8 @@ function updatePcMonthButton() {
                     );
 
                     button.classList.remove(
-                        'bg-black',
-                        'text-white'
+                        'bg-indigo-50',
+                        'text-indigo-600'
                     );
 
                 }

@@ -158,4 +158,12 @@ urlpatterns = [
         name='todo_someday_edit'
     ),
 
+
+    #친구 캘린더 조회
+    path(
+        'friend-calendar/',
+        views.friend_calendar_todos,
+        name='friend_calendar_todos'
+    ),
+
 ]

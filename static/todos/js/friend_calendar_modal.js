@@ -3,9 +3,9 @@ console.log(
 );
 
 
-// ============================================================
-// 친구 캘린더 모달 요소
-// ============================================================
+/* ============================================================
+   친구 캘린더 모달 전역 변수
+============================================================ */
 
 let FriendCalendarModal = null;
 let FriendCalendarTitle = null;
@@ -15,9 +15,31 @@ let FriendCalendarTodoDate = null;
 let FriendCalendarTodoList = null;
 
 
-// ============================================================
-// 친구 캘린더 모달 초기화
-// ============================================================
+/* ============================================================
+   현재 선택된 친구
+============================================================ */
+
+let CurrentFriendObject = null;
+
+
+/* ============================================================
+   현재 선택된 날짜
+============================================================ */
+
+let CurrentSelectedDate = null;
+
+
+/* ============================================================
+   캘린더 현재 연도 / 월
+============================================================ */
+
+let FriendCalendarYear = null;
+let FriendCalendarMonth = null;
+
+
+/* ============================================================
+   친구 캘린더 모달 초기화
+============================================================ */
 
 function Initialize_Friend_Calendar_Modal() {
 
@@ -46,6 +68,19 @@ function Initialize_Friend_Calendar_Modal() {
     );
 
 
+    console.log(
+        '친구 캘린더 모달 요소 확인:',
+        {
+            Modal: FriendCalendarModal,
+            Title: FriendCalendarTitle,
+            CloseButton: FriendCalendarCloseButton,
+            Grid: FriendCalendarGrid,
+            TodoDate: FriendCalendarTodoDate,
+            TodoList: FriendCalendarTodoList
+        }
+    );
+
+
     if (
         !FriendCalendarModal
     ) {
@@ -54,7 +89,7 @@ function Initialize_Friend_Calendar_Modal() {
             'FriendCalendarModal 요소를 찾을 수 없습니다.'
         );
 
-        return false;
+        return;
 
     }
 
@@ -67,7 +102,7 @@ function Initialize_Friend_Calendar_Modal() {
             'FriendCalendarGrid 요소를 찾을 수 없습니다.'
         );
 
-        return false;
+        return;
 
     }
 
@@ -102,62 +137,102 @@ function Initialize_Friend_Calendar_Modal() {
     );
 
 
+    /*
+     * 처음에는 현재 날짜를 선택하지 않는다.
+     */
+
+    CurrentSelectedDate = null;
+
+
+    /*
+     * 현재 달 설정
+     */
+
+    const Today = new Date();
+
+    FriendCalendarYear = (
+        Today.getFullYear()
+    );
+
+    FriendCalendarMonth = (
+        Today.getMonth()
+    );
+
+
+    /*
+     * 캘린더 렌더링
+     */
+
     Render_Friend_Calendar();
 
-
-    return true;
-
 }
 
 
-// ============================================================
-// 친구 캘린더 요소 다시 확인
-// ============================================================
-
-function Ensure_Friend_Calendar_Initialized() {
-
-    if (
-        FriendCalendarModal
-        &&
-        FriendCalendarGrid
-    ) {
-
-        return true;
-
-    }
-
-
-    return Initialize_Friend_Calendar_Modal();
-
-}
-
-
-// ============================================================
-// 친구 캘린더 열기
-// ============================================================
+/* ============================================================
+   친구 캘린더 열기
+============================================================ */
 
 function Open_Friend_Calendar(
     FriendObject
 ) {
 
     console.log(
-        '친구 캘린더 열기:',
+        '========== 친구 캘린더 열기 =========='
+    );
+
+
+    console.log(
+        '친구 객체:',
         FriendObject
     );
 
 
     if (
-        !Ensure_Friend_Calendar_Initialized()
+        !FriendCalendarModal
     ) {
 
         console.error(
-            '친구 캘린더 모달을 초기화할 수 없습니다.'
+            'FriendCalendarModal이 초기화되지 않았습니다.'
         );
 
         return;
 
     }
 
+
+    if (
+        !FriendCalendarGrid
+    ) {
+
+        console.error(
+            'FriendCalendarGrid가 초기화되지 않았습니다.'
+        );
+
+        return;
+
+    }
+
+
+    /*
+     * 현재 친구 저장
+     */
+
+    CurrentFriendObject = FriendObject;
+
+
+    /*
+     * 날짜 선택 상태 초기화
+     *
+     * 중요:
+     * 모달을 열 때 오늘 날짜를 자동 선택하지 않는다.
+     */
+
+    CurrentSelectedDate = null;
+
+
+    /*
+     * 친구 닉네임
+     */
 
     const FriendNickname = (
         FriendObject.nickname
@@ -166,9 +241,9 @@ function Open_Friend_Calendar(
     );
 
 
-    // --------------------------------------------------------
-    // 상단에 친구 닉네임 표시
-    // --------------------------------------------------------
+    /*
+     * 상단 친구 이름
+     */
 
     if (
         FriendCalendarTitle
@@ -181,9 +256,9 @@ function Open_Friend_Calendar(
     }
 
 
-    // --------------------------------------------------------
-    // 기존 선택 날짜 초기화
-    // --------------------------------------------------------
+    /*
+     * 선택 날짜 영역 초기화
+     */
 
     if (
         FriendCalendarTodoDate
@@ -196,6 +271,10 @@ function Open_Friend_Calendar(
     }
 
 
+    /*
+     * Todo 목록 초기화
+     */
+
     if (
         FriendCalendarTodoList
     ) {
@@ -205,16 +284,31 @@ function Open_Friend_Calendar(
     }
 
 
-    // --------------------------------------------------------
-    // 현재 달 캘린더 다시 생성
-    // --------------------------------------------------------
+    /*
+     * 현재 달 설정
+     */
+
+    const Today = new Date();
+
+    FriendCalendarYear = (
+        Today.getFullYear()
+    );
+
+    FriendCalendarMonth = (
+        Today.getMonth()
+    );
+
+
+    /*
+     * 캘린더 표시
+     */
 
     Render_Friend_Calendar();
 
 
-    // --------------------------------------------------------
-    // 모달 표시
-    // --------------------------------------------------------
+    /*
+     * 모달 표시
+     */
 
     FriendCalendarModal.classList.remove(
         'hidden'
@@ -232,9 +326,9 @@ function Open_Friend_Calendar(
 }
 
 
-// ============================================================
-// 친구 캘린더 닫기
-// ============================================================
+/* ============================================================
+   친구 캘린더 닫기
+============================================================ */
 
 function Close_Friend_Calendar() {
 
@@ -260,44 +354,99 @@ function Close_Friend_Calendar() {
         'overflow-hidden'
     );
 
+
+    /*
+     * 선택 상태 초기화
+     */
+
+    CurrentSelectedDate = null;
+
+    CurrentFriendObject = null;
+
 }
 
 
-// ============================================================
-// 친구 캘린더 렌더링
-// 현재 달만 표시
-// ============================================================
+/* ============================================================
+   친구 캘린더 렌더링
+============================================================ */
 
-function Render_Friend_Calendar() {
+async function Render_Friend_Calendar() {
 
     if (
         !FriendCalendarGrid
     ) {
+
+        console.error(
+            'FriendCalendarGrid가 없습니다.'
+        );
 
         return;
 
     }
 
 
+    if (
+        FriendCalendarYear === null
+        ||
+        FriendCalendarMonth === null
+    ) {
+
+        const Today = new Date();
+
+        FriendCalendarYear = (
+            Today.getFullYear()
+        );
+
+        FriendCalendarMonth = (
+            Today.getMonth()
+        );
+
+    }
+
+
+    /*
+     * 현재 연월
+     */
+
+    const Year = (
+        FriendCalendarYear
+    );
+
+    const Month = (
+        FriendCalendarMonth
+    );
+
+
+    /*
+     * 캘린더 제목
+     */
+
+    const CalendarDateElement = document.getElementById(
+        'FriendCalendarDate'
+    );
+
+
+    if (
+        CalendarDateElement
+    ) {
+
+        CalendarDateElement.textContent = (
+            `${Year}.${String(Month + 1).padStart(2, '0')}`
+        );
+
+    }
+
+
+    /*
+     * 캘린더 초기화
+     */
+
     FriendCalendarGrid.innerHTML = '';
 
 
-    const Today = new Date();
-
-
-    const Year = (
-        Today.getFullYear()
-    );
-
-
-    const Month = (
-        Today.getMonth()
-    );
-
-
-    // --------------------------------------------------------
-    // 현재 달 1일
-    // --------------------------------------------------------
+    /*
+     * 해당 월의 첫 번째 날짜
+     */
 
     const FirstDay = new Date(
         Year,
@@ -306,9 +455,9 @@ function Render_Friend_Calendar() {
     );
 
 
-    // --------------------------------------------------------
-    // 현재 달 마지막 날짜
-    // --------------------------------------------------------
+    /*
+     * 해당 월의 마지막 날짜
+     */
 
     const LastDate = new Date(
         Year,
@@ -317,50 +466,35 @@ function Render_Friend_Calendar() {
     ).getDate();
 
 
-    // --------------------------------------------------------
-    // 1일의 요일
-    // 일요일 = 0
-    // --------------------------------------------------------
+    /*
+     * 시작 요일
+     *
+     * 일요일 = 0
+     * 월요일 = 1
+     * ...
+     * 토요일 = 6
+     */
 
     const StartDay = (
         FirstDay.getDay()
     );
 
 
-    // --------------------------------------------------------
-    // 월 표시
-    // --------------------------------------------------------
+    /*
+     * 월간 Todo 데이터를 가져온다.
+     */
 
-    const MonthText = String(
-        Month + 1
-    ).padStart(
-        2,
-        '0'
+    const MonthlyTodoData = (
+        await Load_Friend_Calendar_Monthly_Todos(
+            Year,
+            Month
+        )
     );
 
 
-    if (
-        FriendCalendarTitle
-        &&
-        !FriendCalendarTitle.textContent
-    ) {
-
-        FriendCalendarTitle.textContent = (
-            '친구님의 캘린더'
-        );
-
-    }
-
-
-    // --------------------------------------------------------
-    // 기존 날짜 표시 영역은 사용하지 않음
-    // FriendCalendarDate 요소가 있어도 무시
-    // --------------------------------------------------------
-
-
-    // --------------------------------------------------------
-    // 1일 이전 빈 공간
-    // --------------------------------------------------------
+    /*
+     * 시작 요일만큼 빈 공간 생성
+     */
 
     for (
         let Index = 0;
@@ -374,7 +508,7 @@ function Render_Friend_Calendar() {
 
 
         EmptyElement.className = (
-            'h-10'
+            'h-14'
         );
 
 
@@ -385,9 +519,9 @@ function Render_Friend_Calendar() {
     }
 
 
-    // --------------------------------------------------------
-    // 날짜 생성
-    // --------------------------------------------------------
+    /*
+     * 날짜 생성
+     */
 
     for (
         let DateNumber = 1;
@@ -395,80 +529,338 @@ function Render_Friend_Calendar() {
         DateNumber++
     ) {
 
-        const DateButton = document.createElement(
-            'button'
-        );
-
-
-        DateButton.type = (
-            'button'
-        );
-
-
-        DateButton.className = `
-            flex
-            h-10
-            w-full
-            items-center
-            justify-center
-            rounded-full
-            text-sm
-            font-semibold
-            text-gray-700
-            transition
-            hover:bg-gray-100
-            active:scale-95
-        `;
-
-
-        DateButton.textContent = (
-            DateNumber
-        );
-
-
         const DateString = (
-            `${Year}-${MonthText}-${String(DateNumber).padStart(2, '0')}`
+            `${Year}-${String(Month + 1).padStart(2, '0')}-${String(DateNumber).padStart(2, '0')}`
         );
 
 
-        DateButton.dataset.date = (
-            DateString
+        const DateTodoList = (
+            MonthlyTodoData[DateString]
+            ||
+            []
         );
 
 
-        // ----------------------------------------------------
-        // 오늘 날짜 표시
-        // ----------------------------------------------------
+        /*
+         * 날짜 링크
+         */
 
-        const IsToday = (
-            DateNumber === Today.getDate()
+        const DateLink = document.createElement(
+            'button'
         );
 
+
+        DateLink.type = (
+            'button'
+        );
+
+
+        DateLink.className = (
+            'flex ' +
+            'w-full ' +
+            'flex-col ' +
+            'items-center ' +
+            'justify-start ' +
+            'mx-auto ' +
+            'text-center'
+        );
+
+
+        /*
+         * 날짜 원
+         */
+
+        const DateCircle = document.createElement(
+            'span'
+        );
+
+
+        DateCircle.className = (
+            'flex ' +
+            'h-7 ' +
+            'w-7 ' +
+            'items-center ' +
+            'justify-center ' +
+            'rounded-full ' +
+            'text-sm ' +
+            'transition-all'
+        );
+
+
+        /*
+         * 날짜 선택 여부
+         *
+         * 처음에는 선택 날짜가 없기 때문에
+         * 아무 날짜에도 선택 스타일을 주지 않는다.
+         */
 
         if (
-            IsToday
+            CurrentSelectedDate === DateString
         ) {
 
-            DateButton.classList.add(
+            DateCircle.classList.add(
                 'bg-indigo-50',
-                'text-indigo-600'
+                'text-indigo-600',
+                'font-bold'
+            );
+
+        }
+
+        else {
+
+            DateCircle.classList.add(
+                'text-gray-700',
+                'hover:bg-gray-100'
             );
 
         }
 
 
-        // ----------------------------------------------------
-        // 날짜 클릭
-        // ----------------------------------------------------
+        DateCircle.textContent = (
+            DateNumber
+        );
 
-        DateButton.addEventListener(
+
+        DateLink.appendChild(
+            DateCircle
+        );
+
+
+        /*
+         * 기간 Todo
+         */
+
+        const PeriodTodoList = (
+            DateTodoList.filter(
+                (
+                    TodoObject
+                ) => {
+
+                    return (
+                        TodoObject.due_date
+                        &&
+                        TodoObject.end_date
+                    );
+
+                }
+            )
+        );
+
+
+        /*
+         * 기간 Todo 표시 영역
+         */
+
+        const PeriodTodoContainer = document.createElement(
+            'div'
+        );
+
+
+        PeriodTodoContainer.className = (
+            'flex ' +
+            'w-full ' +
+            'flex-col ' +
+            'items-center ' +
+            'justify-center ' +
+            'mb-1'
+        );
+
+
+        PeriodTodoList.forEach(
+            (
+                TodoObject
+            ) => {
+
+                const PeriodBar = document.createElement(
+                    'div'
+                );
+
+
+                PeriodBar.className = (
+                    'h-1.5 ' +
+                    'w-full'
+                );
+
+
+                /*
+                 * 우선순위에 따른 캘린더 막대 색상
+                 */
+
+                if (
+                    TodoObject.priority === 'H'
+                ) {
+
+                    PeriodBar.classList.add(
+                        'bg-red-500'
+                    );
+
+                }
+
+                else if (
+                    TodoObject.priority === 'M'
+                ) {
+
+                    PeriodBar.classList.add(
+                        'bg-yellow-400'
+                    );
+
+                }
+
+                else if (
+                    TodoObject.priority === 'L'
+                ) {
+
+                    PeriodBar.classList.add(
+                        'bg-green-500'
+                    );
+
+                }
+
+                else {
+
+                    PeriodBar.classList.add(
+                        'bg-gray-300'
+                    );
+
+                }
+
+
+                PeriodTodoContainer.appendChild(
+                    PeriodBar
+                );
+
+            }
+        );
+
+
+        DateLink.appendChild(
+            PeriodTodoContainer
+        );
+
+
+        /*
+         * 당일 Todo
+         *
+         * end_date가 없는 Todo만 표시
+         */
+
+        const SingleTodoList = (
+            DateTodoList.filter(
+                (
+                    TodoObject
+                ) => {
+
+                    return (
+                        !TodoObject.end_date
+                    );
+
+                }
+            )
+        );
+
+
+        /*
+         * 당일 Todo 점 표시 영역
+         */
+
+        const SingleTodoContainer = document.createElement(
+            'span'
+        );
+
+
+        SingleTodoContainer.className = (
+            'flex ' +
+            'h-1.5 ' +
+            'items-center ' +
+            'justify-center ' +
+            'gap-0.5 ' +
+            'mt-0.5'
+        );
+
+
+        SingleTodoList.forEach(
+            (
+                TodoObject
+            ) => {
+
+                const TodoDot = document.createElement(
+                    'span'
+                );
+
+
+                TodoDot.className = (
+                    'h-1 ' +
+                    'w-1 ' +
+                    'rounded-full'
+                );
+
+
+                /*
+                 * 우선순위에 따른 점 색상
+                 */
+
+                if (
+                    TodoObject.priority === 'H'
+                ) {
+
+                    TodoDot.classList.add(
+                        'bg-red-500'
+                    );
+
+                }
+
+                else if (
+                    TodoObject.priority === 'M'
+                ) {
+
+                    TodoDot.classList.add(
+                        'bg-yellow-400'
+                    );
+
+                }
+
+                else if (
+                    TodoObject.priority === 'L'
+                ) {
+
+                    TodoDot.classList.add(
+                        'bg-green-500'
+                    );
+
+                }
+
+                else {
+
+                    TodoDot.classList.add(
+                        'bg-gray-300'
+                    );
+
+                }
+
+
+                SingleTodoContainer.appendChild(
+                    TodoDot
+                );
+
+            }
+        );
+
+
+        DateLink.appendChild(
+            SingleTodoContainer
+        );
+
+
+        /*
+         * 날짜 클릭
+         */
+
+        DateLink.addEventListener(
             'click',
             () => {
 
                 Select_Friend_Calendar_Date(
-                    Year,
-                    Month,
-                    DateNumber
+                    DateString
                 );
 
             }
@@ -476,7 +868,7 @@ function Render_Friend_Calendar() {
 
 
         FriendCalendarGrid.appendChild(
-            DateButton
+            DateLink
         );
 
     }
@@ -484,88 +876,597 @@ function Render_Friend_Calendar() {
 }
 
 
-// ============================================================
-// 친구 캘린더 날짜 선택
-// ============================================================
+/* ============================================================
+   친구 캘린더 월간 Todo 조회
+============================================================ */
 
-function Select_Friend_Calendar_Date(
+async function Load_Friend_Calendar_Monthly_Todos(
     Year,
-    Month,
-    DateNumber
+    Month
 ) {
 
-    const SelectedDate = new Date(
+    console.log(
+        '========== 친구 캘린더 월간 Todo 조회 시작 =========='
+    );
+
+
+    const MonthlyTodoData = {};
+
+
+    if (
+        !CurrentFriendObject
+    ) {
+
+        console.error(
+            '현재 친구 객체가 없습니다.'
+        );
+
+        return MonthlyTodoData;
+
+    }
+
+
+    const FriendId = (
+        CurrentFriendObject.user_id
+    );
+
+
+    if (
+        !FriendId
+    ) {
+
+        console.error(
+            '현재 친구 ID가 없습니다.'
+        );
+
+        return MonthlyTodoData;
+
+    }
+
+
+    /*
+     * 해당 월의 마지막 날짜
+     */
+
+    const LastDate = new Date(
         Year,
-        Month,
-        DateNumber
+        Month + 1,
+        0
+    ).getDate();
+
+
+    /*
+     * 현재 월의 모든 날짜를 조회
+     *
+     * 현재 백엔드 API가
+     * friend_id + date 단위 조회이므로
+     * 월간 표시를 위해 각 날짜를 조회한다.
+     */
+
+    const RequestList = [];
+
+
+    for (
+        let DateNumber = 1;
+        DateNumber <= LastDate;
+        DateNumber++
+    ) {
+
+        const DateString = (
+            `${Year}-${String(Month + 1).padStart(2, '0')}-${String(DateNumber).padStart(2, '0')}`
+        );
+
+
+        RequestList.push(
+            Load_Friend_Calendar_Day_Todos(
+                FriendId,
+                DateString
+            )
+        );
+
+    }
+
+
+    const ResultList = (
+        await Promise.all(
+            RequestList
+        )
     );
 
 
-    const YearText = (
-        SelectedDate.getFullYear()
+    ResultList.forEach(
+        (
+            ResultObject
+        ) => {
+
+            if (
+                !ResultObject
+            ) {
+
+                return;
+
+            }
+
+
+            MonthlyTodoData[
+                ResultObject.date
+            ] = (
+                ResultObject.todos
+                ||
+                []
+            );
+
+        }
     );
 
 
-    const MonthText = String(
-        SelectedDate.getMonth() + 1
-    ).padStart(
-        2,
-        '0'
+    console.log(
+        '친구 캘린더 월간 Todo 데이터:',
+        MonthlyTodoData
     );
 
 
-    const DateText = String(
-        SelectedDate.getDate()
-    ).padStart(
-        2,
-        '0'
-    );
+    return MonthlyTodoData;
+
+}
 
 
-    const DisplayDate = (
-        `${YearText}.${MonthText}.${DateText}`
+/* ============================================================
+   친구 캘린더 특정 날짜 Todo 조회
+============================================================ */
+
+async function Load_Friend_Calendar_Day_Todos(
+    FriendId,
+    SelectedDateString
+) {
+
+    try {
+
+        const RequestUrl = (
+            `/friend-calendar/?friend_id=${encodeURIComponent(FriendId)}&date=${encodeURIComponent(SelectedDateString)}`
+        );
+
+
+        const Response = await fetch(
+            RequestUrl,
+            {
+                method: 'GET',
+
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }
+        );
+
+
+        if (
+            !Response.ok
+        ) {
+
+            console.error(
+                '친구 캘린더 날짜 조회 실패:',
+                Response.status,
+                SelectedDateString
+            );
+
+            return null;
+
+        }
+
+
+        const Data = await Response.json();
+
+
+        if (
+            !Data.success
+        ) {
+
+            console.error(
+                '친구 캘린더 날짜 조회 실패:',
+                Data.message
+            );
+
+            return null;
+
+        }
+
+
+        return {
+            date:
+                Data.date
+                ||
+                SelectedDateString,
+
+            todos:
+                Data.todos
+                ||
+                []
+        };
+
+    }
+
+    catch (
+        Error
+    ) {
+
+        console.error(
+            '친구 캘린더 날짜 조회 오류:',
+            Error
+        );
+
+        return null;
+
+    }
+
+}
+
+
+/* ============================================================
+   친구 캘린더 날짜 선택
+============================================================ */
+
+async function Select_Friend_Calendar_Date(
+    SelectedDateString
+) {
+
+    console.log(
+        '========== 친구 캘린더 날짜 선택 =========='
     );
 
 
     console.log(
         '친구 캘린더 날짜 선택:',
-        DisplayDate
+        SelectedDateString
     );
 
 
-    // --------------------------------------------------------
-    // 선택한 날짜 표시
-    // --------------------------------------------------------
+    console.log(
+        '현재 친구 객체:',
+        CurrentFriendObject
+    );
+
+
+    if (
+        !CurrentFriendObject
+    ) {
+
+        console.error(
+            '현재 친구 객체가 없습니다.'
+        );
+
+        return;
+
+    }
+
+
+    const FriendId = (
+        CurrentFriendObject.user_id
+    );
+
+
+    console.log(
+        '현재 친구 ID:',
+        FriendId
+    );
+
+
+    if (
+        !FriendId
+    ) {
+
+        console.error(
+            '현재 친구 ID가 없습니다.'
+        );
+
+        return;
+
+    }
+
+
+    /*
+     * 선택 날짜 저장
+     */
+
+    CurrentSelectedDate = (
+        SelectedDateString
+    );
+
+
+    /*
+     * 선택 날짜 UI 적용
+     */
 
     if (
         FriendCalendarTodoDate
     ) {
 
         FriendCalendarTodoDate.textContent = (
-            DisplayDate
+            SelectedDateString
         );
 
     }
 
 
-    // --------------------------------------------------------
-    // 해당 날짜의 할 일 표시
-    // --------------------------------------------------------
+    /*
+     * 캘린더 다시 렌더링
+     *
+     * 선택된 날짜에만
+     * bg-indigo-50 / text-indigo-600 적용
+     */
 
-    Render_Friend_Calendar_Todos(
-        DisplayDate
+    Render_Friend_Calendar();
+
+
+    /*
+     * Todo 목록 초기화
+     */
+
+    if (
+        FriendCalendarTodoList
+    ) {
+
+        FriendCalendarTodoList.innerHTML = '';
+
+    }
+
+
+    /*
+     * API 조회 직전 로그
+     */
+
+    console.log(
+        'Load_Friend_Calendar_Todos 호출 직전'
+    );
+
+
+    /*
+     * 실제 Todo 조회
+     */
+
+    await Load_Friend_Calendar_Todos(
+        FriendId,
+        SelectedDateString
     );
 
 }
 
 
-// ============================================================
-// 친구 캘린더 할 일 렌더링
-// 현재는 하드코딩 테스트
-// ============================================================
+/* ============================================================
+   친구 Todo 조회
+============================================================ */
+
+async function Load_Friend_Calendar_Todos(
+    FriendId,
+    SelectedDateString
+) {
+
+    console.log(
+        '========== 친구 Todo 조회 시작 =========='
+    );
+
+
+    console.log(
+        'FriendId:',
+        FriendId
+    );
+
+
+    console.log(
+        'SelectedDateString:',
+        SelectedDateString
+    );
+
+
+    if (
+        !FriendCalendarTodoList
+    ) {
+
+        console.error(
+            'FriendCalendarTodoList 요소가 없습니다.'
+        );
+
+        return;
+
+    }
+
+
+    try {
+
+        /*
+         * 조회 URL
+         */
+
+        const RequestUrl = (
+            `/friend-calendar/?friend_id=${encodeURIComponent(FriendId)}&date=${encodeURIComponent(SelectedDateString)}`
+        );
+
+
+        console.log(
+            '친구 Todo 조회 URL:',
+            RequestUrl
+        );
+
+
+        /*
+         * API 요청
+         */
+
+        const Response = await fetch(
+            RequestUrl,
+            {
+                method: 'GET',
+
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }
+        );
+
+
+        console.log(
+            '친구 Todo 응답 상태:',
+            Response.status
+        );
+
+
+        /*
+         * 원본 응답
+         */
+
+        const ResponseText = await Response.text();
+
+
+        console.log(
+            '친구 Todo 원본 응답:',
+            ResponseText
+        );
+
+
+        let Data = {};
+
+
+        if (
+            ResponseText
+        ) {
+
+            try {
+
+                Data = JSON.parse(
+                    ResponseText
+                );
+
+            }
+
+            catch (
+                JsonError
+            ) {
+
+                console.error(
+                    '친구 Todo JSON 변환 실패:',
+                    JsonError
+                );
+
+                throw new Error(
+                    '친구 Todo 응답이 올바른 JSON 형식이 아닙니다.'
+                );
+
+            }
+
+        }
+
+
+        console.log(
+            '친구 Todo JSON 데이터:',
+            Data
+        );
+
+
+        if (
+            !Response.ok
+        ) {
+
+            throw new Error(
+                Data.message
+                ||
+                `친구 Todo 조회에 실패했습니다. (HTTP ${Response.status})`
+            );
+
+        }
+
+
+        if (
+            !Data.success
+        ) {
+
+            throw new Error(
+                Data.message
+                ||
+                '친구 Todo 조회에 실패했습니다.'
+            );
+
+        }
+
+
+        const TodoList = (
+            Data.todos
+            ||
+            []
+        );
+
+
+        console.log(
+            '친구 Todo 조회 성공:',
+            TodoList
+        );
+
+
+        /*
+         * Todo 화면 출력
+         */
+
+        Render_Friend_Calendar_Todos(
+            TodoList
+        );
+
+    }
+
+    catch (
+        Error
+    ) {
+
+        console.error(
+            '친구 Todo 조회 오류:',
+            Error
+        );
+
+
+        FriendCalendarTodoList.innerHTML = '';
+
+
+        const ErrorElement = document.createElement(
+            'div'
+        );
+
+
+        ErrorElement.className = (
+            'rounded-2xl ' +
+            'bg-gray-50 ' +
+            'px-4 ' +
+            'py-5 ' +
+            'text-center'
+        );
+
+
+        ErrorElement.innerHTML = `
+
+            <p
+                class='
+                    text-sm
+                    font-medium
+                    text-gray-400
+                '
+            >
+                할 일을 불러오지 못했습니다.
+            </p>
+
+        `;
+
+
+        FriendCalendarTodoList.appendChild(
+            ErrorElement
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   친구 선택 날짜 Todo 렌더링
+============================================================ */
 
 function Render_Friend_Calendar_Todos(
-    SelectedDate
+    TodoList
 ) {
 
     if (
@@ -577,72 +1478,51 @@ function Render_Friend_Calendar_Todos(
     }
 
 
-    // ========================================================
-    // 하드코딩 테스트 데이터
-    // ========================================================
-
-    const TodoList = {
-
-        '2026.09.01': [
-            '친구와 저녁 약속',
-            '운동하기'
-        ],
-
-        '2026.09.05': [
-            '프로젝트 회의'
-        ],
-
-        '2026.09.10': [
-            '영화 보기',
-            '카페 가기'
-        ]
-
-    };
-
-
-    const SelectedTodoList = (
-        TodoList[SelectedDate]
-        ||
-        []
-    );
-
-
     FriendCalendarTodoList.innerHTML = '';
 
 
-    // ========================================================
-    // 할 일이 없는 경우
-    // ========================================================
+    /*
+     * Todo 없음
+     */
 
     if (
-        SelectedTodoList.length === 0
+        !TodoList
+        ||
+        TodoList.length === 0
     ) {
 
-        FriendCalendarTodoList.innerHTML = `
+        const EmptyElement = document.createElement(
+            'div'
+        );
 
-            <div
+
+        EmptyElement.className = (
+            'rounded-2xl ' +
+            'bg-gray-50 ' +
+            'px-4 ' +
+            'py-5 ' +
+            'text-center'
+        );
+
+
+        EmptyElement.innerHTML = `
+
+            <p
                 class='
-                    rounded-2xl
-                    bg-gray-50
-                    px-4
-                    py-5
-                    text-center
+                    text-sm
+                    font-medium
+                    text-gray-400
                 '
             >
-
-                <p
-                    class='
-                        text-sm
-                        font-medium
-                        text-gray-400
-                    '
-                >
-                    등록된 할 일이 없습니다.
-                </p>
-
-            </div>
+                등록된 할 일이 없습니다.
+            </p>
 
         `;
+
+
+        FriendCalendarTodoList.appendChild(
+            EmptyElement
+        );
 
 
         return;
@@ -650,13 +1530,13 @@ function Render_Friend_Calendar_Todos(
     }
 
 
-    // ========================================================
-    // 할 일 목록
-    // ========================================================
+    /*
+     * Todo 생성
+     */
 
-    SelectedTodoList.forEach(
+    TodoList.forEach(
         (
-            TodoText
+            TodoObject
         ) => {
 
             const TodoElement = document.createElement(
@@ -664,59 +1544,181 @@ function Render_Friend_Calendar_Todos(
             );
 
 
-            TodoElement.className = `
-                flex
-                items-center
-                gap-3
-                rounded-2xl
-                border
-                border-gray-100
-                bg-white
-                px-4
-                py-3
-            `;
+            TodoElement.className = (
+                'flex ' +
+                'items-center ' +
+                'gap-3 ' +
+                'rounded-2xl ' +
+                'border ' +
+                'border-gray-100 ' +
+                'bg-white ' +
+                'px-4 ' +
+                'py-3'
+            );
 
 
-            TodoElement.innerHTML = `
+            /*
+             * 왼쪽 아이콘
+             */
 
-                <div
-                    class='
-                        flex
-                        h-8
-                        w-8
-                        flex-shrink-0
-                        items-center
-                        justify-center
-                        rounded-full
-                        bg-gray-50
-                    '
-                >
-
-                    <i
-                        class='
-                            fa-solid
-                            fa-check
-                            text-xs
-                            text-gray-400
-                        '
-                    ></i>
-
-                </div>
+            const IconContainer = document.createElement(
+                'div'
+            );
 
 
-                <p
-                    class='
-                        min-w-0
-                        flex-1
-                        text-sm
-                        font-semibold
-                        text-gray-700
-                    '
-                >
-                    ${TodoText}
-                </p>
+            IconContainer.className = (
+                'flex ' +
+                'h-8 ' +
+                'w-8 ' +
+                'flex-shrink-0 ' +
+                'items-center ' +
+                'justify-center ' +
+                'rounded-full ' +
+                'bg-gray-50'
+            );
 
-            `;
+
+            const IconElement = document.createElement(
+                'i'
+            );
+
+
+            IconElement.className = (
+                'fa-solid ' +
+                'fa-list-check ' +
+                'text-xs ' +
+                'text-gray-400'
+            );
+
+
+            IconContainer.appendChild(
+                IconElement
+            );
+
+
+            TodoElement.appendChild(
+                IconContainer
+            );
+
+
+            /*
+             * Todo 내용 영역
+             */
+
+            const ContentContainer = document.createElement(
+                'div'
+            );
+
+
+            ContentContainer.className = (
+                'min-w-0 ' +
+                'flex-1'
+            );
+
+
+            /*
+             * 제목
+             */
+
+            const TitleElement = document.createElement(
+                'p'
+            );
+
+
+            TitleElement.className = (
+                'truncate ' +
+                'text-sm ' +
+                'font-semibold ' +
+                'text-gray-700'
+            );
+
+
+            TitleElement.textContent = (
+                TodoObject.title
+                ||
+                '제목 없음'
+            );
+
+
+            ContentContainer.appendChild(
+                TitleElement
+            );
+
+
+            /*
+             * 시간
+             */
+
+            if (
+                TodoObject.todo_time
+            ) {
+
+                const TimeElement = document.createElement(
+                    'p'
+                );
+
+
+                TimeElement.className = (
+                    'mt-0.5 ' +
+                    'text-xs ' +
+                    'text-gray-400'
+                );
+
+
+                TimeElement.textContent = (
+                    TodoObject.todo_time
+                );
+
+
+                ContentContainer.appendChild(
+                    TimeElement
+                );
+
+            }
+
+
+            /*
+             * 태그
+             */
+
+            if (
+                TodoObject.tag
+            ) {
+
+                const TagElement = document.createElement(
+                    'span'
+                );
+
+
+                TagElement.className = (
+                    'mt-2 ' +
+                    'inline-flex ' +
+                    'items-center ' +
+                    'rounded-full ' +
+                    'bg-indigo-50 ' +
+                    'px-2.5 ' +
+                    'py-1 ' +
+                    'text-xs ' +
+                    'font-semibold ' +
+                    'text-indigo-600'
+                );
+
+
+                TagElement.textContent = (
+                    TodoObject.tag
+                );
+
+
+                ContentContainer.appendChild(
+                    TagElement
+                );
+
+            }
+
+
+            TodoElement.appendChild(
+                ContentContainer
+            );
 
 
             FriendCalendarTodoList.appendChild(
@@ -729,9 +1731,9 @@ function Render_Friend_Calendar_Todos(
 }
 
 
-// ============================================================
-// DOMContentLoaded
-// ============================================================
+/* ============================================================
+   DOMContentLoaded
+============================================================ */
 
 document.addEventListener(
     'DOMContentLoaded',
