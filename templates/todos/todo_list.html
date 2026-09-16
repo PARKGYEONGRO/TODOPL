@@ -3,10 +3,7 @@
 
 {% block content %}
 
-<!-- =========================================================
-     Todo 목록 페이지
-========================================================= -->
-
+<!-- Todo 목록 페이지 -->
 <div class="flex flex-col md:flex-row h-full min-h-0">
 
 
@@ -15,7 +12,6 @@
          - 월간 캘린더
          - 태그 필터
     ====================================================== -->
-
     <aside
         class="w-full md:w-80
                border-r border-gray-200
@@ -160,9 +156,9 @@
                                                transition-all
 
                                                {% if selected_date == calendar_day.date %}
-                                                   bg-black
-                                                   text-white
-                                                   font-bold
+                                                    bg-indigo-50
+                                                    text-indigo-600
+                                                    font-bold
                                                {% else %}
                                                    hover:bg-gray-100
                                                    text-gray-700

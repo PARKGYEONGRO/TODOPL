@@ -70,21 +70,51 @@
                 <button
                     type='button'
                     onclick='openProfilePage()'
-                    class='w-full rounded-2xl bg-gray-950 text-white p-5 text-left shadow-sm active:scale-[0.99] transition'>
+                    class='w-full rounded-2xl bg-gray-50 text-white p-5 text-left shadow-sm active:scale-[0.99] transition'>
 
 
                     <div
                         class='flex items-center gap-4'>
 
 
-                        <!-- 프로필 아이콘 -->
-
+                        <!-- 프로필 이미지 -->
                         <div
-                            class='w-12 h-12 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0'>
+                            id='settingsProfileImageContainer'
+                            class='
+                                w-12
+                                h-12
+                                rounded-full
+                                bg-red-500
+                                flex
+                                items-center
+                                justify-center
+                                flex-shrink-0
+                                overflow-hidden
+                            '
+                        >
+
+                            <img
+                                id='settingsProfileImage'
+                                src=''
+                                alt='프로필 이미지'
+                                class='
+                                    hidden
+                                    h-full
+                                    w-full
+                                    object-cover
+                                '
+                            >
 
                             <i
-                                class='fa-regular fa-user text-xl text-white'>
-                            </i>
+                                id='settingsProfileDefaultIcon'
+                                class='
+                                    fa-regular
+                                    fa-user
+                                    text-xl
+                                    text-white
+                                '
+                                aria-hidden='true'
+                            ></i>
 
                         </div>
 
@@ -96,17 +126,19 @@
 
 
                             <p
-                                class='text-sm font-extrabold'>
+                                id='settingsProfileNickname'
+                                class='text-base text-[#242427] font-extrabold'>
 
-                                사용자
+                                {{ request.user.profile.nickname }}
 
                             </p>
 
 
                             <p
-                                class='text-xs text-gray-400 mt-1 truncate'>
+                                id='settingsProfileBio'
+                                class='text-sm text-[#242427] mt-1 truncate'>
 
-                                나만의 하루를 차근차근 기록해요.
+                                {{ request.user.profile.bio|default:'한 줄 소개를 입력하세요' }}
 
                             </p>
 

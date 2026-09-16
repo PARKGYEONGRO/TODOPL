@@ -28,6 +28,7 @@ from django.db.models import (
 )
 
 from django.views.decorators.http import (
+    require_GET,
     require_POST
 )
 
@@ -36,6 +37,10 @@ from .models import (
     Todo,
     TodoSomeday,
     TodoCompletion
+)
+
+from accounts.models import (
+    Friendship
 )
 
 from .services import Get_User_Default_Tag
@@ -3285,4 +3290,304 @@ def todo_someday_edit(request, someday_id): #언젠가 할 일 수정
         )
 
     })
+
+
+@login_required
+@require_GET
+def friend_calendar_todos(request):
+
+    FriendId = request.GET.get(
+        'friend_id'
+    )
+
+    SelectedDateString = request.GET.get(
+        'date'
+    )
+
+
+    # ========================================================
+    # 친구 ID 확인
+    # ========================================================
+
+    if not FriendId:
+
+        return JsonResponse(
+            {
+                'success': False,
+
+                'message':
+                    '친구 정보가 없습니다.'
+            },
+            status=400
+        )
+
+
+    # ========================================================
+    # 날짜 확인
+    # ========================================================
+
+    if not SelectedDateString:
+
+        return JsonResponse(
+            {
+                'success': False,
+
+                'message':
+                    '날짜 정보가 없습니다.'
+            },
+            status=400
+        )
+
+
+    # ========================================================
+    # 친구 ID 형변환
+    # ========================================================
+
+    try:
+
+        FriendId = int(
+            FriendId
+        )
+
+    except (
+        TypeError,
+        ValueError
+    ):
+
+        return JsonResponse(
+            {
+                'success': False,
+
+                'message':
+                    '잘못된 친구 정보입니다.'
+            },
+            status=400
+        )
+
+
+    # ========================================================
+    # 날짜 형변환
+    # ========================================================
+
+    try:
+
+        SelectedDate = datetime.strptime(
+            SelectedDateString,
+            '%Y-%m-%d'
+        ).date()
+
+    except ValueError:
+
+        return JsonResponse(
+            {
+                'success': False,
+
+                'message':
+                    '잘못된 날짜 형식입니다.'
+            },
+            status=400
+        )
+
+
+    # ========================================================
+    # 친구 관계 확인
+    # ========================================================
+
+    FriendshipExists = (
+        Friendship.objects
+        .filter(
+            user=request.user,
+            friend_id=FriendId
+        )
+        .exists()
+    )
+
+
+    if not FriendshipExists:
+
+        return JsonResponse(
+            {
+                'success': False,
+
+                'message':
+                    '친구 관계를 확인할 수 없습니다.'
+            },
+            status=403
+        )
+
+
+    # ========================================================
+    # 선택한 날짜에 해당하는 Todo 조건
+    #
+    # 1. 하루짜리 Todo
+    # 2. 여러 날짜에 걸쳐 있는 Todo
+    # ========================================================
+
+    TodoQuery = (
+
+        Q(
+            due_date=SelectedDate,
+            end_date__isnull=True
+        )
+
+        |
+
+        Q(
+            due_date__lte=SelectedDate,
+            end_date__gte=SelectedDate
+        )
+
+    )
+
+
+    # ========================================================
+    # 친구 Todo 조회
+    # ========================================================
+
+    FriendTodos = (
+
+        Todo.objects
+
+        .filter(
+            user_id=FriendId
+        )
+
+        .filter(
+            TodoQuery
+        )
+
+        .select_related(
+            'tag'
+        )
+
+        .annotate(
+
+            TimeInputOrder=Case(
+
+                When(
+                    is_time_manual=True,
+                    then=Value(0)
+                ),
+
+                default=Value(1),
+
+                output_field=IntegerField()
+
+            ),
+
+            ManualTodoTime=Case(
+
+                When(
+                    is_time_manual=True,
+                    then='todo_time'
+                ),
+
+                default=None,
+
+                output_field=TimeField()
+
+            )
+
+        )
+
+        .order_by(
+
+            'TimeInputOrder',
+
+            'ManualTodoTime',
+
+            'created_at'
+
+        )
+
+    )
+
+
+    # ========================================================
+    # Todo JSON 데이터 생성
+    # ========================================================
+
+    TodoList = []
+
+
+    for TodoObject in FriendTodos:
+
+        TagName = None
+
+
+        if TodoObject.tag:
+
+            TagName = getattr(
+                TodoObject.tag,
+                'name',
+                None
+            )
+
+
+        TodoList.append(
+
+            {
+                'id':
+                    TodoObject.id,
+
+                'title':
+                    TodoObject.title,
+
+                'due_date':
+                    TodoObject.due_date.strftime(
+                        '%Y-%m-%d'
+                    ),
+
+                'end_date':
+                    (
+                        TodoObject.end_date.strftime(
+                            '%Y-%m-%d'
+                        )
+
+                        if TodoObject.end_date
+
+                        else None
+                    ),
+
+                'todo_time':
+                    (
+                        TodoObject.todo_time.strftime(
+                            '%H:%M'
+                        )
+
+                        if TodoObject.todo_time
+
+                        else None
+                    ),
+
+                'is_time_manual':
+                    TodoObject.is_time_manual,
+
+                'is_completed':
+                    TodoObject.is_completed,
+
+                'tag':
+                    TagName
+            }
+
+        )
+
+
+    # ========================================================
+    # JSON 응답
+    # ========================================================
+
+    return JsonResponse(
+        {
+            'success': True,
+
+            'date':
+                SelectedDate.strftime(
+                    '%Y-%m-%d'
+                ),
+
+            'todos':
+                TodoList
+        }
+    )
 
