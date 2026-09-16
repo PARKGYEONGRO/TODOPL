@@ -30,6 +30,13 @@ let CurrentSelectedDate = null;
 
 
 /* ============================================================
+   현재 선택된 날짜 DOM 요소
+============================================================ */
+
+let CurrentSelectedDateElement = null;
+
+
+/* ============================================================
    캘린더 현재 연도 / 월
 ============================================================ */
 
@@ -143,6 +150,8 @@ function Initialize_Friend_Calendar_Modal() {
 
     CurrentSelectedDate = null;
 
+    CurrentSelectedDateElement = null;
+
 
     /*
      * 현재 달 설정
@@ -223,11 +232,13 @@ function Open_Friend_Calendar(
     /*
      * 날짜 선택 상태 초기화
      *
-     * 중요:
-     * 모달을 열 때 오늘 날짜를 자동 선택하지 않는다.
+     * 모달을 새 친구로 열 때는
+     * 이전에 선택했던 날짜를 제거한다.
      */
 
     CurrentSelectedDate = null;
+
+    CurrentSelectedDateElement = null;
 
 
     /*
@@ -361,7 +372,127 @@ function Close_Friend_Calendar() {
 
     CurrentSelectedDate = null;
 
+    CurrentSelectedDateElement = null;
+
     CurrentFriendObject = null;
+
+}
+
+
+/* ============================================================
+   친구 캘린더 선택 날짜 UI 업데이트
+============================================================ */
+
+function Update_Friend_Calendar_Selected_Date(
+    SelectedDateString
+) {
+
+    if (
+        !FriendCalendarGrid
+    ) {
+
+        return;
+
+    }
+
+
+    /*
+     * 이전 선택 날짜 스타일 제거
+     */
+
+    if (
+        CurrentSelectedDateElement
+    ) {
+
+        CurrentSelectedDateElement.classList.remove(
+            'bg-indigo-50',
+            'text-indigo-600',
+            'font-bold'
+        );
+
+        CurrentSelectedDateElement.classList.add(
+            'text-gray-700',
+            'hover:bg-gray-100'
+        );
+
+    }
+
+
+    /*
+     * 현재 선택 날짜 버튼 찾기
+     *
+     * 달력 전체를 다시 그리지 않고
+     * data-date를 이용해서 해당 날짜만 찾는다.
+     */
+
+    const SelectedDateButton = (
+        FriendCalendarGrid.querySelector(
+            `[data-date="${SelectedDateString}"]`
+        )
+    );
+
+
+    if (
+        !SelectedDateButton
+    ) {
+
+        CurrentSelectedDateElement = null;
+
+        return;
+
+    }
+
+
+    /*
+     * 날짜 원 가져오기
+     */
+
+    const SelectedDateCircle = (
+        SelectedDateButton.querySelector(
+            '.friend-calendar-date-circle'
+        )
+    );
+
+
+    if (
+        !SelectedDateCircle
+    ) {
+
+        CurrentSelectedDateElement = null;
+
+        return;
+
+    }
+
+
+    /*
+     * 기본 스타일 제거
+     */
+
+    SelectedDateCircle.classList.remove(
+        'text-gray-700',
+        'hover:bg-gray-100'
+    );
+
+
+    /*
+     * 선택 스타일 적용
+     */
+
+    SelectedDateCircle.classList.add(
+        'bg-indigo-50',
+        'text-indigo-600',
+        'font-bold'
+    );
+
+
+    /*
+     * 현재 선택 날짜 요소 저장
+     */
+
+    CurrentSelectedDateElement = (
+        SelectedDateCircle
+    );
 
 }
 
@@ -439,9 +570,20 @@ async function Render_Friend_Calendar() {
 
     /*
      * 캘린더 초기화
+     *
+     * 이 함수는 실제로 달력을 새로 만들 필요가 있을 때만 호출된다.
+     *
+     * 날짜 클릭 시에는 호출하지 않는다.
      */
 
     FriendCalendarGrid.innerHTML = '';
+
+
+    /*
+     * 선택 날짜 DOM 요소도 초기화
+     */
+
+    CurrentSelectedDateElement = null;
 
 
     /*
@@ -542,7 +684,7 @@ async function Render_Friend_Calendar() {
 
 
         /*
-         * 날짜 링크
+         * 날짜 버튼
          */
 
         const DateLink = document.createElement(
@@ -552,6 +694,21 @@ async function Render_Friend_Calendar() {
 
         DateLink.type = (
             'button'
+        );
+
+
+        /*
+         * 중요:
+         *
+         * 날짜 자체를 data-date로 저장한다.
+         *
+         * 이후 날짜 클릭 시
+         * 전체 달력을 다시 그리지 않고
+         * 이 버튼을 바로 찾을 수 있다.
+         */
+
+        DateLink.dataset.date = (
+            DateString
         );
 
 
@@ -576,6 +733,7 @@ async function Render_Friend_Calendar() {
 
 
         DateCircle.className = (
+            'friend-calendar-date-circle ' +
             'flex ' +
             'h-7 ' +
             'w-7 ' +
@@ -589,9 +747,6 @@ async function Render_Friend_Calendar() {
 
         /*
          * 날짜 선택 여부
-         *
-         * 처음에는 선택 날짜가 없기 때문에
-         * 아무 날짜에도 선택 스타일을 주지 않는다.
          */
 
         if (
@@ -602,6 +757,11 @@ async function Render_Friend_Calendar() {
                 'bg-indigo-50',
                 'text-indigo-600',
                 'font-bold'
+            );
+
+
+            CurrentSelectedDateElement = (
+                DateCircle
             );
 
         }
@@ -1171,9 +1331,13 @@ async function Select_Friend_Calendar_Date(
         SelectedDateString
     );
 
+    Update_Friend_Calendar_Selected_Date(
+        SelectedDateString
+    );
+
 
     /*
-     * 선택 날짜 UI 적용
+     * 선택 날짜 UI
      */
 
     if (
@@ -1185,16 +1349,6 @@ async function Select_Friend_Calendar_Date(
         );
 
     }
-
-
-    /*
-     * 캘린더 다시 렌더링
-     *
-     * 선택된 날짜에만
-     * bg-indigo-50 / text-indigo-600 적용
-     */
-
-    Render_Friend_Calendar();
 
 
     /*
@@ -1558,8 +1712,10 @@ function Render_Friend_Calendar_Todos(
 
 
             /*
-             * 왼쪽 아이콘
-             */
+            * ========================================================
+            * 왼쪽 아이콘
+            * ========================================================
+            */
 
             const IconContainer = document.createElement(
                 'div'
@@ -1602,23 +1758,13 @@ function Render_Friend_Calendar_Todos(
 
 
             /*
-             * Todo 내용 영역
-             */
-
-            const ContentContainer = document.createElement(
-                'div'
-            );
-
-
-            ContentContainer.className = (
-                'min-w-0 ' +
-                'flex-1'
-            );
-
-
-            /*
-             * 제목
-             */
+            * ========================================================
+            * 제목 영역
+            * ========================================================
+            *
+            * flex-1을 사용해서
+            * 제목은 가운데 공간을 전부 사용한다.
+            */
 
             const TitleElement = document.createElement(
                 'p'
@@ -1626,6 +1772,8 @@ function Render_Friend_Calendar_Todos(
 
 
             TitleElement.className = (
+                'min-w-0 ' +
+                'flex-1 ' +
                 'truncate ' +
                 'text-sm ' +
                 'font-semibold ' +
@@ -1640,46 +1788,19 @@ function Render_Friend_Calendar_Todos(
             );
 
 
-            ContentContainer.appendChild(
+            TodoElement.appendChild(
                 TitleElement
             );
 
 
             /*
-             * 시간
-             */
-
-            if (
-                TodoObject.todo_time
-            ) {
-
-                const TimeElement = document.createElement(
-                    'p'
-                );
-
-
-                TimeElement.className = (
-                    'mt-0.5 ' +
-                    'text-xs ' +
-                    'text-gray-400'
-                );
-
-
-                TimeElement.textContent = (
-                    TodoObject.todo_time
-                );
-
-
-                ContentContainer.appendChild(
-                    TimeElement
-                );
-
-            }
-
-
-            /*
-             * 태그
-             */
+            * ========================================================
+            * 태그
+            * ========================================================
+            *
+            * 제목 영역과 분리해서
+            * 카드의 오른쪽 끝에 배치한다.
+            */
 
             if (
                 TodoObject.tag
@@ -1691,16 +1812,15 @@ function Render_Friend_Calendar_Todos(
 
 
                 TagElement.className = (
-                    'mt-2 ' +
-                    'inline-flex ' +
-                    'items-center ' +
-                    'rounded-full ' +
-                    'bg-indigo-50 ' +
-                    'px-2.5 ' +
-                    'py-1 ' +
+                    'flex-shrink-0 ' +
+                    'rounded ' +
+                    'border ' +
+                    'border-gray-200 ' +
+                    'px-2 ' +
+                    'py-0.5 ' +
                     'text-xs ' +
                     'font-semibold ' +
-                    'text-indigo-600'
+                    'text-gray-500'
                 );
 
 
@@ -1709,17 +1829,18 @@ function Render_Friend_Calendar_Todos(
                 );
 
 
-                ContentContainer.appendChild(
+                TodoElement.appendChild(
                     TagElement
                 );
 
             }
 
 
-            TodoElement.appendChild(
-                ContentContainer
-            );
-
+            /*
+            * ========================================================
+            * Todo 카드 추가
+            * ========================================================
+            */
 
             FriendCalendarTodoList.appendChild(
                 TodoElement
