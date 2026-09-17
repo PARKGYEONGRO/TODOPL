@@ -439,7 +439,6 @@
                     <!-- Naver -->
                     <a
                         href='{% url "naver_login" %}'
-
                         class='
                             flex
                             h-16
@@ -451,11 +450,9 @@
 
                             rounded-full
 
-                            border-0
+                            bg-[#03A94D]
 
-                            bg-[#03C75A]
-
-                            text-white
+                            shadow-[0_2px_6px_rgba(0,0,0,0.12)]
 
                             cursor-pointer
 
@@ -465,23 +462,35 @@
 
                             hover:scale-[0.94]
 
+                            hover:shadow-[0_3px_8px_rgba(0,0,0,0.16)]
+
                             active:scale-[0.90]
 
+                            active:shadow-[0_1px_4px_rgba(0,0,0,0.12)]
+
                             focus:outline-none
+
+                            focus-visible:ring-4
+                            focus-visible:ring-blue-500/25
                         '
 
                         aria-label='네이버 로그인'
                     >
 
-                        <span
-                            class='
-                                text-[27px]
-                                font-bold
-                                leading-none
-                            '
+                        <svg
+                            class='w-16 h-16'
+                            viewBox='0 0 56 56'
+                            xmlns='http://www.w3.org/2000/svg'
+                            aria-hidden='true'
                         >
-                            N
-                        </span>
+
+                            <path
+                                d='M16 16H24L32 27.5V16H40V40H32L24 28.5V40H16V16Z'
+                                fill='white'
+                                transform='translate(28 28) scale(0.9) translate(-28 -28)'
+                            />
+
+                        </svg>
 
                     </a>
 

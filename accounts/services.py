@@ -1,5 +1,8 @@
 # accounts/services.py
 import os
+import requests
+
+from django.conf import settings
 
 from supabase import create_client
 
@@ -17,12 +20,13 @@ from storage.services import (
     Delete_Profile_Image
 )
 
-
-def Create_User_Initial_Data( # 초기 데이터 생성 및 외부 계정 연결
+# 초기 데이터 생성 및 외부 계정 연결
+def Create_User_Initial_Data(
     User,
     Nickname='사용자',
     Provider=None,
-    Provider_User_Id=None
+    Provider_User_Id=None,
+    refresh_token=None
 ):
 
     UserProfile.objects.get_or_create(
@@ -34,9 +38,11 @@ def Create_User_Initial_Data( # 초기 데이터 생성 및 외부 계정 연결
         }
     )
 
+
     Get_User_Default_Tag(
         User
     )
+
 
     if (
         Provider
@@ -50,10 +56,15 @@ def Create_User_Initial_Data( # 초기 데이터 생성 및 외부 계정 연결
             provider=Provider,
 
             defaults={
+
                 'provider_user_id':
-                    Provider_User_Id
+                    Provider_User_Id,
+
+                'refresh_token':
+                    refresh_token
             }
         )
+
 
     return User
 
@@ -167,6 +178,22 @@ def Delete_User_Account(
         )
 
 
+    # Naver 계정 연결 정보 확인
+    NaverSocialAccount = (
+        SocialAccount.objects.filter(
+            user=User,
+            provider='naver'
+        ).first()
+    )
+
+    NaverRefreshToken = None
+
+    if NaverSocialAccount:
+        NaverRefreshToken = (
+            NaverSocialAccount.refresh_token
+        )
+
+
     # Supabase 관리자 설정
     # 탈퇴 사유는 모든 사용자에게 저장하므로
     # Supabase Auth 연결 여부와 관계없이 필요
@@ -223,6 +250,19 @@ def Delete_User_Account(
     )
 
 
+    # 2. Naver OAuth 연결 해제
+    if NaverRefreshToken:
+        NaverRevokeResult = (
+            Revoke_Naver_Token(
+                NaverRefreshToken
+            )
+        )
+
+        if not NaverRevokeResult:
+            raise RuntimeError(
+                '네이버 로그인 연결 해제에 실패했습니다.'
+            )
+
     # 2. Supabase Auth 사용자 삭제
     # Supabase 계정이 연결된 사용자만 실행
 
@@ -260,3 +300,57 @@ def Delete_User_Account(
 
     return True
 
+
+def Revoke_Naver_Token(
+    RefreshToken
+):
+
+    if not RefreshToken:
+
+        return True
+
+
+    NaverRevokeUrl = (
+        'https://nid.naver.com/oauth2.0/revoke'
+    )
+
+
+    Response = requests.post(
+        NaverRevokeUrl,
+
+        data={
+
+            'client_id':
+                settings.NAVER_CLIENT_ID,
+
+            'client_secret':
+                settings.NAVER_CLIENT_SECRET,
+
+            'token':
+                RefreshToken,
+
+            'token_type_hint':
+                'refresh_token'
+        },
+
+        timeout=10
+    )
+
+
+    print(
+        '네이버 Token Revocation:',
+        Response.status_code
+    )
+
+
+    if Response.status_code == 200:
+
+        return True
+
+
+    print(
+        '네이버 Token Revocation 실패:',
+        Response.text
+    )
+
+    return False

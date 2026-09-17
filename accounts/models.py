@@ -164,8 +164,8 @@ class UserProfile(models.Model):
 
 
 class SocialAccount(models.Model):
-    # 소셜 로그인 계정 연동 정보
 
+    # 소셜 로그인 계정 연동 정보
     PROVIDER_CHOICES = [
         ('google', 'Google'),
         ('naver', 'Naver'),
@@ -189,6 +189,13 @@ class SocialAccount(models.Model):
     provider_user_id = models.CharField(
         max_length=255,
         verbose_name='소셜 사용자 ID'
+    )
+
+    # 네이버 서비스 access token 만료에 대비해 refresh token
+    refresh_token = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name='OAuth Refresh Token'
     )
 
     created_at = models.DateTimeField(

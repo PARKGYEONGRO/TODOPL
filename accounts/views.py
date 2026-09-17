@@ -59,7 +59,8 @@ from supabase import (
 
 from .services import (
     Create_User_Initial_Data,
-    Delete_User_Account
+    Delete_User_Account,
+    Revoke_Naver_Token
 )
 
 
@@ -231,6 +232,7 @@ def supabase_login(request):  # Supabase 로그인
             status=401
         )
 
+
 NAVER_AUTH_URL = (
     'https://nid.naver.com/oauth2.0/authorize'
 )
@@ -243,12 +245,9 @@ NAVER_PROFILE_URL = (
     'https://openapi.naver.com/v1/nid/me'
 )
 
-def naver_login(request):
+def naver_login(request): # Naver 로그인
 
-    # =========================
     # 네이버 OAuth 로그인 시작
-    # =========================
-
     State = uuid.uuid4().hex
 
     request.session[
@@ -286,18 +285,11 @@ def naver_login(request):
 def naver_login_callback(request):
 
     print('==============================')
-
-    print(
-        '네이버 Callback 진입'
-    )
-
+    print('네이버 Callback 진입')
     print('==============================')
 
 
-    # =========================
     # 네이버 인증 결과 확인
-    # =========================
-
     Code = request.GET.get(
         'code'
     )
@@ -378,10 +370,7 @@ def naver_login_callback(request):
 
     try:
 
-        # =========================
         # State 확인
-        # =========================
-
         print(
             '네이버 Callback State 확인 시작'
         )
@@ -447,10 +436,7 @@ def naver_login_callback(request):
         )
 
 
-        # =========================
         # Access Token 발급
-        # =========================
-
         print(
             '네이버 Access Token 발급 시작'
         )
@@ -499,6 +485,9 @@ def naver_login_callback(request):
             'access_token'
         )
 
+        RefreshToken = TokenData.get(
+            'refresh_token'
+        )
 
         if not AccessToken:
 
@@ -525,10 +514,7 @@ def naver_login_callback(request):
         )
 
 
-        # =========================
         # 네이버 사용자 정보 요청
-        # =========================
-
         print(
             '네이버 사용자 정보 요청 시작'
         )
@@ -581,10 +567,7 @@ def naver_login_callback(request):
             )
 
 
-        # =========================
         # 네이버 사용자 정보 추출
-        # =========================
-
         NaverResponse = ProfileData.get(
             'response'
         )
@@ -686,27 +669,18 @@ def naver_login_callback(request):
             )
 
 
-        # =========================
         # OAuth State 삭제
-        # =========================
-
         request.session.pop(
             'naver_oauth_state',
             None
         )
 
 
-        # =========================
         # Django User Model 확인
-        # =========================
-
         User = get_user_model()
 
 
-        # =========================
         # 기존 네이버 계정 확인
-        # =========================
-
         print(
             '기존 네이버 계정 확인 시작'
         )
@@ -725,10 +699,20 @@ def naver_login_callback(request):
 
         if NaverSocialAccount:
 
-            print(
-                '기존 네이버 계정 확인 성공'
-            )
+            if RefreshToken:
+                NaverSocialAccount.refresh_token = (
+                    RefreshToken
+                )
 
+                NaverSocialAccount.save(
+                    update_fields=[
+                        'refresh_token',
+                        'updated_at'
+                    ]
+                )
+
+
+            print('기존 네이버 계정 확인 성공')
 
             DjangoUser = NaverSocialAccount.user
 
@@ -749,14 +733,8 @@ def naver_login_callback(request):
             )
 
 
-        # =========================
         # 기존 Django 계정 확인
-        # =========================
-
-        print(
-            '기존 이메일 계정 확인 시작'
-        )
-
+        print('기존 이메일 계정 확인 시작')
 
         DjangoUser = User.objects.filter(
             email=NaverEmail
@@ -765,29 +743,24 @@ def naver_login_callback(request):
 
         if DjangoUser:
 
-            print(
-                '기존 Django 계정 발견'
-            )
+            print('기존 Django 계정 발견')
 
 
-            # =========================
             # 기존 계정에 네이버 계정 연결
-            # =========================
-
             NaverSocialAccount = SocialAccount.objects.create(
 
                 user=DjangoUser,
 
                 provider='naver',
 
-                provider_user_id=NaverUserId
+                provider_user_id=NaverUserId,
+
+                refresh_token=RefreshToken
 
             )
 
 
-            print(
-                '기존 계정에 네이버 계정 연결 성공'
-            )
+            print('기존 계정에 네이버 계정 연결 성공')
 
 
             login(
@@ -796,23 +769,14 @@ def naver_login_callback(request):
             )
 
 
-            print(
-                '네이버 기존 계정 로그인 성공'
-            )
+            print('네이버 기존 계정 로그인 성공')
 
 
-            return redirect(
-                '/'
-            )
+            return redirect('/')
 
 
-        # =========================
         # 신규 Django User 생성
-        # =========================
-
-        print(
-            '네이버 신규 사용자 생성 시작'
-        )
+        print('네이버 신규 사용자 생성 시작')
 
 
         DjangoUser = User.objects.create_user(
@@ -829,10 +793,7 @@ def naver_login_callback(request):
         )
 
 
-        # =========================
         # 초기 사용자 데이터 생성
-        # =========================
-
         Create_User_Initial_Data(
 
             User=DjangoUser,
@@ -841,7 +802,9 @@ def naver_login_callback(request):
 
             Provider='naver',
 
-            Provider_User_Id=NaverUserId
+            Provider_User_Id=NaverUserId,
+
+            refresh_token=RefreshToken
 
         )
 
@@ -851,10 +814,7 @@ def naver_login_callback(request):
         )
 
 
-        # =========================
         # Django 로그인
-        # =========================
-
         login(
             request,
             DjangoUser
@@ -866,10 +826,7 @@ def naver_login_callback(request):
         )
 
 
-        # =========================
         # 메인 화면 이동
-        # =========================
-
         return redirect(
             '/'
         )
