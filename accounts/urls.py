@@ -12,6 +12,19 @@ urlpatterns = [
     ),
 
     path(
+        'login/naver/',
+        AccountViews.naver_login,
+        name='naver_login'
+    ),
+
+    path(
+        'login/naver/callback/',
+        AccountViews.naver_login_callback,
+        name='naver_login_callback'
+    ),
+
+
+    path(
         'login/google/',
         AccountViews.google_login,
         name='google_login'

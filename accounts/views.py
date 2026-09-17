@@ -3,6 +3,7 @@ import os
 import json
 import uuid
 import mimetypes
+import requests
 
 from PIL import Image
 
@@ -230,6 +231,703 @@ def supabase_login(request):  # Supabase 로그인
             status=401
         )
 
+NAVER_AUTH_URL = (
+    'https://nid.naver.com/oauth2.0/authorize'
+)
+
+NAVER_TOKEN_URL = (
+    'https://nid.naver.com/oauth2.0/token'
+)
+
+NAVER_PROFILE_URL = (
+    'https://openapi.naver.com/v1/nid/me'
+)
+
+def naver_login(request):
+
+    # =========================
+    # 네이버 OAuth 로그인 시작
+    # =========================
+
+    State = uuid.uuid4().hex
+
+    request.session[
+        'naver_oauth_state'
+    ] = State
+
+    AuthorizationUrl = (
+        NAVER_AUTH_URL
+        +
+        '?response_type=code'
+        +
+        '&client_id='
+        +
+        settings.NAVER_CLIENT_ID
+        +
+        '&redirect_uri='
+        +
+        requests.utils.quote(
+            settings.NAVER_REDIRECT_URI
+        )
+        +
+        '&state='
+        +
+        State
+    )
+
+    print(
+        '네이버 로그인 시작'
+    )
+
+    return redirect(
+        AuthorizationUrl
+    )
+
+def naver_login_callback(request):
+
+    print('==============================')
+
+    print(
+        '네이버 Callback 진입'
+    )
+
+    print('==============================')
+
+
+    # =========================
+    # 네이버 인증 결과 확인
+    # =========================
+
+    Code = request.GET.get(
+        'code'
+    )
+
+    State = request.GET.get(
+        'state'
+    )
+
+    Error = request.GET.get(
+        'error'
+    )
+
+    ErrorDescription = request.GET.get(
+        'error_description'
+    )
+
+
+    print(
+        'Code:',
+        Code
+    )
+
+    print(
+        'State:',
+        State
+    )
+
+    print(
+        'Error:',
+        Error
+    )
+
+    print(
+        'Error Description:',
+        ErrorDescription
+    )
+
+
+    if Error:
+
+        print(
+            '네이버 로그인 취소 또는 오류:',
+            Error,
+            ErrorDescription
+        )
+
+        return JsonResponse(
+            {
+                'success':
+                    False,
+
+                'message':
+                    '네이버 로그인이 취소되었습니다.'
+            },
+
+            status=400
+        )
+
+
+    if not Code:
+
+        print(
+            '네이버 인증 Code 없음'
+        )
+
+        return JsonResponse(
+            {
+                'success':
+                    False,
+
+                'message':
+                    '네이버 인증에 실패하였습니다.'
+            },
+
+            status=400
+        )
+
+
+    try:
+
+        # =========================
+        # State 확인
+        # =========================
+
+        print(
+            '네이버 Callback State 확인 시작'
+        )
+
+
+        SessionState = request.session.get(
+            'naver_oauth_state'
+        )
+
+
+        print(
+            'Session State:',
+            SessionState
+        )
+
+
+        print(
+            'Request State:',
+            State
+        )
+
+
+        if not SessionState:
+
+            print(
+                '네이버 OAuth State 없음'
+            )
+
+            return JsonResponse(
+                {
+                    'success':
+                        False,
+
+                    'message':
+                        '네이버 인증 정보가 만료되었습니다.'
+                },
+
+                status=400
+            )
+
+
+        if State != SessionState:
+
+            print(
+                '네이버 OAuth State 불일치'
+            )
+
+            return JsonResponse(
+                {
+                    'success':
+                        False,
+
+                    'message':
+                        '네이버 인증 정보가 올바르지 않습니다.'
+                },
+
+                status=400
+            )
+
+
+        print(
+            '네이버 OAuth State 검증 성공'
+        )
+
+
+        # =========================
+        # Access Token 발급
+        # =========================
+
+        print(
+            '네이버 Access Token 발급 시작'
+        )
+
+
+        TokenResponse = requests.get(
+
+            NAVER_TOKEN_URL,
+
+            params={
+                'grant_type':
+                    'authorization_code',
+
+                'client_id':
+                    settings.NAVER_CLIENT_ID,
+
+                'client_secret':
+                    settings.NAVER_CLIENT_SECRET,
+
+                'code':
+                    Code,
+
+                'state':
+                    State,
+            },
+
+            timeout=10
+        )
+
+
+        print(
+            '네이버 Token Response:',
+            TokenResponse.status_code
+        )
+
+
+        TokenData = TokenResponse.json()
+
+
+        print(
+            '네이버 Token 응답 확인'
+        )
+
+
+        AccessToken = TokenData.get(
+            'access_token'
+        )
+
+
+        if not AccessToken:
+
+            print(
+                '네이버 Access Token 발급 실패:',
+                TokenData
+            )
+
+            return JsonResponse(
+                {
+                    'success':
+                        False,
+
+                    'message':
+                        '네이버 로그인 인증 토큰을 발급받지 못했습니다.'
+                },
+
+                status=400
+            )
+
+
+        print(
+            '네이버 Access Token 발급 성공'
+        )
+
+
+        # =========================
+        # 네이버 사용자 정보 요청
+        # =========================
+
+        print(
+            '네이버 사용자 정보 요청 시작'
+        )
+
+
+        ProfileResponse = requests.get(
+
+            NAVER_PROFILE_URL,
+
+            headers={
+                'Authorization':
+                    f'Bearer {AccessToken}'
+            },
+
+            timeout=10
+        )
+
+
+        print(
+            '네이버 Profile Response:',
+            ProfileResponse.status_code
+        )
+
+
+        ProfileData = ProfileResponse.json()
+
+
+        print(
+            '네이버 사용자 정보 응답 확인'
+        )
+
+
+        if ProfileResponse.status_code != 200:
+
+            print(
+                '네이버 사용자 정보 조회 실패:',
+                ProfileData
+            )
+
+            return JsonResponse(
+                {
+                    'success':
+                        False,
+
+                    'message':
+                        '네이버 사용자 정보를 가져오지 못했습니다.'
+                },
+
+                status=400
+            )
+
+
+        # =========================
+        # 네이버 사용자 정보 추출
+        # =========================
+
+        NaverResponse = ProfileData.get(
+            'response'
+        )
+
+
+        if not NaverResponse:
+
+            print(
+                '네이버 사용자 response 없음:',
+                ProfileData
+            )
+
+            return JsonResponse(
+                {
+                    'success':
+                        False,
+
+                    'message':
+                        '네이버 사용자 정보가 올바르지 않습니다.'
+                },
+
+                status=400
+            )
+
+
+        NaverUserId = NaverResponse.get(
+            'id'
+        )
+
+
+        NaverEmail = NaverResponse.get(
+            'email'
+        )
+
+
+        NaverName = NaverResponse.get(
+            'name'
+        )
+
+
+        print(
+            '네이버 사용자 정보 확인 성공'
+        )
+
+
+        print(
+            '네이버 사용자 ID:',
+            NaverUserId
+        )
+
+
+        print(
+            '네이버 이메일:',
+            NaverEmail
+        )
+
+
+        print(
+            '네이버 이름:',
+            NaverName
+        )
+
+
+        if not NaverUserId:
+
+            print(
+                '네이버 사용자 ID 없음'
+            )
+
+            return JsonResponse(
+                {
+                    'success':
+                        False,
+
+                    'message':
+                        '네이버 사용자 ID를 가져오지 못했습니다.'
+                },
+
+                status=400
+            )
+
+
+        if not NaverEmail:
+
+            print(
+                '네이버 이메일 없음'
+            )
+
+            return JsonResponse(
+                {
+                    'success':
+                        False,
+
+                    'message':
+                        '네이버 이메일 정보를 가져오지 못했습니다.'
+                },
+
+                status=400
+            )
+
+
+        # =========================
+        # OAuth State 삭제
+        # =========================
+
+        request.session.pop(
+            'naver_oauth_state',
+            None
+        )
+
+
+        # =========================
+        # Django User Model 확인
+        # =========================
+
+        User = get_user_model()
+
+
+        # =========================
+        # 기존 네이버 계정 확인
+        # =========================
+
+        print(
+            '기존 네이버 계정 확인 시작'
+        )
+
+
+        NaverSocialAccount = SocialAccount.objects.filter(
+
+            provider='naver',
+
+            provider_user_id=NaverUserId
+
+        ).select_related(
+            'user'
+        ).first()
+
+
+        if NaverSocialAccount:
+
+            print(
+                '기존 네이버 계정 확인 성공'
+            )
+
+
+            DjangoUser = NaverSocialAccount.user
+
+
+            login(
+                request,
+                DjangoUser
+            )
+
+
+            print(
+                '네이버 로그인 성공'
+            )
+
+
+            return redirect(
+                '/'
+            )
+
+
+        # =========================
+        # 기존 Django 계정 확인
+        # =========================
+
+        print(
+            '기존 이메일 계정 확인 시작'
+        )
+
+
+        DjangoUser = User.objects.filter(
+            email=NaverEmail
+        ).first()
+
+
+        if DjangoUser:
+
+            print(
+                '기존 Django 계정 발견'
+            )
+
+
+            # =========================
+            # 기존 계정에 네이버 계정 연결
+            # =========================
+
+            NaverSocialAccount = SocialAccount.objects.create(
+
+                user=DjangoUser,
+
+                provider='naver',
+
+                provider_user_id=NaverUserId
+
+            )
+
+
+            print(
+                '기존 계정에 네이버 계정 연결 성공'
+            )
+
+
+            login(
+                request,
+                DjangoUser
+            )
+
+
+            print(
+                '네이버 기존 계정 로그인 성공'
+            )
+
+
+            return redirect(
+                '/'
+            )
+
+
+        # =========================
+        # 신규 Django User 생성
+        # =========================
+
+        print(
+            '네이버 신규 사용자 생성 시작'
+        )
+
+
+        DjangoUser = User.objects.create_user(
+
+            username=NaverEmail,
+
+            email=NaverEmail
+
+        )
+
+
+        print(
+            '네이버 Django User 생성 성공'
+        )
+
+
+        # =========================
+        # 초기 사용자 데이터 생성
+        # =========================
+
+        Create_User_Initial_Data(
+
+            User=DjangoUser,
+
+            Nickname=NaverName or '사용자',
+
+            Provider='naver',
+
+            Provider_User_Id=NaverUserId
+
+        )
+
+
+        print(
+            '네이버 초기 사용자 데이터 생성 성공'
+        )
+
+
+        # =========================
+        # Django 로그인
+        # =========================
+
+        login(
+            request,
+            DjangoUser
+        )
+
+
+        print(
+            '네이버 회원가입 및 로그인 성공'
+        )
+
+
+        # =========================
+        # 메인 화면 이동
+        # =========================
+
+        return redirect(
+            '/'
+        )
+
+
+    except requests.RequestException as Error:
+
+        import traceback
+
+
+        print(
+            '네이버 요청 오류:',
+            Error
+        )
+
+
+        traceback.print_exc()
+
+
+        return JsonResponse(
+            {
+                'success':
+                    False,
+
+                'message':
+                    '네이버 서버와 통신하는 중 오류가 발생했습니다.'
+            },
+
+            status=500
+        )
+
+
+    except Exception as Error:
+
+        import traceback
+
+
+        print(
+            '네이버 로그인 오류:',
+            Error
+        )
+
+
+        traceback.print_exc()
+
+
+        return JsonResponse(
+            {
+                'success':
+                    False,
+
+                'message':
+                    str(Error)
+            },
+
+            status=500
+        )
+
 
 GOOGLE_SCOPES = [
     'openid',
@@ -430,13 +1128,10 @@ def google_login_callback(request):
                 SocialAccountObject.user
             )
 
-            return JsonResponse(
-                {
-                    'success':
-                        True,
-                    'message':
-                        'Google 로그인되었습니다.'
-                }
+            print('구글 로그인 성공')
+            
+            return redirect(
+                '/'
             )
 
         # 기존 이메일 계정 확인
@@ -485,13 +1180,10 @@ def google_login_callback(request):
             DjangoUser
         )
 
-        return JsonResponse(
-            {
-                'success':
-                    True,
-                'message':
-                    'Google 회원가입 및 로그인이 완료되었습니다.'
-            }
+        print('구글 로그인 성공')
+
+        return redirect(
+            '/'
         )
 
     except Exception as Error:

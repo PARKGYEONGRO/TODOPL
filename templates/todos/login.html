@@ -49,10 +49,7 @@
     >
 
 
-        <!-- =========================================================
-             브랜드
-             ========================================================= -->
-
+        <!-- 브랜드 -->
         <section
             class='
                 mt-[100px]
@@ -111,6 +108,8 @@
 
             <form id='loginForm' class='w-full'>
                 
+                {% csrf_token %}
+
                 <!-- 이메일 ID Input -->
                 <div class='relative mb-[14px] w-full'>
 
@@ -437,13 +436,9 @@
                     '
                 >
 
-
-                    <!-- =================================================
-                         Naver
-                         ================================================= -->
-
-                    <button
-                        type='button'
+                    <!-- Naver -->
+                    <a
+                        href='{% url "naver_login" %}'
 
                         class='
                             flex
@@ -475,8 +470,6 @@
                             focus:outline-none
                         '
 
-                        onclick='SocialLogin("naver")'
-
                         aria-label='네이버 로그인'
                     >
 
@@ -490,7 +483,7 @@
                             N
                         </span>
 
-                    </button>
+                    </a>
 
 
 
@@ -701,6 +694,7 @@
                             Password
                         );
 
+                        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
                         const Response =
                             await fetch(
@@ -846,50 +840,6 @@
                 SupabaseUrl,
                 SupabaseAnonKey
             );
-
-
-
-        function getCookie(
-            Name
-        ) {
-
-            const Cookies =
-                document.cookie.split(
-                    ';'
-                );
-
-
-            for (
-                const Cookie of Cookies
-            ) {
-
-                const [
-                    Key,
-                    Value
-                ] =
-                    Cookie
-                        .trim()
-                        .split(
-                            '='
-                        );
-
-
-                if (
-                    Key === Name
-                ) {
-
-                    return decodeURIComponent(
-                        Value
-                    );
-
-                }
-
-            }
-
-
-            return null;
-
-        }
 
     </script>
 

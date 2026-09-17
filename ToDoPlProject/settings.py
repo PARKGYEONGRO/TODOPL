@@ -82,6 +82,18 @@ SUPABASE_SERVICE_ROLE_KEY = os.getenv(
     'SUPABASE_SERVICE_ROLE_KEY'
 )
 
+# Naver-OAuth
+NAVER_CLIENT_ID = os.getenv(
+    'NAVER_CLIENT_ID'
+)
+
+NAVER_CLIENT_SECRET = os.getenv(
+    'NAVER_CLIENT_SECRET'
+)
+
+NAVER_REDIRECT_URI = os.getenv(
+    'NAVER_REDIRECT_URI'
+)
 
 # Google-OAuth
 GOOGLE_CLIENT_ID = os.getenv(
