@@ -1,0 +1,487 @@
+<!-- calendar_settings_modal.html -->
+
+
+<div
+    id='calendarSettingsModal'
+    class='fixed inset-0 bg-black/40 hidden items-center justify-center z-[1000] p-4'>
+
+
+    <div
+        class='bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl max-h-[90vh] overflow-y-auto'>
+
+
+        <!-- ====================================================
+             헤더
+             ==================================================== -->
+
+        <div
+            class='flex items-center justify-between mb-6'>
+
+
+            <div>
+
+                <h3
+                    class='text-xl font-bold text-gray-900'>
+
+                    캘린더 설정
+
+                </h3>
+
+
+                <p
+                    class='text-sm text-gray-400 mt-1'>
+
+                    캘린더와 통계 화면 표시 방식을 설정합니다.
+
+                </p>
+
+            </div>
+
+
+            <button
+                type='button'
+                onclick='closeCalendarSettingsModal()'
+                class='text-gray-400 hover:text-gray-600 transition-colors'>
+
+
+                <i
+                    class='fa-solid fa-xmark text-xl'>
+                </i>
+
+
+            </button>
+
+        </div>
+
+
+        <!-- ====================================================
+             캘린더 설정
+             ==================================================== -->
+
+        <section
+            class='mb-5'>
+
+
+            <p
+                class='text-[13px] text-gray-400 font-medium px-1 mb-2'>
+
+                캘린더
+
+            </p>
+
+
+            <div
+                class='border border-gray-200 rounded-xl overflow-hidden bg-white'>
+
+
+                <!-- 시작 요일 -->
+
+                <div
+                    class='px-4 py-4 border-b border-gray-100'>
+
+
+                    <div
+                        class='flex items-center gap-3 mb-3'>
+
+
+                        <div
+                            class='w-8 h-8 rounded-lg text-xl text-violet-500 flex items-center justify-center flex-shrink-0'>
+
+
+                            <i
+                                class='fa-regular fa-calendar'>
+                            </i>
+
+
+                        </div>
+
+
+                        <div>
+
+                            <p
+                                class='text-sm font-bold text-gray-900'>
+
+                                캘린더 시작 요일
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        class='grid grid-cols-2 gap-2'>
+
+
+                        <label
+                            class='cursor-pointer'>
+
+
+                            <input
+                                type='radio'
+                                name='calendarStartDay'
+                                value='sunday'
+                                checked
+                                class='sr-only peer'>
+
+
+                            <span
+                                class='flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 bg-white transition
+
+                                peer-checked:bg-black
+                                peer-checked:text-white
+                                peer-checked:border-black'>
+
+                                일요일
+
+                            </span>
+
+
+                        </label>
+
+
+                        <label
+                            class='cursor-pointer'>
+
+
+                            <input
+                                type='radio'
+                                name='calendarStartDay'
+                                value='monday'
+                                class='sr-only peer'>
+
+
+                            <span
+                                class='flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 bg-white transition
+
+                                peer-checked:bg-black
+                                peer-checked:text-white
+                                peer-checked:border-black'>
+
+                                월요일
+
+                            </span>
+
+
+                        </label>
+
+
+                    </div>
+
+                </div>
+
+
+                <!-- 통계창 -->
+
+                <div
+                    class='px-4 py-4'>
+
+
+                    <div
+                        class='flex items-center gap-3 mb-3'>
+
+
+                        <div
+                            class='w-8 h-8 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center flex-shrink-0'>
+
+
+                            <i
+                                class='fa-solid fa-chart-column'>
+                            </i>
+
+
+                        </div>
+
+
+                        <div>
+
+                            <p
+                                class='text-sm font-bold text-gray-900'>
+
+                                통계창
+
+                            </p>
+
+
+                            <p
+                                class='text-[11px] text-gray-400 mt-0.5'>
+
+                                통계 화면의 기본 기간
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        class='grid grid-cols-2 gap-2'>
+
+
+                        <label
+                            class='cursor-pointer'>
+
+
+                            <input
+                                type='radio'
+                                name='statisticsPeriod'
+                                value='monthly'
+                                checked
+                                class='sr-only peer'>
+
+
+                            <span
+                                class='flex items-center justify-center px-4 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 bg-white transition
+
+                                peer-checked:bg-black
+                                peer-checked:text-white
+                                peer-checked:border-black'>
+
+                                월간
+
+                            </span>
+
+
+                        </label>
+
+
+                        <label
+                            class='cursor-pointer'>
+
+
+                            <input
+                                type='radio'
+                                name='statisticsPeriod'
+                                value='weekly'
+                                class='sr-only peer'>
+
+
+                            <span
+                                class='flex items-center justify-center px-4 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 bg-white transition
+
+                                peer-checked:bg-black
+                                peer-checked:text-white
+                                peer-checked:border-black'>
+
+                                주간
+
+                            </span>
+
+
+                        </label>
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ====================================================
+             시간 설정
+             ==================================================== -->
+
+        <section
+            class='mb-5'>
+
+
+            <p
+                class='text-[13px] text-gray-400 font-medium px-1 mb-2'>
+
+                시간 표시
+
+            </p>
+
+
+            <div
+                class='border border-gray-200 rounded-xl overflow-hidden bg-white'>
+
+
+                <div
+                    class='px-4 py-4'>
+
+
+                    <div
+                        class='flex items-center gap-3 mb-3'>
+
+
+                        <div
+                            class='w-8 h-8 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center flex-shrink-0'>
+
+
+                            <i
+                                class='fa-regular fa-clock'>
+                            </i>
+
+
+                        </div>
+
+
+                        <div>
+
+                            <p
+                                class='text-sm font-bold text-gray-900'>
+
+                                시간
+
+                            </p>
+
+
+                            <p
+                                class='text-[11px] text-gray-400 mt-0.5'>
+
+                                시간 표시 방식을 선택합니다.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        class='grid grid-cols-2 gap-2'>
+
+
+                        <label
+                            class='cursor-pointer'>
+
+
+                            <input
+                                type='radio'
+                                name='timeFormat'
+                                value='12'
+                                class='sr-only peer'>
+
+
+                            <span
+                                class='flex flex-col items-center justify-center px-4 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 bg-white transition
+
+                                peer-checked:bg-black
+                                peer-checked:text-white
+                                peer-checked:border-black'>
+
+
+                                <span>
+
+                                    12시간
+
+                                </span>
+
+
+                                <span
+                                    class='text-[10px] font-normal mt-0.5 opacity-70'>
+
+                                    AM / PM
+
+                                </span>
+
+
+                            </span>
+
+
+                        </label>
+
+
+                        <label
+                            class='cursor-pointer'>
+
+
+                            <input
+                                type='radio'
+                                name='timeFormat'
+                                value='24'
+                                checked
+                                class='sr-only peer'>
+
+
+                            <span
+                                class='flex flex-col items-center justify-center px-4 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 bg-white transition
+
+                                peer-checked:bg-black
+                                peer-checked:text-white
+                                peer-checked:border-black'>
+
+
+                                <span>
+
+                                    24시간
+
+                                </span>
+
+
+                                <span
+                                    class='text-[10px] font-normal mt-0.5 opacity-70'>
+
+                                    00:00 - 23:59
+
+                                </span>
+
+
+                            </span>
+
+
+                        </label>
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ====================================================
+             안내
+             ==================================================== -->
+
+        <div
+            class='px-4 py-3 bg-gray-50 rounded-xl mb-5'>
+
+
+            <div
+                class='flex items-start gap-2'>
+
+
+                <i
+                    class='fa-solid fa-circle-info text-gray-400 text-xs mt-0.5'>
+                </i>
+
+
+                <p
+                    class='text-[11px] text-gray-400 leading-relaxed'>
+
+                    현재는 설정 화면만 제공됩니다.
+                    선택한 설정은 아직 저장되거나 실제 화면에 적용되지 않습니다.
+
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- ====================================================
+             닫기 버튼
+             ==================================================== -->
+
+        <button
+            type='button'
+            onclick='closeCalendarSettingsModal()'
+            class='w-full py-3 bg-black text-white rounded-xl text-sm font-bold hover:bg-gray-800 transition'>
+
+            닫기
+
+        </button>
+
+
+    </div>
+
+</div>

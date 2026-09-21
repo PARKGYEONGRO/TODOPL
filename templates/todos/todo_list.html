@@ -88,21 +88,36 @@
                 <!-- 요일 -->
 
                 <div
-                    class="grid
-                           grid-cols-7
-                           text-center
-                           text-base
-                           font-bold
-                           mb-3
-                           text-gray-400">
+                    id='Calendar_Weekday_Header'
+                    class='grid
+                        grid-cols-7
+                        text-center
+                        text-base
+                        font-bold
+                        mb-3
+                        text-gray-400'>
 
-                    <span class="text-red-500">일</span>
-                    <span>월</span>
-                    <span>화</span>
-                    <span>수</span>
-                    <span>목</span>
-                    <span>금</span>
-                    <span>토</span>
+                    {% if calendar_start_day == 'monday' %}
+
+                        <span>월</span>
+                        <span>화</span>
+                        <span>수</span>
+                        <span>목</span>
+                        <span>금</span>
+                        <span>토</span>
+                        <span class='text-red-500'>일</span>
+
+                    {% else %}
+
+                        <span class='text-red-500'>일</span>
+                        <span>월</span>
+                        <span>화</span>
+                        <span>수</span>
+                        <span>목</span>
+                        <span>금</span>
+                        <span>토</span>
+
+                    {% endif %}
 
                 </div>
 
@@ -110,6 +125,7 @@
                 <!-- 날짜 -->
 
                 <div
+                    id='Calendar_Grid'
                     class="grid
                            grid-cols-7
                            text-center

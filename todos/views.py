@@ -915,23 +915,48 @@ def todo_list(request):  # Todo 목록
         )
 
     # ==========================
+    # 캘린더 시작 요일 설정
+    # ==========================
+
+    Calendar_Start_Day = request.COOKIES.get(
+        'calendar_start_day',
+        'sunday'
+    )
+
+    if Calendar_Start_Day == 'monday':
+
+        Calendar_First_Week_Day = 0
+
+    else:
+
+        Calendar_First_Week_Day = 6
+
+
+    # ==========================
     # 캘린더 생성
     # ==========================
 
-    cal = calendar.Calendar(
-        firstweekday=6
+    Calendar = calendar.Calendar(
+        firstweekday=Calendar_First_Week_Day
     )
 
-    month_days = cal.monthdayscalendar(
+    month_days = Calendar.monthdayscalendar(
         year,
         month
     )
 
+
+    # ==========================
+    # 캘린더 데이터
+    # ==========================
+
     calendar_data = []
+
 
     for week in month_days:
 
         week_data = []
+
 
         for day in week:
 
@@ -951,15 +976,22 @@ def todo_list(request):  # Todo 목록
 
                 continue
 
+
             current_date = date(
+
                 year,
+
                 month,
+
                 day
+
             )
+
 
             date_key = current_date.strftime(
                 '%Y-%m-%d'
             )
+
 
             week_data.append({
 
@@ -971,22 +1003,28 @@ def todo_list(request):  # Todo 목록
 
                 'todos':
                     calendar_todos_by_date.get(
+
                         date_key,
+
                         []
+
                     ),
 
                 'period_todos':
                     period_todos_by_date.get(
+
                         date_key,
+
                         []
+
                     )
 
             })
 
+
         calendar_data.append(
             week_data
         )
-
     # ==========================
     # 이전 달
     # ==========================
@@ -1044,6 +1082,9 @@ def todo_list(request):  # Todo 목록
 
         'calendar_data':
             calendar_data,
+
+        'calendar_start_day':
+            Calendar_Start_Day,
 
         'calendar_todos_by_date':
             calendar_todos_by_date,
