@@ -2561,7 +2561,7 @@ function updatePcStats(
     if (totalCount) {
 
         totalCount.textContent =
-            data.monthly_total_count;
+            data.period_total_count;
 
     }
 
@@ -2569,7 +2569,7 @@ function updatePcStats(
     if (completedCount) {
 
         completedCount.textContent =
-            data.monthly_completed_count;
+            data.period_completed_count;
 
     }
 
@@ -2577,7 +2577,7 @@ function updatePcStats(
     if (completionRate) {
 
         completionRate.textContent =
-            `${data.monthly_completion_rate}%`;
+            `${data.period_completion_rate}%`;
 
     }
 
@@ -2585,18 +2585,18 @@ function updatePcStats(
     if (completionBar) {
 
         completionBar.style.width =
-            `${data.monthly_completion_rate}%`;
+            `${data.period_completion_rate}%`;
 
     }
 
 
     if (
         Array.isArray(
-            data.monthly_tag_stats
+            data.period_tag_stats
         )
     ) {
 
-        data.monthly_tag_stats.forEach(
+        data.period_tag_stats.forEach(
             tag => {
 
                 const countElement =
@@ -2634,11 +2634,11 @@ function updatePcStats(
 
     if (
         Array.isArray(
-            data.monthly_priority_stats
+            data.period_priority_stats
         )
     ) {
 
-        data.monthly_priority_stats.forEach(
+        data.period_priority_stats.forEach(
             priority => {
 
                 const totalElement =

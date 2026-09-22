@@ -1,219 +1,458 @@
+<!-- mobile_stats.html -->
+
 {% extends 'base.html' %}
+
 
 {% block content %}
 
-<!-- Mobile 통계 대시보드-->
-<div class="min-h-screen bg-white pb-20">
 
-    <!-- 통계 헤더 -->
-    <section class="px-5 pt-4">
+<!-- ============================================================
+     Mobile 통계 대시보드
+============================================================ -->
 
-        <div class="flex items-start justify-between">
+<div
+    class='
+        min-h-screen
+        bg-white
+        pb-20
+    '
+>
+
+
+    <!-- ========================================================
+         통계 헤더
+    ========================================================= -->
+
+    <section
+        class='
+            px-5
+            pt-4
+        '
+    >
+
+        <div
+            class='
+                flex
+                items-start
+                justify-between
+            '
+        >
 
             <div>
-                <p class="text-xs text-gray-400 mb-1">
-                    {{ stats_title }}
-                </p>
 
-                <h2 class="text-xl font-extrabold text-gray-900">
-                    {{ month }}월
+                <h2
+                    class='
+                        text-xl
+                        font-extrabold
+                        text-gray-900
+                    '
+                >
+                    {{ stats_title }}
                 </h2>
+
             </div>
 
-            <!-- 월 선택 버튼 -->
-            <button
-                type="button"
-                onclick="openMonthPicker()"
-                class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-lg text-xs font-semibold text-gray-700">
 
-                <i class="fa-regular fa-calendar-days"></i>
+            <!-- ==================================================
+                 기간 선택 버튼
+            ================================================== -->
 
-                <span>
-                    {{ year }}.{{ month|stringformat:"02d" }}
-                </span>
+            {% if statistics_period == 'weekly' %}
 
-            </button>
+                <button
+                    type='button'
+                    onclick='openWeekPicker()'
+                    class='
+                        flex
+                        items-center
+                        gap-1.5
+                        rounded-lg
+                        bg-gray-100
+                        px-3
+                        py-1.5
+                        text-sm
+                        font-semibold
+                        text-gray-700
+                    '
+                >
+
+                    <i
+                        class='
+                            fa-regular
+                            fa-calendar-days
+                        '
+                    ></i>
+
+
+                    <span>
+                        {{ year }}.{{ month|stringformat:"02d" }}
+                    </span>
+
+                </button>
+
+            {% else %}
+
+                <button
+                    type='button'
+                    onclick='openMonthPicker()'
+                    class='
+                        flex
+                        items-center
+                        gap-1.5
+                        rounded-lg
+                        bg-gray-100
+                        px-3
+                        py-1.5
+                        text-sm
+                        font-semibold
+                        text-gray-700
+                    '
+                >
+
+                    <i
+                        class='
+                            fa-regular
+                            fa-calendar-days
+                        '
+                    ></i>
+
+
+                    <span>
+                        {{ year }}.{{ month|stringformat:"02d" }}
+                    </span>
+
+                </button>
+
+            {% endif %}
 
         </div>
 
     </section>
 
 
-    <!-- 통계 본문 -->
-    <main class="px-5 pt-5">
+    <!-- ========================================================
+         통계 본문
+    ========================================================= -->
+
+    <main
+        class='
+            px-5
+            pt-5
+        '
+    >
 
         {% include 'todos/partials/mobile_stats_body.html' %}
 
     </main>
 
+
 </div>
 
 
-<!-- =========================
+
+<!-- ============================================================
      월 선택 바텀시트
-========================= -->
+============================================================ -->
 
 <div
-    id="monthPicker"
-    class="hidden fixed inset-0 z-[100]">
+    id='monthPicker'
+    class='
+        hidden
+        fixed
+        inset-0
+        z-[100]
+    '
+>
 
-    <!-- 배경 -->
+
+    <!-- ========================================================
+         배경
+    ========================================================= -->
+
     <div
-        class="absolute inset-0 bg-black/40"
-        onclick="closeMonthPicker()">
-    </div>
+        class='
+            absolute
+            inset-0
+            bg-black/40
+        '
+        onclick='closeMonthPicker()'
+    ></div>
 
 
-    <!-- 바텀시트 -->
+    <!-- ========================================================
+         바텀시트
+    ========================================================= -->
+
     <div
-        class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl px-5 pt-5 pb-8">
+        class='
+            absolute
+            bottom-0
+            left-0
+            right-0
+            rounded-t-3xl
+            bg-white
+            px-5
+            pb-8
+            pt-5
+        '
+    >
 
-        <!-- 헤더 -->
-        <div class="flex items-center justify-between mb-5">
 
-            <h3 class="text-base font-bold text-gray-900">
+        <!-- ====================================================
+             헤더
+        ===================================================== -->
+
+        <div
+            class='
+                mb-5
+                flex
+                items-center
+                justify-between
+            '
+        >
+
+            <h3
+                class='
+                    text-base
+                    font-bold
+                    text-gray-900
+                '
+            >
                 월 선택
             </h3>
 
-            <button
-                type="button"
-                onclick="closeMonthPicker()"
-                class="w-8 h-8 flex items-center justify-center text-gray-400">
 
-                <i class="fa-solid fa-xmark"></i>
+            <button
+                type='button'
+                onclick='closeMonthPicker()'
+                class='
+                    flex
+                    h-8
+                    w-8
+                    items-center
+                    justify-center
+                    text-gray-400
+                '
+            >
+
+                <i
+                    class='
+                        fa-solid
+                        fa-xmark
+                    '
+                ></i>
 
             </button>
 
         </div>
 
 
-        <!-- 연도 -->
-        <div class="flex items-center justify-between mb-4">
+        <!-- ====================================================
+             연도
+        ===================================================== -->
+
+        <div
+            class='
+                mb-4
+                flex
+                items-center
+                justify-between
+            '
+        >
 
             <button
-                type="button"
-                onclick="changePickerYear(-1)"
-                class="w-8 h-8 flex items-center justify-center text-gray-400">
+                type='button'
+                onclick='changeMonthPickerYear(-1)'
+                class='
+                    flex
+                    h-8
+                    w-8
+                    items-center
+                    justify-center
+                    text-gray-400
+                '
+            >
 
-                <i class="fa-solid fa-chevron-left"></i>
+                <i
+                    class='
+                        fa-solid
+                        fa-chevron-left
+                    '
+                ></i>
 
             </button>
 
 
             <span
-                id="pickerYear"
-                class="text-sm font-bold text-gray-900">
+                id='monthPickerYear'
+                class='
+                    text-sm
+                    font-bold
+                    text-gray-900
+                '
+            >
                 {{ year }}년
             </span>
 
 
             <button
-                type="button"
-                onclick="changePickerYear(1)"
-                class="w-8 h-8 flex items-center justify-center text-gray-400">
+                type='button'
+                onclick='changeMonthPickerYear(1)'
+                class='
+                    flex
+                    h-8
+                    w-8
+                    items-center
+                    justify-center
+                    text-gray-400
+                '
+            >
 
-                <i class="fa-solid fa-chevron-right"></i>
+                <i
+                    class='
+                        fa-solid
+                        fa-chevron-right
+                    '
+                ></i>
 
             </button>
 
         </div>
 
 
-        <!-- 월 목록 -->
-        <div class="grid grid-cols-4 gap-2">
+        <!-- ====================================================
+             월 목록
+        ===================================================== -->
+
+        <div
+            class='
+                grid
+                grid-cols-4
+                gap-2
+            '
+        >
+
+            {% for Month_Number in '123456789101112'|make_list %}
+
+            {% endfor %}
+
+
             <button
-                type="button"
-                data-month="1"
-                onclick="selectMonth(1)"
-                class="month-button py-3 rounded-xl text-sm font-medium">
+                type='button'
+                data-month='1'
+                onclick='selectMonth(1)'
+                class='month-button rounded-xl py-3 text-sm font-medium'
+            >
                 1월
             </button>
 
+
             <button
-                type="button"
-                data-month="2"
-                onclick="selectMonth(2)"
-                class="month-button py-3 rounded-xl text-sm font-medium">
+                type='button'
+                data-month='2'
+                onclick='selectMonth(2)'
+                class='month-button rounded-xl py-3 text-sm font-medium'
+            >
                 2월
             </button>
 
+
             <button
-                type="button"
-                data-month="3"
-                onclick="selectMonth(3)"
-                class="month-button py-3 rounded-xl text-sm font-medium">
+                type='button'
+                data-month='3'
+                onclick='selectMonth(3)'
+                class='month-button rounded-xl py-3 text-sm font-medium'
+            >
                 3월
             </button>
 
+
             <button
-                type="button"
-                data-month="4"
-                onclick="selectMonth(4)"
-                class="month-button py-3 rounded-xl text-sm font-medium">
+                type='button'
+                data-month='4'
+                onclick='selectMonth(4)'
+                class='month-button rounded-xl py-3 text-sm font-medium'
+            >
                 4월
             </button>
 
+
             <button
-                type="button"
-                data-month="5"
-                onclick="selectMonth(5)"
-                class="month-button py-3 rounded-xl text-sm font-medium">
+                type='button'
+                data-month='5'
+                onclick='selectMonth(5)'
+                class='month-button rounded-xl py-3 text-sm font-medium'
+            >
                 5월
             </button>
 
+
             <button
-                type="button"
-                data-month="6"
-                onclick="selectMonth(6)"
-                class="month-button py-3 rounded-xl text-sm font-medium">
+                type='button'
+                data-month='6'
+                onclick='selectMonth(6)'
+                class='month-button rounded-xl py-3 text-sm font-medium'
+            >
                 6월
             </button>
 
+
             <button
-                type="button"
-                data-month="7"
-                onclick="selectMonth(7)"
-                class="month-button py-3 rounded-xl text-sm font-medium">
+                type='button'
+                data-month='7'
+                onclick='selectMonth(7)'
+                class='month-button rounded-xl py-3 text-sm font-medium'
+            >
                 7월
             </button>
 
+
             <button
-                type="button"
-                data-month="8"
-                onclick="selectMonth(8)"
-                class="month-button py-3 rounded-xl text-sm font-medium">
+                type='button'
+                data-month='8'
+                onclick='selectMonth(8)'
+                class='month-button rounded-xl py-3 text-sm font-medium'
+            >
                 8월
             </button>
 
+
             <button
-                type="button"
-                data-month="9"
-                onclick="selectMonth(9)"
-                class="month-button py-3 rounded-xl text-sm font-medium">
+                type='button'
+                data-month='9'
+                onclick='selectMonth(9)'
+                class='month-button rounded-xl py-3 text-sm font-medium'
+            >
                 9월
             </button>
 
+
             <button
-                type="button"
-                data-month="10"
-                onclick="selectMonth(10)"
-                class="month-button py-3 rounded-xl text-sm font-medium">
+                type='button'
+                data-month='10'
+                onclick='selectMonth(10)'
+                class='month-button rounded-xl py-3 text-sm font-medium'
+            >
                 10월
             </button>
 
+
             <button
-                type="button"
-                data-month="11"
-                onclick="selectMonth(11)"
-                class="month-button py-3 rounded-xl text-sm font-medium">
+                type='button'
+                data-month='11'
+                onclick='selectMonth(11)'
+                class='month-button rounded-xl py-3 text-sm font-medium'
+            >
                 11월
             </button>
 
+
             <button
-                type="button"
-                data-month="12"
-                onclick="selectMonth(12)"
-                class="month-button py-3 rounded-xl text-sm font-medium">
+                type='button'
+                data-month='12'
+                onclick='selectMonth(12)'
+                class='month-button rounded-xl py-3 text-sm font-medium'
+            >
                 12월
             </button>
 
@@ -223,118 +462,1058 @@
 
 </div>
 
+
+
+<!-- ============================================================
+     주 선택 바텀시트
+============================================================ -->
+
+<div
+    id='weekPicker'
+    class='
+        hidden
+        fixed
+        inset-0
+        z-[100]
+    '
+>
+
+
+    <!-- ========================================================
+         배경
+    ========================================================= -->
+
+    <div
+        class='
+            absolute
+            inset-0
+            bg-black/40
+        '
+        onclick='closeWeekPicker()'
+    ></div>
+
+
+    <!-- ========================================================
+         바텀시트
+    ========================================================= -->
+
+    <div
+        class='
+            absolute
+            bottom-0
+            left-0
+            right-0
+            max-h-[85vh]
+            overflow-y-auto
+            rounded-t-3xl
+            bg-white
+            px-5
+            pb-8
+            pt-5
+        '
+    >
+
+
+        <!-- ====================================================
+             헤더
+        ===================================================== -->
+
+        <div
+            class='
+                mb-5
+                flex
+                items-center
+                justify-between
+            '
+        >
+
+            <h3
+                class='
+                    text-base
+                    font-bold
+                    text-gray-900
+                '
+            >
+                주 선택
+            </h3>
+
+
+            <button
+                type='button'
+                onclick='closeWeekPicker()'
+                class='
+                    flex
+                    h-8
+                    w-8
+                    items-center
+                    justify-center
+                    text-gray-400
+                '
+            >
+
+                <i
+                    class='
+                        fa-solid
+                        fa-xmark
+                    '
+                ></i>
+
+            </button>
+
+        </div>
+
+
+        <!-- ====================================================
+             연도 / 월 이동
+        ===================================================== -->
+
+        <div
+            class='
+                mb-5
+                flex
+                items-center
+                justify-between
+            '
+        >
+
+            <button
+                type='button'
+                onclick='changeWeekPickerMonth(-1)'
+                class='
+                    flex
+                    h-10
+                    w-10
+                    items-center
+                    justify-center
+                    rounded-full
+                    text-gray-400
+                    transition
+                    hover:bg-gray-100
+                    active:scale-95
+                '
+            >
+
+                <i
+                    class='
+                        fa-solid
+                        fa-chevron-left
+                    '
+                ></i>
+
+            </button>
+
+
+            <p
+                id='weekPickerYearMonth'
+                class='
+                    text-xl
+                    font-extrabold
+                    tracking-tight
+                    text-gray-900
+                '
+            >
+            </p>
+
+
+            <button
+                type='button'
+                onclick='changeWeekPickerMonth(1)'
+                class='
+                    flex
+                    h-10
+                    w-10
+                    items-center
+                    justify-center
+                    rounded-full
+                    text-gray-400
+                    transition
+                    hover:bg-gray-100
+                    active:scale-95
+                '
+            >
+
+                <i
+                    class='
+                        fa-solid
+                        fa-chevron-right
+                    '
+                ></i>
+
+            </button>
+
+        </div>
+
+
+        <!-- ====================================================
+             요일
+        ===================================================== -->
+
+        <div
+            id='weekPickerWeekday'
+            class='
+                mb-3
+                grid
+                grid-cols-7
+                text-center
+                text-sm
+                font-bold
+                text-gray-400
+            '
+        ></div>
+
+
+        <!-- ====================================================
+             날짜
+        ===================================================== -->
+
+        <div
+            id='weekPickerGrid'
+            class='
+                grid
+                grid-cols-7
+                gap-y-1
+            '
+        ></div>
+
+
+        <!-- ====================================================
+             선택 주
+        ===================================================== -->
+
+        <div
+            class='
+                mt-6
+                border-t
+                border-gray-100
+                pt-5
+            '
+        >
+
+            <p
+                class='
+                    text-sm
+                    font-bold
+                    text-gray-400
+                '
+            >
+                선택한 주
+            </p>
+
+
+            <p
+                id='selectedWeekText'
+                class='
+                    mt-1
+                    text-lg
+                    font-extrabold
+                    text-gray-900
+                '
+            >
+                주를 선택해주세요.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
 <script>
 
-    let pickerYear = {{ year }};
+
+    // ============================================================
+    // 공통 상태
+    // ============================================================
+
+    let pickerYear =
+        {{ year }};
 
 
-    // =========================
+    // ============================================================
+    // 캘린더 시작 요일
+    // 반드시 다른 주간 상태보다 먼저 초기화
+    // ============================================================
+
+    const CalendarStartDay =
+        '{{ CalendarStartDay|default:"sunday" }}';
+
+
+    // ============================================================
+    // 주 선택창 상태
+    // ============================================================
+
+    let WeekPicker_Date =
+        new Date(
+            '{{ selected_date }}T00:00:00'
+        );
+
+
+    // ============================================================
+    // 현재 선택된 주
+    // ============================================================
+
+    let Selected_Week_Start =
+        GetWeekStart(
+            WeekPicker_Date
+        );
+
+
+    // ============================================================
     // 월 선택창 열기
-    // =========================
+    // ============================================================
 
     function openMonthPicker() {
 
-        const monthPicker =
-            document.getElementById('monthPicker');
+        const MonthPicker =
+            document.getElementById(
+                'monthPicker'
+            );
 
-        monthPicker.classList.remove('hidden');
+        MonthPicker.classList.remove(
+            'hidden'
+        );
 
         updateMonthButton();
 
     }
 
 
-    // =========================
+    // ============================================================
     // 월 선택창 닫기
-    // =========================
+    // ============================================================
 
     function closeMonthPicker() {
 
-        const monthPicker =
-            document.getElementById('monthPicker');
+        const MonthPicker =
+            document.getElementById(
+                'monthPicker'
+            );
 
-        monthPicker.classList.add('hidden');
-
-    }
-
-
-    // =========================
-    // 선택 연도 변경
-    // =========================
-
-    function changePickerYear(direction) {
-
-        pickerYear += direction;
-
-        document.getElementById('pickerYear').textContent =
-            `${pickerYear}년`;
+        MonthPicker.classList.add(
+            'hidden'
+        );
 
     }
 
 
-    // =========================
+    // ============================================================
+    // 월 선택창 연도 변경
+    // ============================================================
+
+    function changeMonthPickerYear(
+        Direction
+    ) {
+
+        pickerYear += Direction;
+
+        document
+            .getElementById(
+                'monthPickerYear'
+            )
+            .textContent =
+                `${pickerYear}년`;
+
+    }
+
+
+    // ============================================================
     // 현재 월 강조
-    // =========================
+    // ============================================================
 
     function updateMonthButton() {
 
-        const currentMonth = {{ month }};
+        const CurrentMonth =
+            {{ month }};
 
         document
-            .querySelectorAll('.month-button')
-            .forEach(button => {
+            .querySelectorAll(
+                '.month-button'
+            )
+            .forEach(
+                Button => {
 
-                const buttonMonth =
-                    Number(button.dataset.month);
+                    const ButtonMonth =
+                        Number(
+                            Button.dataset.month
+                        );
 
-                if (buttonMonth === currentMonth) {
 
-                    button.classList.add(
-                        'bg-black',
-                        'text-white'
-                    );
+                    if (
+                        ButtonMonth
+                        ===
+                        CurrentMonth
+                    ) {
 
-                    button.classList.remove(
-                        'bg-gray-100',
-                        'text-gray-700'
-                    );
+                        Button.classList.add(
+                            'bg-black',
+                            'text-white'
+                        );
 
-                } else {
+                        Button.classList.remove(
+                            'bg-gray-100',
+                            'text-gray-700'
+                        );
 
-                    button.classList.add(
-                        'bg-gray-100',
-                        'text-gray-700'
-                    );
+                    }
 
-                    button.classList.remove(
-                        'bg-black',
-                        'text-white'
-                    );
+                    else {
+
+                        Button.classList.add(
+                            'bg-gray-100',
+                            'text-gray-700'
+                        );
+
+                        Button.classList.remove(
+                            'bg-black',
+                            'text-white'
+                        );
+
+                    }
 
                 }
-
-            });
+            );
 
     }
 
 
-    // =========================
+    // ============================================================
     // 월 선택
-    // =========================
+    // ============================================================
 
-    function selectMonth(month) {
+    function selectMonth(
+        Month
+    ) {
 
-        const monthString =
-            String(month).padStart(2, '0');
+        const MonthString =
+            String(Month)
+                .padStart(
+                    2,
+                    '0'
+                );
 
-        const date =
-            `${pickerYear}-${monthString}-01`;
+
+        const DateString =
+            `${pickerYear}-${MonthString}-01`;
+
 
         window.location.href =
-            `/mobile_stats/?date=${date}`;
+            `/mobile_stats/?date=${DateString}`;
+
+    }
+
+
+    // ============================================================
+    // 주 선택창 열기
+    // ============================================================
+
+    function openWeekPicker() {
+
+        const WeekPicker =
+            document.getElementById(
+                'weekPicker'
+            );
+
+        WeekPicker.classList.remove(
+            'hidden'
+        );
+
+
+        RenderWeekPicker();
+
+    }
+
+
+    // ============================================================
+    // 주 선택창 닫기
+    // ============================================================
+
+    function closeWeekPicker() {
+
+        const WeekPicker =
+            document.getElementById(
+                'weekPicker'
+            );
+
+        WeekPicker.classList.add(
+            'hidden'
+        );
+
+    }
+
+
+   // ============================================================
+    // 주 선택창 월 이동
+    // ============================================================
+
+    function changeWeekPickerMonth(
+        Direction
+    ) {
+
+        WeekPicker_Date =
+            new Date(
+                WeekPicker_Date.getFullYear(),
+                WeekPicker_Date.getMonth()
+                    + Direction,
+                1
+            );
+
+
+        RenderWeekPicker();
+
+    }
+
+    // ============================================================
+    // 날짜 포맷
+    // ============================================================
+
+    function FormatDate(
+        DateObject
+    ) {
+
+        const Year =
+            DateObject.getFullYear();
+
+        const Month =
+            String(
+                DateObject.getMonth() + 1
+            ).padStart(
+                2,
+                '0'
+            );
+
+        const Day =
+            String(
+                DateObject.getDate()
+            ).padStart(
+                2,
+                '0'
+            );
+
+
+        return (
+            `${Year}-${Month}-${Day}`
+        );
+
+    }
+
+
+    // ============================================================
+    // 주 시작 날짜 계산
+    // ============================================================
+
+    function GetWeekStart(
+        DateObject
+    ) {
+
+        const DayOfWeek =
+            DateObject.getDay();
+
+
+        let Difference;
+
+
+        if (
+            CalendarStartDay
+            ===
+            'monday'
+        ) {
+
+            Difference =
+                DayOfWeek === 0
+                    ? 6
+                    : DayOfWeek - 1;
+
+        }
+
+        else {
+
+            Difference =
+                DayOfWeek;
+
+        }
+
+
+        const WeekStart =
+            new Date(
+                DateObject
+            );
+
+
+        WeekStart.setDate(
+            DateObject.getDate()
+            -
+            Difference
+        );
+
+
+        return WeekStart;
+
+    }
+
+
+    // ============================================================
+    // 주 종료 날짜 계산
+    // ============================================================
+
+    function GetWeekEnd(
+        WeekStart
+    ) {
+
+        const WeekEnd =
+            new Date(
+                WeekStart
+            );
+
+
+        WeekEnd.setDate(
+            WeekStart.getDate()
+            +
+            6
+        );
+
+
+        return WeekEnd;
+
+    }
+
+
+    // ============================================================
+    // 선택 주 표시
+    // ============================================================
+
+    function UpdateSelectedWeekText(
+        WeekStart
+    ) {
+
+        const WeekEnd =
+            GetWeekEnd(
+                WeekStart
+            );
+
+
+        document
+            .getElementById(
+                'selectedWeekText'
+            )
+            .textContent =
+                `${WeekStart.getFullYear()}년 `
+                +
+                `${WeekStart.getMonth() + 1}월 `
+                +
+                `${WeekStart.getDate()}일`
+                +
+                ` ~ `
+                +
+                `${WeekEnd.getMonth() + 1}월 `
+                +
+                `${WeekEnd.getDate()}일`;
+
+    }
+
+
+    // ============================================================
+    // 주간 캘린더 그리기
+    // ============================================================
+
+    function RenderWeekPicker() {
+
+
+        // ========================================================
+        // 현재 표시 중인 연도 / 월
+        // ========================================================
+
+        const Year =
+            WeekPicker_Date.getFullYear();
+
+
+        const Month =
+            WeekPicker_Date.getMonth();
+
+
+        // ========================================================
+        // 연도 / 월 표시
+        // ========================================================
+
+        document
+            .getElementById(
+                'weekPickerYearMonth'
+            )
+            .textContent =
+                `${Year}.${String(
+                    Month + 1
+                ).padStart(
+                    2,
+                    '0'
+                )}`;
+
+
+        // ========================================================
+        // 요일 표시
+        // ========================================================
+
+        const WeekdayElement =
+            document.getElementById(
+                'weekPickerWeekday'
+            );
+
+
+        if (
+            CalendarStartDay
+            ===
+            'monday'
+        ) {
+
+            WeekdayElement.innerHTML = `
+                <span>월</span>
+                <span>화</span>
+                <span>수</span>
+                <span>목</span>
+                <span>금</span>
+                <span>토</span>
+                <span class='text-red-500'>일</span>
+            `;
+
+        }
+
+        else {
+
+            WeekdayElement.innerHTML = `
+                <span class='text-red-500'>일</span>
+                <span>월</span>
+                <span>화</span>
+                <span>수</span>
+                <span>목</span>
+                <span>금</span>
+                <span>토</span>
+            `;
+
+        }
+
+
+        // ========================================================
+        // 달력 Grid 초기화
+        // ========================================================
+
+        const CalendarGrid =
+            document.getElementById(
+                'weekPickerGrid'
+            );
+
+
+        CalendarGrid.innerHTML =
+            '';
+
+
+        // ========================================================
+        // 해당 월 첫 날짜
+        // ========================================================
+
+        const FirstDate =
+            new Date(
+                Year,
+                Month,
+                1
+            );
+
+
+        // ========================================================
+        // 해당 월 마지막 날짜
+        // ========================================================
+
+        const LastDate =
+            new Date(
+                Year,
+                Month + 1,
+                0
+            );
+
+
+        // ========================================================
+        // 첫 날짜 앞의 빈 칸 계산
+        // ========================================================
+
+        let StartOffset;
+
+
+        if (
+            CalendarStartDay
+            ===
+            'monday'
+        ) {
+
+            StartOffset =
+                FirstDate.getDay() === 0
+                    ? 6
+                    : FirstDate.getDay() - 1;
+
+        }
+
+        else {
+
+            StartOffset =
+                FirstDate.getDay();
+
+        }
+
+
+        // ========================================================
+        // 이전 달 빈 날짜
+        // ========================================================
+
+        for (
+            let Index = 0;
+            Index < StartOffset;
+            Index++
+        ) {
+
+            const EmptyElement =
+                document.createElement(
+                    'div'
+                );
+
+
+            EmptyElement.className =
+                'h-10';
+
+
+            CalendarGrid.appendChild(
+                EmptyElement
+            );
+
+        }
+
+
+        // ========================================================
+        // 해당 월 날짜 생성
+        // ========================================================
+
+        for (
+            let Day = 1;
+            Day <= LastDate.getDate();
+            Day++
+        ) {
+
+
+            const DateObject =
+                new Date(
+                    Year,
+                    Month,
+                    Day
+                );
+
+
+            // ====================================================
+            // 해당 날짜가 포함된 주 계산
+            // ====================================================
+
+            const WeekStart =
+                GetWeekStart(
+                    DateObject
+                );
+
+
+            const WeekEnd =
+                GetWeekEnd(
+                    WeekStart
+                );
+
+
+            // ====================================================
+            // 날짜 버튼
+            // ====================================================
+
+            const Button =
+                document.createElement(
+                    'button'
+                );
+
+
+            Button.type =
+                'button';
+
+
+            Button.className = `
+                relative
+                flex
+                h-10
+                w-full
+                items-center
+                justify-center
+                text-sm
+                font-medium
+                transition
+                active:scale-95
+            `;
+
+
+            // ====================================================
+            // 현재 선택된 주인지 확인
+            // ====================================================
+
+            const SelectedWeekKey =
+                FormatDate(
+                    Selected_Week_Start
+                );
+
+
+            const CurrentWeekKey =
+                FormatDate(
+                    WeekStart
+                );
+
+
+            const Is_Selected_Week =
+                CurrentWeekKey
+                ===
+                SelectedWeekKey;
+
+
+            // ====================================================
+            // 선택된 주 배경
+            // ====================================================
+
+            if (
+                Is_Selected_Week
+            ) {
+
+                Button.classList.add(
+                    'bg-gray-100'
+                );
+
+            }
+
+
+            // ====================================================
+            // 주 시작 날짜
+            // ====================================================
+
+            if (
+                DateObject.getTime()
+                ===
+                WeekStart.getTime()
+            ) {
+
+                Button.classList.add(
+                    'rounded-l-xl'
+                );
+
+            }
+
+
+            // ====================================================
+            // 주 종료 날짜
+            // ====================================================
+
+            if (
+                DateObject.getTime()
+                ===
+                WeekEnd.getTime()
+            ) {
+
+                Button.classList.add(
+                    'rounded-r-xl'
+                );
+
+            }
+
+
+            // ====================================================
+            // 요일 색상
+            // 일요일만 빨간색
+            // 토요일 파란색 제거
+            // ====================================================
+
+            if (
+                DateObject.getDay()
+                ===
+                0
+            ) {
+
+                Button.classList.add(
+                    'text-red-500'
+                );
+
+            }
+
+            else {
+
+                Button.classList.add(
+                    'text-gray-700'
+                );
+
+            }
+
+
+            // ====================================================
+            // 날짜 표시
+            // ====================================================
+
+            Button.textContent =
+                Day;
+
+
+            // ====================================================
+            // 날짜 클릭
+            // ====================================================
+
+            Button.onclick =
+                function() {
+
+
+                    // ============================================
+                    // 클릭한 날짜가 포함된 주 계산
+                    // ============================================
+
+                    Selected_Week_Start =
+                        GetWeekStart(
+                            DateObject
+                        );
+
+
+                    // ============================================
+                    // 실제 선택한 날짜
+                    // ============================================
+
+                    const DateString =
+                        FormatDate(
+                            DateObject
+                        );
+
+
+                    // ============================================
+                    // 서버로 이동
+                    // ============================================
+
+                    window.location.href =
+                        `/mobile_stats/?date=${DateString}`;
+
+                };
+
+
+            // ====================================================
+            // Grid에 날짜 추가
+            // ====================================================
+
+            CalendarGrid.appendChild(
+                Button
+            );
+
+        }
+
+
+        // ========================================================
+        // 선택된 주 표시
+        // ========================================================
+
+        UpdateSelectedWeekText(
+            Selected_Week_Start
+        );
 
     }
 
 </script>
+
 
 {% endblock %}

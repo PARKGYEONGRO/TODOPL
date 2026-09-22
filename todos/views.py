@@ -526,35 +526,107 @@ def todo_list(request):  # Todo 목록
 
     )
 
-    # ==========================
-    # 월간 통계
-    # ==========================
 
-    monthly_stats = Get_Monthly_Stats(
-        request.user,
-        year,
-        month
-    )
+    # 통계 기간 설정 Cookie 읽기
+    Statistics_Period = request.COOKIES.get('statistics_period', 'monthly')
 
-    # ==========================
-    # 통계 제목
-    # ==========================
+    # 캘린더 시작 요일 Cookie 읽기
+    Calendar_Start_Day = request.COOKIES.get('calendar_start_day', 'sunday')
 
-    is_current_month = (
-        year == today.year
-        and
-        month == today.month
-    )
 
-    if is_current_month:
+    # 통계 계산
+    if Statistics_Period == 'weekly':
 
-        stats_title = '이번달 통계'
+        Period_Stats = Get_Weekly_Stats(
+
+            request.user,
+
+            selected_date_obj,
+
+            Calendar_Start_Day
+
+        )
 
     else:
 
-        stats_title = (
-            f'{year}년 {month}월 통계'
+        Period_Stats = Get_Monthly_Stats(
+
+            request.user,
+
+            year,
+
+            month
+
         )
+
+
+    # 통계 제목
+    if Statistics_Period == 'weekly':
+
+        if Calendar_Start_Day == 'sunday':
+
+            Week_Start = (
+                selected_date_obj
+                -
+                timedelta(
+                    days=(
+                        selected_date_obj.weekday()
+                        +
+                        1
+                    )
+                    %
+                    7
+                )
+            )
+
+        else:
+
+            Week_Start = (
+                selected_date_obj
+                -
+                timedelta(
+                    days=selected_date_obj.weekday()
+                )
+            )
+
+
+        Week_End = (
+            Week_Start
+            +
+            timedelta(
+                days=6
+            )
+        )
+
+
+        stats_title = (
+            f'{Week_Start.year}년 '
+            f'{Week_Start.month}월 '
+            f'{Week_Start.day}일 ~ '
+            f'{Week_End.month}월 '
+            f'{Week_End.day}일 통계'
+        )
+
+
+    else:
+
+        is_current_month = (
+            year == today.year
+            and
+            month == today.month
+        )
+
+
+        if is_current_month:
+
+            stats_title = '이번달 통계'
+
+        else:
+
+            stats_title = (
+                f'{year}년 '
+                f'{month}월 통계'
+            )
 
     # ==========================
     # 선택 날짜 Todo 조회
@@ -1142,7 +1214,10 @@ def todo_list(request):  # Todo 목록
         'stats_title':
             stats_title,
 
-        **monthly_stats
+        'statistics_period':
+            Statistics_Period,
+
+        **Period_Stats
 
     }
 
@@ -1694,21 +1769,39 @@ def todo_toggle(request, todo_id): #Toggle 완료 / 미완료
     )
 
 
+    # 통계 기간 설정 Cookie 읽기
+    Statistics_Period = request.COOKIES.get('statistics_period', 'monthly')
+
+    # 캘린더 시작 요일 Cookie 읽기
+    Calendar_Start_Day = request.COOKIES.get('calendar_start_day', 'sunday')
+
 
     # ==========================
-    # 월 통계
+    # 기간 통계
     # ==========================
+    if Statistics_Period == 'weekly':
 
+        Period_Stats = Get_Weekly_Stats(
 
-    monthly_stats = Get_Monthly_Stats(
+            request.user,
 
-        request.user,
+            selected_date,
 
-        selected_date.year,
+            Calendar_Start_Day
 
-        selected_date.month
+        )
 
-    )
+    else:
+
+        Period_Stats = Get_Monthly_Stats(
+
+            request.user,
+
+            selected_date.year,
+
+            selected_date.month
+
+        )
 
 
 
@@ -1740,52 +1833,44 @@ def todo_toggle(request, todo_id): #Toggle 완료 / 미완료
             selected_completion_rate,
 
 
-        'monthly_total_count':
-            monthly_stats[
-
+        'period_total_count':
+            Period_Stats[
                 'total_count'
-
             ],
 
 
-        'monthly_completed_count':
-            monthly_stats[
-
+        'period_completed_count':
+            Period_Stats[
                 'completed_count'
-
             ],
 
 
-        'monthly_incomplete_count':
-            monthly_stats[
-
+        'period_incomplete_count':
+            Period_Stats[
                 'incomplete_count'
-
             ],
 
 
-        'monthly_completion_rate':
-            monthly_stats[
-
+        'period_completion_rate':
+            Period_Stats[
                 'completion_rate'
-
             ],
 
 
-        'monthly_tag_stats':
-            monthly_stats[
-
+        'period_tag_stats':
+            Period_Stats[
                 'tag_stats'
-
             ],
 
 
-        'monthly_priority_stats':
-            monthly_stats[
-
+        'period_priority_stats':
+            Period_Stats[
                 'priority_stats'
+            ],
 
-            ]
+
+        'statistics_period':
+            Statistics_Period
 
     })
 
@@ -2201,39 +2286,83 @@ def mobile_stats(request): #통계
     month = selected_date_obj.month
 
 
-    monthly_stats = Get_Monthly_Stats(
+    # 통계 기간 설정 Cookie 읽기
+    Statistics_Period = request.COOKIES.get('statistics_period', 'monthly')
 
-        request.user,
+    # 캘린더 시작 요일 Cookie 읽기
+    Calendar_Start_Day = request.COOKIES.get('calendar_start_day', 'sunday')
 
-        year,
+    # 통계 계산
+    if Statistics_Period == 'weekly':
 
-        month
+        Period_Stats = Get_Weekly_Stats(
 
-    )
+            request.user,
 
+            selected_date_obj.date(),
 
-    is_current_month = (
+            Calendar_Start_Day
 
-        year == today.year
-
-        and
-
-        month == today.month
-
-    )
-
-
-    if is_current_month:
-
-        stats_title = '이번달 통계'
+        )
 
     else:
 
-        stats_title = (
+        Period_Stats = Get_Monthly_Stats(
 
-            f'{year}년 {month}월 통계'
+            request.user,
+
+            year,
+
+            month
 
         )
+
+    # 통계 제목
+    if Statistics_Period == 'weekly':
+
+        if Calendar_Start_Day == 'sunday':
+
+            Week_Start = (selected_date_obj.date() - timedelta(days=(selected_date_obj.weekday() + 1) % 7))
+
+        else:
+
+            Week_Start = (selected_date_obj.date() - timedelta(days=selected_date_obj.weekday()))
+
+
+        Week_End = (Week_Start +timedelta(days=6))
+
+
+        stats_title = (
+            # f'{Week_Start.year}년 '
+            f'{Week_Start.month}월 '
+            f'{Week_Start.day}일 ~ '
+            f'{Week_End.month}월 '
+            f'{Week_End.day}일 통계'
+        )
+        
+    else:
+        is_current_month = (
+
+            year == today.year
+
+            and
+
+            month == today.month
+
+        )
+
+
+        if is_current_month:
+
+            stats_title = '이번달 통계'
+
+        else:
+
+            stats_title = (
+
+                f'{year}년 {month}월 통계'
+
+            )
 
 
     context = {
@@ -2264,7 +2393,13 @@ def mobile_stats(request): #통계
                 request.user
             ),
 
-        **monthly_stats,
+        'statistics_period':
+            Statistics_Period,
+
+        'calendar_start_day':
+            Calendar_Start_Day,
+
+        **Period_Stats,
 
     }
 
@@ -2279,11 +2414,13 @@ def mobile_stats(request): #통계
 
     )
 
-
 def Is_Todo_Completed_For_Period(todo, period_start, period_end): #통계 처리
+
     # 일반 Todo
     if todo.end_date is None:
+
         return todo.is_completed
+
 
     # 해당 통계 기간과 실제 Todo 기간의 교집합
     todo_start = max(
@@ -2296,116 +2433,161 @@ def Is_Todo_Completed_For_Period(todo, period_start, period_end): #통계 처리
         period_end
     )
 
+
     # 겹치는 기간이 없으면 미완료
     if todo_start > todo_end:
+
         return False
 
+
     required_days = (
-        todo_end - todo_start
+        todo_end
+        -
+        todo_start
     ).days + 1
 
+
     completed_days = sum(
+
         1
+
         for completion in todo.completions.all()
+
         if (
             todo_start
-            <= completion.completed_date
-            <= todo_end
+            <=
+            completion.completed_date
+            <=
+            todo_end
         )
+
     )
+
 
     return completed_days >= required_days
 
-def Get_Monthly_Stats(user, year, month): #월간 통계
-    month_start = date(
-        year,
-        month,
-        1
-    )
+def Get_Period_Stats(user, period_start, period_end): #기간 통계
 
-    month_end = date(
-        year,
-        month,
-        calendar.monthrange(
-            year,
-            month
-        )[1]
-    )
 
     # ==========================
-    # 월간 Todo 조회
+    # 기간 Todo 조회
     # ==========================
 
-    monthly_todos = list(
+    period_todos = list(
+
         Todo.objects
+
         .filter(
             user=user
         )
+
         .filter(
-            due_date__lte=month_end
-        )
-        .filter(
+
             Q(
-                end_date__isnull=True
+                end_date__isnull=True,
+                due_date__gte=period_start,
+                due_date__lte=period_end
             )
+
             |
+
             Q(
-                end_date__gte=month_start
+                end_date__isnull=False,
+                due_date__lte=period_end,
+                end_date__gte=period_start
             )
+
         )
+
         .select_related(
             'tag'
         )
+
         .prefetch_related(
             'completions'
         )
+
         .order_by(
             'created_at'
         )
+
     )
+
 
     # ==========================
     # Todo 완료 상태 계산
     # ==========================
 
-    for todo in monthly_todos:
+    for todo in period_todos:
 
         todo.period_completed = (
+
             Is_Todo_Completed_For_Period(
+
                 todo,
-                month_start,
-                month_end
+
+                period_start,
+
+                period_end
+
             )
+
         )
+
 
     # ==========================
     # 기본 통계
     # ==========================
 
     total_count = len(
-        monthly_todos
+        period_todos
     )
+
 
     completed_count = sum(
+
         1
-        for todo in monthly_todos
+
+        for todo in period_todos
+
         if todo.period_completed
+
     )
+
 
     incomplete_count = (
+
         total_count
-        - completed_count
+
+        -
+
+        completed_count
+
     )
 
+
     completion_rate = (
+
         round(
+
             completed_count
-            / total_count
-            * 100
+
+            /
+
+            total_count
+
+            *
+
+            100
+
         )
+
         if total_count
+
         else 0
+
     )
+
 
     # ==========================
     # 태그 통계
@@ -2413,13 +2595,16 @@ def Get_Monthly_Stats(user, year, month): #월간 통계
 
     tag_result = {}
 
-    for todo in monthly_todos:
+
+    for todo in period_todos:
 
         tag = todo.tag
+
 
         if tag.id not in tag_result:
 
             tag_result[tag.id] = {
+
                 'id':
                     tag.id,
 
@@ -2434,63 +2619,103 @@ def Get_Monthly_Stats(user, year, month): #월간 통계
 
                 'completed':
                     0
+
             }
 
+
         tag_result[tag.id]['total'] += 1
+
 
         if todo.period_completed:
 
             tag_result[tag.id]['completed'] += 1
 
+
     tag_stats = []
+
 
     for item in tag_result.values():
 
         item['rate'] = (
+
             round(
+
                 item['completed']
-                / item['total']
-                * 100
+
+                /
+
+                item['total']
+
+                *
+
+                100
+
             )
+
             if item['total']
+
             else 0
+
         )
+
 
         tag_stats.append(
             item
         )
+
 
     # ==========================
     # 우선순위 통계
     # ==========================
 
     priority_map = {
-        'H': '높음',
-        'M': '보통',
-        'L': '낮음'
+
+        'H':
+            '높음',
+
+        'M':
+            '보통',
+
+        'L':
+            '낮음'
+
     }
 
+
     priority_stats = []
+
 
     for code, name in priority_map.items():
 
         priority_todos = [
+
             todo
-            for todo in monthly_todos
+
+            for todo in period_todos
+
             if todo.priority == code
+
         ]
+
 
         priority_total = len(
             priority_todos
         )
 
+
         priority_completed = sum(
+
             1
+
             for todo in priority_todos
+
             if todo.period_completed
+
         )
 
+
         priority_stats.append({
+
             'code':
                 code,
 
@@ -2505,21 +2730,36 @@ def Get_Monthly_Stats(user, year, month): #월간 통계
 
             'rate':
                 (
+
                     round(
+
                         priority_completed
-                        / priority_total
-                        * 100
+
+                        /
+
+                        priority_total
+
+                        *
+
+                        100
+
                     )
+
                     if priority_total
+
                     else 0
+
                 )
+
         })
+
 
     # ==========================
     # 결과
     # ==========================
 
     return {
+
         'total_count':
             total_count,
 
@@ -2537,7 +2777,60 @@ def Get_Monthly_Stats(user, year, month): #월간 통계
 
         'priority_stats':
             priority_stats
+
     }
+
+def Get_Monthly_Stats(user, year, month): #월간 통계
+
+    month_start = date(
+        year,
+        month,
+        1
+    )
+
+
+    month_end = date(
+
+        year,
+
+        month,
+
+        calendar.monthrange(
+
+            year,
+
+            month
+
+        )[1]
+
+    )
+
+
+    return Get_Period_Stats(
+
+        user,
+
+        month_start,
+
+        month_end
+
+    )
+
+def Get_Weekly_Stats(user, selected_date, Calendar_Start_Day='monday'): #주간 통계
+
+
+    # 주간 시작 요일 계산
+    if Calendar_Start_Day == 'sunday':
+        week_start = (selected_date - timedelta(days=selected_date.weekday()))
+
+    else:
+        week_start = (selected_date - timedelta(days=selected_date.weekday()))
+
+    # 주간 종료 요일 계산
+    week_end = (week_start + timedelta(days=6))
+
+
+    return Get_Period_Stats(user, week_start, week_end)
 
 
 @login_required(login_url='/login/')

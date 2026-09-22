@@ -129,6 +129,14 @@ function Save_Calendar_Settings(
         +
         '; path=/; max-age=31536000; SameSite=Lax';
 
+    document.cookie = 
+
+        'statistics_period='
+        +
+        CalendarSettings.Statistics_Period
+        +
+        '; path=/; max-age=31536000; SameSite=Lax';
+
 
     console.log(
         '캘린더 설정 저장 완료:',
@@ -239,45 +247,66 @@ function Apply_Calendar_Settings_To_Modal(
 
 
 /* ============================================================
-   캘린더 설정 저장 및 화면 적용
+   캘린더 설정 저장
    ============================================================ */
 
 function Save_Current_Calendar_Settings() {
 
-    const Previous_Calendar_Settings =
-        Get_Calendar_Settings();
-
-
-    const Calendar_Settings =
+    const CalendarSettings =
         Get_Selected_Calendar_Settings();
 
 
+    /* ========================================================
+       설정 저장
+       ======================================================== */
+
     Save_Calendar_Settings(
-        Calendar_Settings
-    );
-
-
-    Apply_Calendar_Settings(
-        Calendar_Settings
+        CalendarSettings
     );
 
 
     /* ========================================================
-       캘린더 시작 요일이 변경된 경우
-       Django에서 캘린더를 다시 생성
+       설정 적용
        ======================================================== */
 
-    if (
+    Apply_Calendar_Settings(
+        CalendarSettings
+    );
 
-        Previous_Calendar_Settings.Calendar_Start_Day
-        !==
-        Calendar_Settings.Calendar_Start_Day
 
-    ) {
+    /* ========================================================
+       모달 숨김
+       ======================================================== */
 
-        window.location.reload();
+    const CalendarSettingsModal =
+        Get_Calendar_Settings_Element(
+            'calendarSettingsModal'
+        );
+
+
+    if (CalendarSettingsModal) {
+
+        Hide_Calendar_Settings_Modal(
+            CalendarSettingsModal
+        );
 
     }
+
+
+    /* ========================================================
+       스크롤 잠금 해제
+       ======================================================== */
+
+    document.body.classList.remove(
+        'overflow-hidden'
+    );
+
+
+    /* ========================================================
+       페이지 새로고침
+       ======================================================== */
+
+    window.location.reload();
 
 }
 
@@ -441,13 +470,18 @@ function closeCalendarSettingsModal() {
     }
 
 
-    Save_Current_Calendar_Settings();
-
+    /* ========================================================
+       모달 숨김
+       ======================================================== */
 
     Hide_Calendar_Settings_Modal(
         CalendarSettingsModal
     );
 
+
+    /* ========================================================
+       스크롤 잠금 해제
+       ======================================================== */
 
     document.body.classList.remove(
         'overflow-hidden'
@@ -526,33 +560,6 @@ document.addEventListener(
 
 );
 
-
-/* ============================================================
-   라디오 버튼 변경 시 즉시 저장
-   ============================================================ */
-
-document.addEventListener(
-
-    'change',
-
-    function(Event) {
-
-        if (
-            !Event.target.matches(
-                'input[name="calendarStartDay"], input[name="statisticsPeriod"], input[name="timeFormat"]'
-            )
-        ) {
-
-            return;
-
-        }
-
-
-        Save_Current_Calendar_Settings();
-
-    }
-
-);
 
 
 /* ============================================================
