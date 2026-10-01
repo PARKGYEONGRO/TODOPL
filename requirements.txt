@@ -1,0 +1,7 @@
+django
+dotenv
+supabase
+requests
+Pillow
+google_auth_oauthlib
+psycopg2
